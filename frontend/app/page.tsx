@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Aperture } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,7 @@ export default function LoginPage() {
           </CardHeader>
           
           <CardContent className="px-8 pb-10">
-            <form className="space-y-6">
+            <div className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
                   Email
@@ -37,7 +38,6 @@ export default function LoginPage() {
                   type="email"
                   placeholder="name@example.com"
                   className="h-12 bg-black/40 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-[#C1121F] focus-visible:border-[#C1121F] rounded-lg transition-all"
-                  required
                 />
               </div>
               
@@ -55,17 +55,18 @@ export default function LoginPage() {
                   type="password"
                   placeholder="••••••••"
                   className="h-12 bg-black/40 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-[#C1121F] focus-visible:border-[#C1121F] rounded-lg transition-all"
-                  required
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full bg-[#C1121F] text-white hover:bg-white hover:text-black transition-all duration-300 h-12 text-sm font-semibold rounded-lg mt-4 shadow-lg hover:shadow-white/20"
-              >
-                Sign In
-              </Button>
-            </form>
+              <Link href="/dashboard" className="block w-full mt-4">
+                <Button
+                  type="button"
+                  className="w-full bg-[#C1121F] text-white hover:bg-white hover:text-black transition-all duration-300 h-12 text-sm font-semibold rounded-lg shadow-lg hover:shadow-white/20"
+                >
+                  Sign In
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
         
