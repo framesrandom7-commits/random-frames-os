@@ -4,14 +4,20 @@ import { getClient } from "@/app/actions/client";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { getProjects } from "@/app/actions/project";
+import ProjectCardGrid from "@/components/projects/project-card-grid";
+import { Prisma } from "@prisma/client";
 import { ArrowLeft, Mail, Phone, MapPin, Globe, AtSign, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClientDetailsPage({ params }: { params: { id: string } }) {
-  const client = await getClient(params.id);
+  const [client, projectData] = await Promise.all([
+    getClient(params.id),
+    getProjects({ clientId: params.id, limit: 100 })
+  ]);
 
   if (!client) {
     notFound();
@@ -116,18 +122,27 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
                   <CardTitle className="text-white text-lg flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-zinc-400" />
-                    Projects
+                    Projects ({projectData.total})
                   </CardTitle>
+                  <Link href={`/projects?new=true&clientId=${client.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 bg-[#C1121F] hover:bg-[#a00f1a] text-white">
+                    <Plus className="w-4 h-4 mr-2" /> New Project
+                  </Link>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-zinc-500 text-sm">No projects assigned yet.</p>
+                  <ProjectCardGrid 
+                    projects={projectData.projects as any} 
+                    clients={[{ id: client.id, businessName: client.businessName }]} 
+                    total={projectData.total}
+                  />
                 </CardContent>
               </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
               <Card className="border-white/10 bg-white/5 backdrop-blur-md">
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -165,8 +180,9 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
                 </CardContent>
               </Card>
             </div>
+          </div>
             
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
+          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-white text-lg">Activity Timeline</CardTitle>
                 <Button size="sm" variant="outline" className="h-8 bg-zinc-900 border-white/10 text-white">
