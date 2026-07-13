@@ -172,6 +172,7 @@ model User {
 
   leadsCreated  Lead[]    @relation("LeadCreatedBy")
   leadsUpdated  Lead[]    @relation("LeadUpdatedBy")
+  notifications Notification[]
 }
 
 model Tag {
@@ -247,6 +248,7 @@ model Lead {
   
   updatedById   String?
   updatedBy     User?        @relation("LeadUpdatedBy", fields: [updatedById], references: [id])
+  notifications Notification[]
 }
 
 model LeadActivity {
@@ -348,6 +350,7 @@ model Client {
   calendarEvents    CalendarEvent[]
   invoices          Invoice[]
   payments          Payment[]
+  notifications     Notification[]
 }
 
 model Project {
@@ -385,6 +388,7 @@ model Project {
   calendarEvents  CalendarEvent[]
   invoices        Invoice[]
   payments        Payment[]
+  notifications   Notification[]
 }
 
 model Shoot {
@@ -425,6 +429,7 @@ model Shoot {
   updatedBy       String?
   
   calendarEvents  CalendarEvent[]
+  notifications   Notification[]
 }
 
 model ShootEquipment {
@@ -515,6 +520,7 @@ model Invoice {
   client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   
   payments        Payment[]
+  notifications   Notification[]
   
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -556,5 +562,65 @@ model Expense {
 model Setting {
   key       String   @id
   value     Json
+  updatedAt DateTime @updatedAt
+}
+
+enum NotificationType {
+  LEAD_FOLLOW_UP
+  SHOOT_REMINDER
+  MEETING_REMINDER
+  PROJECT_DEADLINE
+  DELIVERY_REMINDER
+  INVOICE_DUE
+  PAYMENT_RECEIVED
+  OVERDUE_PAYMENT
+  GENERAL_REMINDER
+}
+
+enum NotificationStatus {
+  PENDING
+  COMPLETED
+  DISMISSED
+  SNOOZED
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Notification {
+  id        String             @id @default(cuid())
+  title     String
+  message   String?
+  type      NotificationType
+  status    NotificationStatus @default(PENDING)
+  priority  NotificationPriority @default(MEDIUM)
+  
+  dueDate   DateTime?
+  snoozedUntil DateTime?
+  
+  // Relations to other entities for Drill Down
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  
+  clientId  String?
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  shootId   String?
+  shoot     Shoot?   @relation(fields: [shootId], references: [id], onDelete: SetNull)
+  
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

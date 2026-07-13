@@ -4,6 +4,7 @@ import StatCard from "@/components/dashboard/stat-card";
 import RecentLeads from "@/components/dashboard/recent-leads";
 import UpcomingShoots from "@/components/dashboard/upcoming-shoots";
 import QuickActions from "@/components/dashboard/quick-actions";
+import UpcomingReminders from "@/components/dashboard/upcoming-reminders";
 import { Users, UserCircle, Briefcase, DollarSign } from "lucide-react";
 
 export default function DashboardPage() {
@@ -25,10 +26,11 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-8 grid gap-6 grid-cols-1 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <RecentLeads />
           </div>
           <div className="space-y-6">
+            <UpcomingReminders />
             <UpcomingShoots />
             <QuickActions />
           </div>
