@@ -18,12 +18,13 @@ import ShootTable from "@/components/shoots/shoot-table";
 export const dynamic = "force-dynamic";
 
 export default async function ClientDetailsPage({ params }: { params: { id: string } }) {
-  const [client, projectData, shootData, clients, projects] = await Promise.all([
+  const [client, projectData, shootData, clients, projects, invoicesData] = await Promise.all([
     getClient(params.id),
     getProjects({ clientId: params.id, limit: 100 }),
     getShoots({ clientId: params.id, limit: 100 }),
     prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),
-    prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } })
+    prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } }),
+    prisma.invoice.findMany({ where: { clientId: params.id }, orderBy: { issueDate: 'desc' }, include: { project: { select: { title: true } } } })
   ]);
 
   if (!client) {
@@ -178,8 +179,30 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
                     Invoices
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-zinc-500 text-sm">No invoices generated.</p>
+                <CardContent className="space-y-3">
+                  {invoicesData.length === 0 ? (
+                    <p className="text-zinc-500 text-sm">No invoices generated.</p>
+                  ) : (
+                    invoicesData.slice(0, 5).map(inv => (
+                      <Link key={inv.id} href={`/finance/invoices/${inv.id}`} className="flex justify-between items-center p-2 rounded-md hover:bg-white/5 transition-colors border border-transparent hover:border-white/10">
+                        <div>
+                          <p className="text-white text-sm font-medium">{inv.invoiceNumber}</p>
+                          <p className="text-zinc-500 text-xs">{inv.project?.title || "No Project"}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-white text-sm font-semibold">${Number(inv.total).toLocaleString()}</p>
+                          <Badge variant="outline" className={`text-[10px] mt-1 ${inv.status === 'PAID' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-400 bg-zinc-500/10'}`}>
+                            {inv.status}
+                          </Badge>
+                        </div>
+                      </Link>
+                    ))
+                  )}
+                  {invoicesData.length > 5 && (
+                    <Link href={`/finance/invoices?clientId=${client.id}`} className="block text-center text-sm text-[#C1121F] hover:text-white mt-2">
+                      View all {invoicesData.length} invoices
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
 
@@ -187,11 +210,19 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-white text-lg flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-zinc-400" />
-                    Payments
+                    Finances Summary
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-zinc-500 text-sm">No payments recorded.</p>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                    <span className="text-zinc-400 text-sm">Total Billed</span>
+                    <span className="text-white font-medium">${invoicesData.reduce((s, i) => s + Number(i.total), 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2">
+                    <Link href={`/finance?clientId=${client.id}`} className="text-sm text-[#C1121F] hover:text-white">
+                      Go to Finance Dashboard
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             </div>

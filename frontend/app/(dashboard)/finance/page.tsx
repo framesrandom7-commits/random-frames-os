@@ -1,22 +1,23 @@
 import React from "react";
-import Topbar from "@/components/dashboard/topbar";
+import { getFinanceDashboardStats } from "@/app/actions/finance";
+import FinanceDashboard from "@/components/finance/finance-dashboard";
 
-export default function FinancePage() {
+export const dynamic = "force-dynamic";
+
+export default async function FinancePage() {
+  const stats = await getFinanceDashboardStats();
+
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center h-full text-zinc-500">
+        Failed to load finance data.
+      </div>
+    );
+  }
+
   return (
-    <>
-      <Topbar title="Finance" />
-      <main className="flex-1 overflow-y-auto p-8">
-        <div className="mb-8 flex items-center text-sm text-zinc-500">
-          <span>Home</span>
-          <span className="mx-2">/</span>
-          <span className="text-zinc-300">Finance</span>
-        </div>
-        
-        <div className="rounded-xl border border-white/10 bg-white/5 p-8 backdrop-blur-md">
-          <h2 className="text-xl font-medium text-white">Finance Content</h2>
-          <p className="mt-2 text-zinc-400">Placeholder content for the Finance page.</p>
-        </div>
-      </main>
-    </>
+    <div className="h-full overflow-y-auto custom-scrollbar pb-8">
+      <FinanceDashboard stats={stats} />
+    </div>
   );
 }

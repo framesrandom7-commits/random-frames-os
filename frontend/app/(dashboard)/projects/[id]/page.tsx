@@ -15,11 +15,12 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function ProjectDetailsPage({ params }: { params: { id: string } }) {
-  const [project, shootData, clients, projects] = await Promise.all([
+  const [project, shootData, clients, projects, invoicesData] = await Promise.all([
     getProject(params.id),
     getShoots({ projectId: params.id, limit: 100 }),
     prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),
-    prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } })
+    prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } }),
+    prisma.invoice.findMany({ where: { projectId: params.id }, orderBy: { issueDate: 'desc' } })
   ]);
 
   if (!project) {
@@ -209,18 +210,40 @@ export default async function ProjectDetailsPage({ params }: { params: { id: str
               </CardContent>
             </Card>
             
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
+              <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
                 <CardTitle className="text-white text-lg flex items-center gap-2">
                   <FileText className="w-5 h-5 text-zinc-400" />
                   Invoices
                 </CardTitle>
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-zinc-400 hover:text-white">
-                  <Plus className="w-4 h-4" />
-                </Button>
+                <Link href={`/finance/invoices?projectId=${project.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-8 px-2 bg-[#C1121F] hover:bg-[#a00f1a] text-white">
+                  <Plus className="w-3 h-3 mr-1" /> New
+                </Link>
               </CardHeader>
-              <CardContent>
-                <p className="text-zinc-500 text-sm">No invoices generated.</p>
+              <CardContent className="space-y-3">
+                  {invoicesData.length === 0 ? (
+                    <p className="text-zinc-500 text-sm">No invoices generated.</p>
+                  ) : (
+                    invoicesData.slice(0, 5).map(inv => (
+                      <Link key={inv.id} href={`/finance/invoices/${inv.id}`} className="flex justify-between items-center p-2 rounded-md hover:bg-white/5 transition-colors border border-transparent hover:border-white/10">
+                        <div>
+                          <p className="text-white text-sm font-medium">{inv.invoiceNumber}</p>
+                          <p className="text-zinc-500 text-[10px]">{new Date(inv.issueDate).toLocaleDateString()}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-white text-sm font-semibold">${Number(inv.total).toLocaleString()}</p>
+                          <Badge variant="outline" className={`text-[10px] mt-1 ${inv.status === 'PAID' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-400 bg-zinc-500/10'}`}>
+                            {inv.status}
+                          </Badge>
+                        </div>
+                      </Link>
+                    ))
+                  )}
+                  {invoicesData.length > 5 && (
+                    <Link href={`/finance/invoices?projectId=${project.id}`} className="block text-center text-sm text-[#C1121F] hover:text-white mt-2">
+                      View all invoices
+                    </Link>
+                  )}
               </CardContent>
             </Card>
 

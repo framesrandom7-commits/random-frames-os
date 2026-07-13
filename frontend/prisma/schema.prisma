@@ -82,6 +82,34 @@ enum PaymentStatus {
   PAID
 }
 
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIAL
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
+enum ExpenseCategory {
+  EQUIPMENT
+  TRAVEL
+  SOFTWARE
+  MARKETING
+  OFFICE
+  MAINTENANCE
+  SALARY
+  OTHER
+}
+
 enum ShootType {
   CAFE
   PRODUCT
@@ -318,6 +346,8 @@ model Client {
   projects          Project[]
   shoots            Shoot[]
   calendarEvents    CalendarEvent[]
+  invoices          Invoice[]
+  payments          Payment[]
 }
 
 model Project {
@@ -353,6 +383,8 @@ model Project {
   
   shoots          Shoot[]
   calendarEvents  CalendarEvent[]
+  invoices        Invoice[]
+  payments        Payment[]
 }
 
 model Shoot {
@@ -459,4 +491,64 @@ model CalendarEvent {
   updatedAt   DateTime @updatedAt
   createdBy   String?
   updatedBy   String?
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+  
+  issueDate       DateTime
+  dueDate         DateTime
+  
+  subtotal        Decimal       @db.Decimal(10, 2)
+  discount        Decimal?      @db.Decimal(10, 2)
+  tax             Decimal?      @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  
+  status          InvoiceStatus @default(DRAFT)
+  notes           String?
+  
+  projectId       String?
+  project         Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  clientId        String
+  client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  payments        Payment[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  amount          Decimal       @db.Decimal(10, 2)
+  paymentDate     DateTime
+  paymentMethod   PaymentMethod @default(OTHER)
+  referenceNumber String?
+  notes           String?
+  
+  invoiceId       String?
+  invoice         Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  
+  projectId       String?
+  project         Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  clientId        String
+  client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime      @default(now())
+}
+
+model Expense {
+  id              String          @id @default(cuid())
+  title           String
+  category        ExpenseCategory @default(OTHER)
+  amount          Decimal         @db.Decimal(10, 2)
+  date            DateTime
+  paymentMethod   PaymentMethod   @default(OTHER)
+  vendor          String?
+  notes           String?
+  
+  createdAt       DateTime        @default(now())
 }
