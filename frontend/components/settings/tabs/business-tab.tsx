@@ -10,16 +10,16 @@ import { updateSetting } from "@/app/actions/settings";
 export default function BusinessTab({ settings }: { settings: Record<string, any> }) {
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
-    businessName: settings.businessName || "Random Frames Studio",
-    ownerName: settings.ownerName || "",
-    email: settings.businessEmail || "",
-    phone: settings.businessPhone || "",
-    website: settings.businessWebsite || "",
+    businessName: settings.businessName || "Random Frames",
+    ownerName: settings.ownerName || "Savan Somaiah T P",
+    email: settings.businessEmail || "frames.random.7@gmail.com",
+    phone: settings.businessPhone || "8073080077",
+    website: settings.businessWebsite || "https://randomframesbysavan.in",
     gstNumber: settings.gstNumber || "",
     address: settings.businessAddress || "",
-    city: settings.businessCity || "",
-    state: settings.businessState || "",
-    country: settings.businessCountry || "",
+    city: settings.businessCity || "Bengaluru",
+    state: settings.businessState || "Karnataka",
+    country: settings.businessCountry || "India",
     postalCode: settings.businessPostalCode || ""
   });
 

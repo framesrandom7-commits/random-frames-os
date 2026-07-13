@@ -380,13 +380,13 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
             <div className="flex justify-between items-start border-b-2 border-zinc-200 pb-8 mb-8">
               <div>
                 <h1 className="text-4xl font-bold text-[#C1121F] tracking-tighter mb-1">RANDOM FRAMES</h1>
-                <p className="text-zinc-500 text-sm font-medium tracking-widest">VISUAL STUDIO</p>
+                <p className="text-zinc-500 text-sm font-medium tracking-widest uppercase">Commercial & Brand Photography</p>
                 
                 <div className="mt-6 text-sm text-zinc-600 space-y-1">
-                  <p>123 Studio Lane</p>
-                  <p>Mumbai, Maharashtra 400001</p>
-                  <p>hello@randomframes.com</p>
-                  <p>+91 98765 43210</p>
+                  <p>Bengaluru, Karnataka, India</p>
+                  <p>frames.random.7@gmail.com</p>
+                  <p>+91 8073080077</p>
+                  <p>randomframesbysavan.in</p>
                 </div>
               </div>
               <div className="text-right">

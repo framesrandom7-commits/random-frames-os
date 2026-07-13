@@ -106,8 +106,8 @@ export async function syncWeb3FormsEmails() {
       data: {
         businessName: "Web3Forms Enquiry - " + Math.floor(Math.random() * 1000),
         contactPerson: "Jane Doe",
-        email: "jane@example.com",
-        phone: "9876543210",
+        email: "frames.random.7@gmail.com",
+        phone: "8073080077",
         leadSource: LeadSource.WEBSITE,
         status: LeadStatus.NEW,
         priority: LeadPriority.HIGH,

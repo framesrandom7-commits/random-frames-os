@@ -11,11 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 export default function InvoiceTab({ settings }: { settings: Record<string, any> }) {
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
-    invoicePrefix: settings.invoicePrefix || "INV-",
+    invoicePrefix: settings.invoicePrefix || "RF-",
     invoiceStartingNumber: settings.invoiceStartingNumber || "1001",
     currency: settings.currency || "INR",
-    taxPercentage: settings.taxPercentage || "18",
-    paymentTerms: settings.paymentTerms || "Net 15",
+    taxPercentage: settings.taxPercentage || "0",
+    paymentTerms: settings.paymentTerms || "Due on Receipt",
     invoiceFooterNotes: settings.invoiceFooterNotes || "Thank you for your business. Please make payments to the account details provided."
   });
 
