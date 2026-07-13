@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import ReminderCard from "@/components/leads/reminder-card";
 import AttachmentCard from "@/components/leads/attachment-card";
+import ConvertToClientButton from "@/components/leads/convert-to-client-button";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,16 @@ export default async function LeadDetailsPage({ params }: { params: { id: string
             <div className="flex items-center gap-3">
               <StatusBadge status={lead.status} />
               <PriorityBadge priority={lead.priority} />
+              
+              {lead.convertedToClientId ? (
+                <Link href={`/clients/${lead.convertedToClientId}`}>
+                  <Button className="bg-zinc-800 text-white hover:bg-zinc-700">
+                    View Client
+                  </Button>
+                </Link>
+              ) : (
+                <ConvertToClientButton leadId={lead.id} />
+              )}
             </div>
           </div>
         </div>
