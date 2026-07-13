@@ -6,8 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import StatusBadge from "./status-badge";
 import PriorityBadge from "./priority-badge";
 import { Button } from "@/components/ui/button";
-import { FilePlus, Edit, Trash2, ExternalLink, Star, ArrowUp, ArrowDown, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { FilePlus, Edit, Trash2, ExternalLink, Star, ArrowUp, ArrowDown, RotateCcw, ChevronLeft, ChevronRight, MessageCircle, Eye } from "lucide-react";
 import LeadForm from "./lead-form";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
 import { softDeleteLead, restoreLead, bulkDeleteLeads, bulkUpdateLeadStatus, LeadListWithRelations } from "@/app/actions/lead";
 import { toast } from "sonner";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
@@ -295,8 +296,20 @@ export default function LeadTable({ leads, page = 1, totalPages = 1, total = 0 }
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {lead.phone && (
+                        <a 
+                          href={whatsappLinks.generalMessage(lead.phone, `Hi ${lead.contactPerson || lead.businessName},\n\n`)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-emerald-500 hover:bg-emerald-500/10" title="WhatsApp">
+                            <MessageCircle className="h-4 w-4" />
+                          </Button>
+                        </a>
+                      )}
                       <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleRowClick(lead.id); }} className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10" title="View Details">
-                        <ExternalLink className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </Button>
                       {!isArchived && (
                         <Button variant="ghost" size="icon" onClick={(e) => handleEdit(e, lead)} className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10" title="Edit">

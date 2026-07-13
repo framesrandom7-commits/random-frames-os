@@ -4,13 +4,14 @@ import React, { useState, useTransition } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FolderPlus, Edit, Trash2, ExternalLink, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Copy } from "lucide-react";
+import { FolderPlus, Edit, Trash2, ExternalLink, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, Copy, MessageCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Project, Client } from "@prisma/client";
 import { deleteProject, duplicateProject } from "@/app/actions/project";
 import ProjectForm from "./project-form";
 import { Badge } from "@/components/ui/badge";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
 interface ProjectWithClient extends Project {
   client: Client;
@@ -200,8 +201,20 @@ export default function ProjectTable({ projects, clients, page = 1, totalPages =
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {project.client?.phone && (
+                        <a 
+                          href={whatsappLinks.generalMessage(project.client.phone, `Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-emerald-500 hover:bg-emerald-500/10" title="WhatsApp">
+                            <MessageCircle className="h-4 w-4" />
+                          </Button>
+                        </a>
+                      )}
                       <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleRowClick(project.id); }} className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10" title="View Details">
-                        <ExternalLink className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </Button>
                       {!isArchived && (
                         <>

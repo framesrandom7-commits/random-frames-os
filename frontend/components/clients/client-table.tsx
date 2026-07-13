@@ -4,12 +4,13 @@ import React, { useState, useTransition } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FilePlus, Edit, Trash2, ExternalLink, ArrowUp, ArrowDown, RotateCcw, ChevronLeft, ChevronRight, Mail, Phone } from "lucide-react";
+import { FilePlus, Edit, Trash2, ExternalLink, ArrowUp, ArrowDown, RotateCcw, ChevronLeft, ChevronRight, Mail, Phone, MessageCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Client } from "@prisma/client";
 import { deleteClient } from "@/app/actions/client";
 import ClientForm from "./client-form";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
 interface ClientTableProps {
   clients: Client[];
@@ -162,8 +163,20 @@ export default function ClientTable({ clients, page = 1, totalPages = 1, total =
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {client.phone && (
+                        <a 
+                          href={whatsappLinks.generalMessage(client.phone, `Hi ${client.contactPerson || client.businessName},\n\n`)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-emerald-500 hover:bg-emerald-500/10" title="WhatsApp">
+                            <MessageCircle className="h-4 w-4" />
+                          </Button>
+                        </a>
+                      )}
                       <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleRowClick(client.id); }} className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10" title="View Details">
-                        <ExternalLink className="h-4 w-4" />
+                        <Eye className="h-4 w-4" />
                       </Button>
                       {!isArchived && (
                         <Button variant="ghost" size="icon" onClick={(e) => handleEdit(e, client)} className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10" title="Edit">

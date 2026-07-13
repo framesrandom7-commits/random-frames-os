@@ -11,7 +11,14 @@ import { updateInvoice } from "@/app/actions/invoice";
 import { createPayment } from "@/app/actions/payment";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
-import { Download, Printer, Save, CheckCircle, ArrowLeft, Plus } from "lucide-react";
+import { Printer, Download, Plus, Trash2, ArrowLeft, Building, MapPin, Phone, Mail, Calendar as CalendarIcon, Hash, CheckCircle, Upload, MessageCircle, Send, Save } from "lucide-react";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
@@ -313,6 +320,43 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
         
         {/* Toolbar (Hidden on Print) */}
         <div className="p-4 border-b border-white/10 flex items-center justify-end gap-2 bg-black/40 print:hidden">
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 border border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-9 px-4 py-2">
+              <Send className="h-4 w-4 mr-2" /> Share
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10 text-zinc-200 min-w-40">
+              {activeClient?.phone && (
+                <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                  <a 
+                    href={whatsappLinks.sendInvoice(
+                      activeClient.phone, 
+                      activeClient.businessName, 
+                      formData.invoiceNumber,
+                      formData.total,
+                      `https://randomframes.app/invoice/${invoice.id}`
+                    )} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center w-full px-3 py-2 text-emerald-400"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
+                  </a>
+                </DropdownMenuItem>
+              )}
+              {activeClient?.email && (
+                <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                  <a 
+                    href={`mailto:${activeClient.email}?subject=Invoice ${formData.invoiceNumber} from Random Frames&body=Hi ${activeClient.businessName},%0D%0A%0D%0AHere is your invoice for ${formData.total}.%0D%0A%0D%0AView Invoice: https://randomframes.app/invoice/${invoice.id}%0D%0A%0D%0AThank you!`}
+                    className="flex items-center w-full px-3 py-2 text-blue-400"
+                  >
+                    <Mail className="h-4 w-4 mr-2" /> Email
+                  </a>
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button variant="outline" onClick={handlePrint} className="border-white/10 text-zinc-300 hover:text-white hover:bg-white/5">
             <Printer className="h-4 w-4 mr-2" /> Print
           </Button>

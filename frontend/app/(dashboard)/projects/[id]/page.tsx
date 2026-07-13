@@ -4,13 +4,15 @@ import { getProject } from "@/app/actions/project";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera, Info, Calendar, IndianRupee } from "lucide-react";
+import { ArrowLeft, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera, Info, Calendar, IndianRupee, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getShoots } from "@/app/actions/shoot";
 import ShootTable from "@/components/shoots/shoot-table";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import ProjectDriveButton from "@/components/projects/project-drive-button";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +86,25 @@ export default async function ProjectDetailsPage({ params }: { params: { id: str
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
+              <ProjectDriveButton 
+                projectId={project.id} 
+                googleDriveFolderId={project.googleDriveFolderId} 
+                googleDriveLink={project.googleDriveLink} 
+              />
+              
+              {project.client.phone && (
+                <a 
+                  href={whatsappLinks.generalMessage(project.client.phone, `Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`)} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 gap-2">
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp Client
+                  </Button>
+                </a>
+              )}
+
               <div className={`px-4 py-2 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2 ${getPaymentColor(project.paymentStatus)}`}>
                 <IndianRupee className="w-4 h-4" />
                 <span className="font-semibold text-lg">{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>

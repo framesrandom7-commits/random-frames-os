@@ -228,6 +228,9 @@ model Lead {
   
   notes         String?
   
+  // Integration fields
+  sourceEmailId String?      @unique
+  
   convertedToClientId String? @unique
   convertedToClient   Client? @relation("LeadConvertedToClient", fields: [convertedToClientId], references: [id])
   
@@ -375,6 +378,10 @@ model Project {
   
   notes           String?
   
+  // Integration fields
+  googleDriveFolderId String?
+  googleDriveLink     String?
+  
   clientId        String
   client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
   
@@ -477,6 +484,9 @@ model CalendarEvent {
   eventType   CalendarEventType
   status      CalendarEventStatus @default(SCHEDULED)
   color       String?
+  
+  // Integration fields
+  googleCalendarEventId String?
   
   clientId    String?
   client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { CalendarEventType, CalendarEventStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { syncToGoogleCalendar } from "./integrations";
 
 export async function getCalendarEvents(params?: {
   dateStart?: string;

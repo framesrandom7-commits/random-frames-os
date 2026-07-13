@@ -5,12 +5,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, ExternalLink, MoreVertical, Trash2, Copy, FileText } from "lucide-react";
+import { Search, Plus, ExternalLink, MoreVertical, Trash2, Copy, FileText, MessageCircle, Eye } from "lucide-react";
 import Link from "next/link";
 import { Prisma, InvoiceStatus } from "@prisma/client";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { deleteInvoice, generateInvoiceNumber, createInvoice } from "@/app/actions/invoice";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
 type InvoiceWithRelations = Prisma.InvoiceGetPayload<{
   include: { client: true; project: true; payments: true }
@@ -204,6 +205,26 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
                               <ExternalLink className="h-4 w-4 mr-2" /> View & Edit
                             </Link>
                           </DropdownMenuItem>
+                          
+                          {invoice.client?.phone && (
+                            <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                              <a 
+                                href={whatsappLinks.sendInvoice(
+                                  invoice.client.phone, 
+                                  invoice.client.contactPerson || invoice.client.businessName, 
+                                  invoice.invoiceNumber,
+                                  Number(invoice.total),
+                                  `https://randomframes.app/invoice/${invoice.id}`
+                                )} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center w-full px-2 py-1.5 text-emerald-400"
+                              >
+                                <MessageCircle className="h-4 w-4 mr-2" /> Send WhatsApp
+                              </a>
+                            </DropdownMenuItem>
+                          )}
+                          
                           <DropdownMenuItem 
                             onClick={() => handleDuplicate(invoice)}
                             className="hover:bg-white/10 hover:text-white cursor-pointer"
