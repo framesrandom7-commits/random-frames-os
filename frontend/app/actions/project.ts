@@ -149,7 +149,7 @@ export async function duplicateProject(id: string) {
 
     const projectCode = await generateProjectCode();
     
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { id: _, projectCode: __, createdAt, updatedAt, archivedAt, ...projectData } = existingProject;
 
     const newProject = await prisma.project.create({

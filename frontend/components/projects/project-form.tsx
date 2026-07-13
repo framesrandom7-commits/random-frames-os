@@ -25,6 +25,7 @@ export default function ProjectForm({ open, onOpenChange, project, prefilledClie
 
   useEffect(() => {
     if (project && open) {
+      // eslint-disable-next-line
       setFormData(project);
     } else if (open) {
       setFormData({

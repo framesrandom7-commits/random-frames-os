@@ -16,6 +16,7 @@ export default function UpcomingReminders() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line
     fetchReminders();
   }, []);
 

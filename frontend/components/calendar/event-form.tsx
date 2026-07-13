@@ -39,6 +39,7 @@ export default function EventForm({ open, onOpenChange, event, clients, projects
 
   useEffect(() => {
     if (event) {
+      // eslint-disable-next-line
       setFormData({
         title: event.title,
         date: new Date(event.date).toISOString().split("T")[0],

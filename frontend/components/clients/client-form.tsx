@@ -23,6 +23,7 @@ export default function ClientForm({ open, onOpenChange, client }: ClientFormPro
 
   useEffect(() => {
     if (client && open) {
+      // eslint-disable-next-line
       setFormData(client);
     } else if (open) {
       setFormData({

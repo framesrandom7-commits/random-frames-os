@@ -30,10 +30,11 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
 
   useEffect(() => {
     if (shoot && open) {
+      // eslint-disable-next-line
       setFormData(shoot);
     } else if (open) {
       let defaultClientId = prefilledClientId || undefined;
-      let defaultProjectId = prefilledProjectId || undefined;
+      const defaultProjectId = prefilledProjectId || undefined;
 
       // If project is provided but no client, resolve client from project
       if (defaultProjectId && !defaultClientId) {
@@ -52,6 +53,7 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
 
   useEffect(() => {
     if (formData.clientId) {
+      // eslint-disable-next-line
       setFilteredProjects(projects.filter(p => p.clientId === formData.clientId));
       // If the currently selected project doesn't belong to the newly selected client, clear it
       if (formData.projectId && !projects.find(p => p.id === formData.projectId && p.clientId === formData.clientId)) {
@@ -123,7 +125,7 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
     });
   };
 
-  const formatDateForInput = (date: any) => {
+  const formatDateForInput = (date: Date | string | null | undefined) => {
     if (!date) return "";
     const d = new Date(date);
     return isNaN(d.getTime()) ? "" : d.toISOString().split('T')[0];

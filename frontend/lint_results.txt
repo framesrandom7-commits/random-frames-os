@@ -1,0 +1,538 @@
+
+> frontend@0.1.0 lint
+> eslint
+
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/(dashboard)/clients/[id]/page.tsx
+   10:10  warning  'Prisma' is defined but never used        @typescript-eslint/no-unused-vars
+  146:55  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  165:49  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/(dashboard)/leads/page.tsx
+  18:83  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:89  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:83  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/(dashboard)/projects/[id]/page.tsx
+   12:10  warning  'Prisma' is defined but never used        @typescript-eslint/no-unused-vars
+  143:49  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/(dashboard)/projects/page.tsx
+    3:10  warning  'Button' is defined but never used        @typescript-eslint/no-unused-vars
+  134:49  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:49  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/(dashboard)/shoots/page.tsx
+    3:10  warning  'Button' is defined but never used                               @typescript-eslint/no-unused-vars
+   55:77  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  137:43  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  146:43  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/actions/client.ts
+  126:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  184:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/actions/lead.ts
+    4:18   warning  'Lead' is defined but never used          @typescript-eslint/no-unused-vars
+    4:95   warning  'BusinessType' is defined but never used  @typescript-eslint/no-unused-vars
+    4:109  warning  'ReminderType' is defined but never used  @typescript-eslint/no-unused-vars
+  176:23   warning  '_id' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  388:42   warning  '_tags' is defined but never used         @typescript-eslint/no-unused-vars
+  388:63   warning  '_rd' is defined but never used           @typescript-eslint/no-unused-vars
+  388:82   warning  '_rt' is defined but never used           @typescript-eslint/no-unused-vars
+  388:101  warning  '_rType' is defined but never used        @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/actions/notifications.ts
+  8:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/actions/project.ts
+  216:18  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  272:11  warning  'startOfMonth' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/actions/reports.ts
+  4:10  warning  'Prisma' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/actions/settings.ts
+  10:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/app/actions/shoot.ts
+  249:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/calendar-sidebar.tsx
+   8:29  warning  'CalendarEventStatus' is defined but never used                  @typescript-eslint/no-unused-vars
+  10:10  warning  'Input' is defined but never used                                @typescript-eslint/no-unused-vars
+  81:18  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/calendar-view-switcher.tsx
+  5:49  warning  'CalendarIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/event-form.tsx
+   14:49  error  The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-empty-object-type
+   42:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/event-form.tsx:42:7
+  40 |   useEffect(() => {
+  41 |     if (event) {
+> 42 |       setFormData({
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  43 |         title: event.title,
+  44 |         date: new Date(event.date).toISOString().split("T")[0],
+  45 |         isAllDay: event.isAllDay,  react-hooks/set-state-in-effect
+   89:43  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  130:36  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  147:36  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  212:36  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  231:36  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/views/agenda-view.tsx
+   5:10  warning  'Droppable' is defined but never used    @typescript-eslint/no-unused-vars
+   5:21  warning  'Draggable' is defined but never used    @typescript-eslint/no-unused-vars
+   6:17  warning  'MapPin' is defined but never used       @typescript-eslint/no-unused-vars
+  19:46  warning  'currentDate' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/views/month-view.tsx
+  68:115  error  Error: Cannot access variable before it is declared
+
+`getEventColor` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/views/month-view.tsx:68:115
+  66 |                       {...provided.dragHandleProps}
+  67 |                       onClick={(e) => { e.stopPropagation(); onEventClick(event); }}
+> 68 |                       className={`text-xs p-1.5 rounded truncate border-l-2 hover:opacity-80 transition-opacity ${getEventColor(event.eventType)} ${snapshot.isDragging ? 'shadow-lg shadow-black/50 opacity-100 z-50' : ''}`}
+     |                                                                                                                   ^^^^^^^^^^^^^ `getEventColor` accessed before it is declared
+  69 |                       title={event.title}
+  70 |                     >
+  71 |                       <div className="font-medium truncate">{event.title}</div>
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/views/month-view.tsx:96:3
+   94 |   }
+   95 |
+>  96 |   const getEventColor = (type: CalendarEventType) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  97 |     switch (type) {
+      | ^^^^^^^^^^^^^^^^^^^
+>  98 |       case "SHOOT": return "border-blue-500 text-blue-200 bg-blue-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+>  99 |       case "MEETING": return "border-purple-500 text-purple-200 bg-purple-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+> 100 |       case "FOLLOW_UP": return "border-amber-500 text-amber-200 bg-amber-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+> 101 |       case "DELIVERY": return "border-emerald-500 text-emerald-200 bg-emerald-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+> 102 |       case "PAYMENT_DUE": return "border-red-500 text-red-200 bg-red-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+> 103 |       default: return "border-zinc-500 text-zinc-200 bg-zinc-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+> 104 |     }
+      | ^^^^^^^^^^^^^^^^^^^
+> 105 |   };
+      | ^^^^^ `getEventColor` is declared here
+  106 |
+  107 |   return (
+  108 |     <div className="h-full flex flex-col">  react-hooks/immutability
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/views/week-view.tsx
+  67:104  error  Error: Cannot access variable before it is declared
+
+`getEventColor` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/views/week-view.tsx:67:104
+  65 |                       {...provided.dragHandleProps}
+  66 |                       onClick={(e) => { e.stopPropagation(); onEventClick(event); }}
+> 67 |                       className={`text-xs p-2 rounded border-l-2 hover:opacity-80 transition-opacity ${getEventColor(event.eventType)} ${snapshot.isDragging ? 'shadow-lg shadow-black/50 opacity-100 z-50 ring-1 ring-white/20' : ''}`}
+     |                                                                                                        ^^^^^^^^^^^^^ `getEventColor` accessed before it is declared
+  68 |                       title={event.title}
+  69 |                     >
+  70 |                       <div className="font-semibold">{event.title}</div>
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/calendar/views/week-view.tsx:93:3
+   91 |   }
+   92 |
+>  93 |   const getEventColor = (type: CalendarEventType) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  94 |     switch (type) {
+      | ^^^^^^^^^^^^^^^^^^^
+>  95 |       case "SHOOT": return "border-blue-500 text-blue-200 bg-blue-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+>  96 |       case "MEETING": return "border-purple-500 text-purple-200 bg-purple-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+>  97 |       case "FOLLOW_UP": return "border-amber-500 text-amber-200 bg-amber-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+>  98 |       case "DELIVERY": return "border-emerald-500 text-emerald-200 bg-emerald-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+>  99 |       case "PAYMENT_DUE": return "border-red-500 text-red-200 bg-red-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+> 100 |       default: return "border-zinc-500 text-zinc-200 bg-zinc-500/20";
+      | ^^^^^^^^^^^^^^^^^^^
+> 101 |     }
+      | ^^^^^^^^^^^^^^^^^^^
+> 102 |   };
+      | ^^^^^ `getEventColor` is declared here
+  103 |
+  104 |   return (
+  105 |     <div className="h-full flex flex-col">  react-hooks/immutability
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/clients/client-filters.tsx
+  18:10  warning  'isPending' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/clients/client-form.tsx
+  26:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/clients/client-form.tsx:26:7
+  24 |   useEffect(() => {
+  25 |     if (client && open) {
+> 26 |       setFormData(client);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |     } else if (open) {
+  28 |       setFormData({
+  29 |         businessType: "OTHER",  react-hooks/set-state-in-effect
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/clients/client-table.tsx
+  7:68  warning  'RotateCcw' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/dashboard/notification-button.tsx
+  11:54  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  21:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/dashboard/notification-button.tsx:21:5
+  19 |
+  20 |   useEffect(() => {
+> 21 |     fetchNotifications();
+     |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  22 |     // Optional polling could go here
+  23 |   }, []);
+  24 |  react-hooks/set-state-in-effect
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/dashboard/upcoming-reminders.tsx
+  11:46  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  19:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/dashboard/upcoming-reminders.tsx:19:5
+  17 |
+  18 |   useEffect(() => {
+> 19 |     fetchReminders();
+     |     ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  20 |   }, []);
+  21 |
+  22 |   const handleComplete = async (id: string) => {  react-hooks/set-state-in-effect
+  49:16  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react/no-unescaped-entities
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/finance/expenses-table.tsx
+  11:60  warning  'DialogTrigger' is defined but never used                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  19:40  error    The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead  @typescript-eslint/no-empty-object-type
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/finance/finance-dashboard.tsx
+   20:14  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   22:44  error  The `{}` ("empty object") type allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowObjectTypes' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead  @typescript-eslint/no-empty-object-type
+  122:40  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/finance/finance-nav.tsx
+  6:46  warning  'PieChart' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/finance/invoices-table.tsx
+   6:10  warning  'Input' is defined but never used     @typescript-eslint/no-unused-vars
+   8:10  warning  'Search' is defined but never used    @typescript-eslint/no-unused-vars
+  30:56  warning  'projects' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/leads/attachment-card.tsx
+  3:25  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+  5:41  warning  'Trash2' is defined but never used    @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/leads/lead-filters.tsx
+  18:10  warning  'isPending' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/leads/lead-table.tsx
+  175:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  367:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/leads/reminder-card.tsx
+  9:10  warning  'Prisma' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/notifications/notification-card.tsx
+  11:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/notifications/notification-center.tsx
+   12:54  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-explicit-any
+   26:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/notifications/notification-center.tsx:26:5
+  24 |
+  25 |   useEffect(() => {
+> 26 |     fetchNotifications();
+     |     ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |   }, []);
+  28 |
+  29 |   const now = new Date();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/set-state-in-effect
+  102:40  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/notifications/notification-center.tsx:102:40
+  100 |             <>
+  101 |               <TabsContent value="today" className="space-y-4 m-0">
+> 102 |                 {today.length === 0 ? <EmptyState message="You have no tasks due today. Enjoy your day!" /> : 
+      |                                        ^^^^^^^^^^ This component is created during render
+  103 |                   today.map(n => <NotificationCard key={n.id} notification={n} onUpdate={fetchNotifications} />)
+  104 |                 }
+  105 |               </TabsContent>
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/notifications/notification-center.tsx:60:22
+  58 |   const dismissed = notifications.filter(n => n.status === 'DISMISSED');
+  59 |
+> 60 |   const EmptyState = ({ message }: { message: string }) => (
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 61 |     <div className="flex flex-col items-center justify-center p-12 text-zinc-500 border border-dashed border-white/10 rounded-lg">
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 62 |       <p>{message}</p>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 63 |     </div>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 64 |   );
+     | ^^^^ The component is created during render here
+  65 |
+  66 |   return (
+  67 |     <div className="space-y-6">                           react-hooks/static-components
+  108:51  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/notifications/notification-center.tsx:108:51
+  106 |               
+  107 |               <TabsContent value="week" className="space-y-4 m-0">
+> 108 |                 {upcomingThisWeek.length === 0 ? <EmptyState message="No reminders scheduled for this week." /> : 
+      |                                                   ^^^^^^^^^^ This component is created during render
+  109 |                   upcomingThisWeek.map(n => <NotificationCard key={n.id} notification={n} onUpdate={fetchNotifications} />)
+  110 |                 }
+  111 |               </TabsContent>
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/notifications/notification-center.tsx:60:22
+  58 |   const dismissed = notifications.filter(n => n.status === 'DISMISSED');
+  59 |
+> 60 |   const EmptyState = ({ message }: { message: string }) => (
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 61 |     <div className="flex flex-col items-center justify-center p-12 text-zinc-500 border border-dashed border-white/10 rounded-lg">
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 62 |       <p>{message}</p>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 63 |     </div>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 64 |   );
+     | ^^^^ The component is created during render here
+  65 |
+  66 |   return (
+  67 |     <div className="space-y-6">  react-hooks/static-components
+  114:48  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/notifications/notification-center.tsx:114:48
+  112 |
+  113 |               <TabsContent value="upcoming" className="space-y-4 m-0">
+> 114 |                 {upcomingLater.length === 0 ? <EmptyState message="No distant reminders found." /> : 
+      |                                                ^^^^^^^^^^ This component is created during render
+  115 |                   upcomingLater.map(n => <NotificationCard key={n.id} notification={n} onUpdate={fetchNotifications} />)
+  116 |                 }
+  117 |               </TabsContent>
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/notifications/notification-center.tsx:60:22
+  58 |   const dismissed = notifications.filter(n => n.status === 'DISMISSED');
+  59 |
+> 60 |   const EmptyState = ({ message }: { message: string }) => (
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 61 |     <div className="flex flex-col items-center justify-center p-12 text-zinc-500 border border-dashed border-white/10 rounded-lg">
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 62 |       <p>{message}</p>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 63 |     </div>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 64 |   );
+     | ^^^^ The component is created during render here
+  65 |
+  66 |   return (
+  67 |     <div className="space-y-6">                                react-hooks/static-components
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/projects/project-filters.tsx
+  18:10  warning  'isPending' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/projects/project-form.tsx
+   28:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/projects/project-form.tsx:28:7
+  26 |   useEffect(() => {
+  27 |     if (project && open) {
+> 28 |       setFormData(project);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |     } else if (open) {
+  30 |       setFormData({
+  31 |         category: "OTHER",  react-hooks/set-state-in-effect
+  113:37  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/reports/charts.tsx
+    5:10  warning  'Card' is defined but never used          @typescript-eslint/no-unused-vars
+    5:16  warning  'CardContent' is defined but never used   @typescript-eslint/no-unused-vars
+    5:29  warning  'CardHeader' is defined but never used    @typescript-eslint/no-unused-vars
+    5:41  warning  'CardTitle' is defined but never used     @typescript-eslint/no-unused-vars
+   11:53  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   36:32  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   47:51  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   71:50  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:60  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/reports/reports-dashboard.tsx
+   5:10  warning  'Button' is defined but never used        @typescript-eslint/no-unused-vars
+   6:10  warning  'Badge' is defined but never used         @typescript-eslint/no-unused-vars
+  21:42  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:38  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/reports/top-lists.tsx
+    6:10  warning  'Badge' is defined but never used         @typescript-eslint/no-unused-vars
+    7:10  warning  'ArrowRight' is defined but never used    @typescript-eslint/no-unused-vars
+   11:56  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   41:59  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   73:70  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  105:63  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/settings/settings-dashboard.tsx
+  17:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/settings/tabs/backup-tab.tsx
+   7:41  warning  'Database' is defined but never used  @typescript-eslint/no-unused-vars
+  29:14  warning  'e' is defined but never used         @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/settings/tabs/branding-tab.tsx
+  11:78  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  28:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/settings/tabs/business-tab.tsx
+  10:78  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  35:14  warning  'e' is defined but never used                                    @typescript-eslint/no-unused-vars
+  46:65  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/settings/tabs/calendar-tab.tsx
+  11:78  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/settings/tabs/invoice-tab.tsx
+  11:77  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/settings/tabs/notifications-tab.tsx
+  10:83  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  29:14  warning  'e' is defined but never used                                    @typescript-eslint/no-unused-vars
+  73:75  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/settings/tabs/payment-tab.tsx
+  11:77  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/settings/tabs/users-tab.tsx
+   9:10  warning  'createUser' is defined but never used            @typescript-eslint/no-unused-vars
+   9:34  warning  'updateUserRole' is defined but never used        @typescript-eslint/no-unused-vars
+  11:54  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  12:10  warning  'isAdding' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  12:20  warning  'setIsAdding' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/shoots/shoot-calendar-view.tsx
+   6:37  warning  'Camera' is defined but never used            @typescript-eslint/no-unused-vars
+   6:51  warning  'ExternalLink' is defined but never used      @typescript-eslint/no-unused-vars
+  89:11  warning  'dateStr' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/shoots/shoot-filters.tsx
+  18:10  warning  'isPending' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/shoots/shoot-form.tsx
+   33:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/shoots/shoot-form.tsx:33:7
+  31 |   useEffect(() => {
+  32 |     if (shoot && open) {
+> 33 |       setFormData(shoot);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  34 |     } else if (open) {
+  35 |       let defaultClientId = prefilledClientId || undefined;
+  36 |       const defaultProjectId = prefilledProjectId || undefined;                                                                                                                                                                                                               react-hooks/set-state-in-effect
+   55:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/shoots/shoot-form.tsx:55:7
+  53 |   useEffect(() => {
+  54 |     if (formData.clientId) {
+> 55 |       setFilteredProjects(projects.filter(p => p.clientId === formData.clientId));
+     |       ^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  56 |       // If the currently selected project doesn't belong to the newly selected client, clear it
+  57 |       if (formData.projectId && !projects.find(p => p.id === formData.projectId && p.clientId === formData.clientId)) {
+  58 |         setFormData(prev => ({ ...prev, projectId: undefined }));  react-hooks/set-state-in-effect
+  126:37  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/components/shoots/shoot-table.tsx
+  7:111  warning  'CalendarIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/lib/export.ts
+   8:35  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  20:37  error    Unexpected any. Specify a different type            @typescript-eslint/no-explicit-any
+  36:11  warning  'originalStyle' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/savansomaiahtp/Documents/random-frames-os/frontend/middleware.ts
+  4:34  warning  '_request' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 136 problems (76 errors, 60 warnings)
+

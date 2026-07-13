@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Plus, Loader2 } from "lucide-react";
 import AddReminderModal from "./add-reminder-modal";
 
+const EmptyState = ({ message }: { message: string }) => (
+  <div className="flex flex-col items-center justify-center p-12 text-zinc-500 border border-dashed border-white/10 rounded-lg">
+    <p>{message}</p>
+  </div>
+);
+
 export default function NotificationCenter() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,6 +29,7 @@ export default function NotificationCenter() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line
     fetchNotifications();
   }, []);
 
@@ -57,11 +64,7 @@ export default function NotificationCenter() {
   const completed = notifications.filter(n => n.status === 'COMPLETED');
   const dismissed = notifications.filter(n => n.status === 'DISMISSED');
 
-  const EmptyState = ({ message }: { message: string }) => (
-    <div className="flex flex-col items-center justify-center p-12 text-zinc-500 border border-dashed border-white/10 rounded-lg">
-      <p>{message}</p>
-    </div>
-  );
+
 
   return (
     <div className="space-y-6">

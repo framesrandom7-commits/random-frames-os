@@ -164,7 +164,7 @@ export async function duplicateShoot(id: string) {
 
     const shootCode = await generateShootCode();
     
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { id: _, shootCode: __, createdAt, updatedAt, archivedAt, equipment, shots, ...shootData } = existingShoot;
 
     const newShoot = await prisma.shoot.create({

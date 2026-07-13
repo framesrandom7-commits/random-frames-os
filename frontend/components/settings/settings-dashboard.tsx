@@ -14,7 +14,7 @@ import IntegrationsTab from "./tabs/integrations-tab";
 import SecurityTab from "./tabs/security-tab";
 
 interface SettingsDashboardProps {
-  initialSettings: Record<string, any>;
+  initialSettings: any;
   initialUsers: any[];
 }
 

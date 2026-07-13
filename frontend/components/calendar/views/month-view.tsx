@@ -5,6 +5,17 @@ import { Prisma, CalendarEventType } from "@prisma/client";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Clock } from "lucide-react";
 
+const getEventColor = (type: CalendarEventType) => {
+  switch (type) {
+    case "SHOOT": return "border-blue-500 text-blue-200 bg-blue-500/20";
+    case "MEETING": return "border-purple-500 text-purple-200 bg-purple-500/20";
+    case "FOLLOW_UP": return "border-amber-500 text-amber-200 bg-amber-500/20";
+    case "DELIVERY": return "border-emerald-500 text-emerald-200 bg-emerald-500/20";
+    case "PAYMENT_DUE": return "border-red-500 text-red-200 bg-red-500/20";
+    default: return "border-zinc-500 text-zinc-200 bg-zinc-500/20";
+  }
+};
+
 type CalendarEventWithRelations = Prisma.CalendarEventGetPayload<{
   include: { client: true; project: true; shoot: true; lead: true }
 }>;
@@ -92,17 +103,6 @@ export default function MonthView({ events, currentDate, onEventClick, onDayClic
   for (let i = 0; i < remainingCells; i++) {
     days.push(<div key={`empty-end-${i}`} className="min-h-[120px] bg-white/5 border-r border-b border-white/5 opacity-50"></div>);
   }
-
-  const getEventColor = (type: CalendarEventType) => {
-    switch (type) {
-      case "SHOOT": return "border-blue-500 text-blue-200 bg-blue-500/20";
-      case "MEETING": return "border-purple-500 text-purple-200 bg-purple-500/20";
-      case "FOLLOW_UP": return "border-amber-500 text-amber-200 bg-amber-500/20";
-      case "DELIVERY": return "border-emerald-500 text-emerald-200 bg-emerald-500/20";
-      case "PAYMENT_DUE": return "border-red-500 text-red-200 bg-red-500/20";
-      default: return "border-zinc-500 text-zinc-200 bg-zinc-500/20";
-    }
-  };
 
   return (
     <div className="h-full flex flex-col">
