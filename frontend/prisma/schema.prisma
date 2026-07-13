@@ -3,11 +3,11 @@
 
 generator client {
   provider = "prisma-client-js"
-  engineType = "library"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum LeadStatus {
@@ -206,6 +206,8 @@ model Lead {
   communications LeadCommunication[]
   reminders      LeadReminder[]
   attachments    LeadAttachment[]
+  calendarEvents CalendarEvent[]
+
   
   // Enterprise fields
   createdAt     DateTime     @default(now())
@@ -315,6 +317,7 @@ model Client {
   convertedFromLead Lead?    @relation("LeadConvertedToClient")
   projects          Project[]
   shoots            Shoot[]
+  calendarEvents    CalendarEvent[]
 }
 
 model Project {
@@ -349,6 +352,7 @@ model Project {
   updatedBy       String?
   
   shoots          Shoot[]
+  calendarEvents  CalendarEvent[]
 }
 
 model Shoot {
@@ -387,6 +391,8 @@ model Shoot {
   archivedAt      DateTime?
   createdBy       String?
   updatedBy       String?
+  
+  calendarEvents  CalendarEvent[]
 }
 
 model ShootEquipment {
@@ -407,4 +413,50 @@ model ShootShot {
   
   shootId     String
   shoot       Shoot    @relation(fields: [shootId], references: [id], onDelete: Cascade)
+}
+
+enum CalendarEventType {
+  SHOOT
+  MEETING
+  FOLLOW_UP
+  DELIVERY
+  PAYMENT_DUE
+  PERSONAL_REMINDER
+}
+
+enum CalendarEventStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  title       String
+  date        DateTime
+  startTime   String?
+  endTime     String?
+  isAllDay    Boolean  @default(false)
+  eventType   CalendarEventType
+  status      CalendarEventStatus @default(SCHEDULED)
+  color       String?
+  
+  clientId    String?
+  client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  shootId     String?
+  shoot       Shoot?   @relation(fields: [shootId], references: [id], onDelete: Cascade)
+  
+  leadId      String?
+  lead        Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  
+  notes       String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedBy   String?
 }

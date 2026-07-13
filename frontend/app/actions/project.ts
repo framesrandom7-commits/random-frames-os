@@ -47,6 +47,18 @@ export async function createProject(data: CreateProjectData) {
       data: {
         ...data,
         projectCode,
+        ...(data.deliveryDate ? {
+          calendarEvents: {
+            create: {
+              title: `Delivery: ${data.title}`,
+              date: data.deliveryDate,
+              isAllDay: true,
+              eventType: "DELIVERY",
+              status: data.status === "DELIVERED" || data.status === "COMPLETED" ? "COMPLETED" : (data.status === "CANCELLED" ? "CANCELLED" : "SCHEDULED"),
+              clientId: data.clientId,
+            }
+          }
+        } : {})
       }
     });
     
@@ -66,9 +78,40 @@ export async function updateProject(id: string, data: Partial<CreateProjectData>
       data,
     });
     
+    // Sync CalendarEvent
+    if (project.deliveryDate) {
+      const existingEvent = await prisma.calendarEvent.findFirst({ where: { projectId: id, eventType: "DELIVERY" } });
+      const status = project.status === "DELIVERED" || project.status === "COMPLETED" ? "COMPLETED" : (project.status === "CANCELLED" ? "CANCELLED" : "SCHEDULED");
+      if (existingEvent) {
+        await prisma.calendarEvent.update({
+          where: { id: existingEvent.id },
+          data: {
+            title: `Delivery: ${project.title}`,
+            date: project.deliveryDate,
+            status,
+          }
+        });
+      } else {
+        await prisma.calendarEvent.create({
+          data: {
+            title: `Delivery: ${project.title}`,
+            date: project.deliveryDate,
+            isAllDay: true,
+            eventType: "DELIVERY",
+            status,
+            clientId: project.clientId,
+            projectId: project.id,
+          }
+        });
+      }
+    } else {
+      await prisma.calendarEvent.deleteMany({ where: { projectId: id, eventType: "DELIVERY" } });
+    }
+    
     revalidatePath("/projects");
     revalidatePath(`/projects/${id}`);
     revalidatePath(`/clients/${project.clientId}`);
+    revalidatePath("/calendar");
     return { success: true, project };
   } catch (error) {
     console.error("Error updating project:", error);

@@ -48,6 +48,20 @@ export async function createShoot(data: CreateShootData) {
       data: {
         ...data,
         shootCode,
+        ...(data.date ? {
+          calendarEvents: {
+            create: {
+              title: `Shoot: ${data.title}`,
+              date: data.date,
+              startTime: data.startTime || null,
+              endTime: data.endTime || null,
+              eventType: "SHOOT",
+              status: data.status === "COMPLETED" ? "COMPLETED" : (data.status === "CANCELLED" ? "CANCELLED" : "SCHEDULED"),
+              clientId: data.clientId,
+              projectId: data.projectId,
+            }
+          }
+        } : {})
       }
     });
     
@@ -68,6 +82,39 @@ export async function updateShoot(id: string, data: Partial<CreateShootData>) {
       where: { id },
       data,
     });
+    
+    // Sync CalendarEvent
+    if (shoot.date) {
+      const existingEvent = await prisma.calendarEvent.findFirst({ where: { shootId: id } });
+      if (existingEvent) {
+        await prisma.calendarEvent.update({
+          where: { id: existingEvent.id },
+          data: {
+            title: `Shoot: ${shoot.title}`,
+            date: shoot.date,
+            startTime: shoot.startTime || null,
+            endTime: shoot.endTime || null,
+            status: shoot.status === "COMPLETED" ? "COMPLETED" : (shoot.status === "CANCELLED" ? "CANCELLED" : "SCHEDULED"),
+          }
+        });
+      } else {
+        await prisma.calendarEvent.create({
+          data: {
+            title: `Shoot: ${shoot.title}`,
+            date: shoot.date,
+            startTime: shoot.startTime || null,
+            endTime: shoot.endTime || null,
+            eventType: "SHOOT",
+            status: shoot.status === "COMPLETED" ? "COMPLETED" : (shoot.status === "CANCELLED" ? "CANCELLED" : "SCHEDULED"),
+            clientId: shoot.clientId,
+            projectId: shoot.projectId,
+            shootId: shoot.id,
+          }
+        });
+      }
+    } else {
+      await prisma.calendarEvent.deleteMany({ where: { shootId: id } });
+    }
     
     revalidatePath("/shoots");
     revalidatePath(`/shoots/${id}`);

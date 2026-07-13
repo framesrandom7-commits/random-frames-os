@@ -141,6 +141,20 @@ export async function createLead(data: LeadFormData) {
       await syncTags(newLead.id, tags);
     }
     
+    // Sync CalendarEvent
+    if (reminderDate && reminderType && (reminderType === "FOLLOW_UP" || reminderType === "MEETING")) {
+      await prisma.calendarEvent.create({
+        data: {
+          title: `${reminderType === "MEETING" ? "Meeting" : "Follow Up"} with ${data.businessName}`,
+          date: new Date(reminderDate),
+          startTime: reminderTime || null,
+          eventType: reminderType === "MEETING" ? "MEETING" : "FOLLOW_UP",
+          status: "SCHEDULED",
+          leadId: newLead.id,
+        }
+      });
+    }
+    
     await prisma.leadActivity.create({
       data: {
         type: ActivityType.STATUS_CHANGE,
@@ -179,6 +193,23 @@ export async function updateLead(id: string, data: LeadUpdateFormData) {
           type: reminderType
         }
       });
+      
+      // Sync CalendarEvent
+      await prisma.calendarEvent.deleteMany({ where: { leadId: id, eventType: { in: ["FOLLOW_UP", "MEETING"] } } });
+      if (reminderType === "FOLLOW_UP" || reminderType === "MEETING") {
+        await prisma.calendarEvent.create({
+          data: {
+            title: `${reminderType === "MEETING" ? "Meeting" : "Follow Up"} with ${data.businessName || "Lead"}`,
+            date: new Date(reminderDate),
+            startTime: reminderTime || null,
+            eventType: reminderType === "MEETING" ? "MEETING" : "FOLLOW_UP",
+            status: "SCHEDULED",
+            leadId: id,
+          }
+        });
+      }
+    } else {
+      await prisma.calendarEvent.deleteMany({ where: { leadId: id, eventType: { in: ["FOLLOW_UP", "MEETING"] } } });
     }
 
     if (tags && Array.isArray(tags)) {
@@ -424,7 +455,15 @@ export async function completeReminder(id: string): Promise<boolean> {
       where: { id },
       data: { completed: true }
     });
+    
+    // Sync CalendarEvent completion
+    await prisma.calendarEvent.updateMany({
+      where: { leadId: reminder.leadId, date: reminder.date },
+      data: { status: "COMPLETED" }
+    });
+    
     revalidatePath(`/leads/${reminder.leadId}`);
+    revalidatePath("/calendar");
     return true;
   } catch (error) {
     console.error("Error completing reminder:", error);
