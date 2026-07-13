@@ -82,6 +82,24 @@ enum PaymentStatus {
   PAID
 }
 
+enum ShootType {
+  CAFE
+  PRODUCT
+  REAL_ESTATE
+  EVENT
+  PORTRAIT
+  OTHER
+}
+
+enum ShootStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
+
 enum ActivityType {
   NOTE
   STATUS_CHANGE
@@ -296,6 +314,7 @@ model Client {
   
   convertedFromLead Lead?    @relation("LeadConvertedToClient")
   projects          Project[]
+  shoots            Shoot[]
 }
 
 model Project {
@@ -328,4 +347,64 @@ model Project {
   archivedAt      DateTime?
   createdBy       String?
   updatedBy       String?
+  
+  shoots          Shoot[]
+}
+
+model Shoot {
+  id              String          @id @default(cuid())
+  shootCode       String          @unique
+  title           String
+  shootType       ShootType       @default(OTHER)
+  status          ShootStatus     @default(SCHEDULED)
+  
+  date            DateTime?
+  startTime       String?
+  endTime         String?
+  
+  location        String?
+  googleMapsLink  String?
+  
+  photographer    String?
+  videographer    String?
+  assistants      String?
+  
+  clientRequirements String?
+  weatherNotes    String?
+  notes           String?
+  
+  projectId       String
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  clientId        String
+  client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  equipment       ShootEquipment[]
+  shots           ShootShot[]
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  archivedAt      DateTime?
+  createdBy       String?
+  updatedBy       String?
+}
+
+model ShootEquipment {
+  id          String   @id @default(cuid())
+  name        String
+  isCompleted Boolean  @default(false)
+  
+  shootId     String
+  shoot       Shoot    @relation(fields: [shootId], references: [id], onDelete: Cascade)
+}
+
+model ShootShot {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  order       Int      @default(0)
+  isCompleted Boolean  @default(false)
+  
+  shootId     String
+  shoot       Shoot    @relation(fields: [shootId], references: [id], onDelete: Cascade)
 }

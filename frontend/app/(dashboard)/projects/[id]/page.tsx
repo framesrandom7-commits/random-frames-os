@@ -7,11 +7,20 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera, Info, Calendar, IndianRupee } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { getShoots } from "@/app/actions/shoot";
+import ShootTable from "@/components/shoots/shoot-table";
+import { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProjectDetailsPage({ params }: { params: { id: string } }) {
-  const project = await getProject(params.id);
+  const [project, shootData, clients, projects] = await Promise.all([
+    getProject(params.id),
+    getShoots({ projectId: params.id, limit: 100 }),
+    prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),
+    prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } })
+  ]);
 
   if (!project) {
     notFound();
@@ -117,21 +126,28 @@ export default async function ProjectDetailsPage({ params }: { params: { id: str
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
                   <CardTitle className="text-white text-lg flex items-center gap-2">
                     <Camera className="w-5 h-5 text-zinc-400" />
-                    Shoots
+                    Shoots ({shootData.total})
                   </CardTitle>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-zinc-400 hover:text-white">
-                    <Plus className="w-4 h-4" />
-                  </Button>
+                  <Link href={`/shoots?new=true&projectId=${project.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 bg-[#C1121F] hover:bg-[#a00f1a] text-white">
+                    <Plus className="w-4 h-4 mr-2" /> Schedule Shoot
+                  </Link>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-zinc-500 text-sm">No shoots scheduled yet.</p>
+                  <ShootTable 
+                    shoots={shootData.shoots as any} 
+                    clients={clients} 
+                    projects={projects}
+                    total={shootData.total}
+                  />
                 </CardContent>
               </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               <Card className="border-white/10 bg-white/5 backdrop-blur-md">
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -148,8 +164,9 @@ export default async function ProjectDetailsPage({ params }: { params: { id: str
                 </CardContent>
               </Card>
             </div>
+          </div>
             
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
+          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-white text-lg flex items-center gap-2">
                   <Clock className="w-5 h-5 text-zinc-400" /> Activity Timeline

@@ -8,15 +8,22 @@ import { Badge } from "@/components/ui/badge";
 import { getProjects } from "@/app/actions/project";
 import ProjectCardGrid from "@/components/projects/project-card-grid";
 import { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { ArrowLeft, Mail, Phone, MapPin, Globe, AtSign, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera } from "lucide-react";
 import Link from "next/link";
+
+import { getShoots } from "@/app/actions/shoot";
+import ShootTable from "@/components/shoots/shoot-table";
 
 export const dynamic = "force-dynamic";
 
 export default async function ClientDetailsPage({ params }: { params: { id: string } }) {
-  const [client, projectData] = await Promise.all([
+  const [client, projectData, shootData, clients, projects] = await Promise.all([
     getClient(params.id),
-    getProjects({ clientId: params.id, limit: 100 })
+    getProjects({ clientId: params.id, limit: 100 }),
+    getShoots({ clientId: params.id, limit: 100 }),
+    prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),
+    prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } })
   ]);
 
   if (!client) {
@@ -142,19 +149,27 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
                 </CardContent>
               </Card>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
               <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
                   <CardTitle className="text-white text-lg flex items-center gap-2">
                     <Camera className="w-5 h-5 text-zinc-400" />
-                    Shoots
+                    Shoots ({shootData.total})
                   </CardTitle>
+                  <Link href={`/shoots?new=true&clientId=${client.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 bg-[#C1121F] hover:bg-[#a00f1a] text-white">
+                    <Plus className="w-4 h-4 mr-2" /> Schedule Shoot
+                  </Link>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-zinc-500 text-sm">No shoots scheduled.</p>
+                  <ShootTable 
+                    shoots={shootData.shoots as any} 
+                    clients={clients} 
+                    projects={projects}
+                    total={shootData.total}
+                  />
                 </CardContent>
               </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               <Card className="border-white/10 bg-white/5 backdrop-blur-md">
                 <CardHeader className="flex flex-row items-center justify-between">

@@ -1,21 +1,36 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Topbar from "@/components/dashboard/topbar";
+import ShootCalendarView from "@/components/shoots/shoot-calendar-view";
+import { getShoots } from "@/app/actions/shoot";
+import { prisma } from "@/lib/prisma";
 
-export default function CalendarPage() {
+export const dynamic = "force-dynamic";
+
+export default async function CalendarPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
+  const dateStart = typeof searchParams.dateStart === "string" ? new Date(searchParams.dateStart) : undefined;
+  const dateEnd = typeof searchParams.dateEnd === "string" ? new Date(searchParams.dateEnd) : undefined;
+
+  const [shootData, allClients, allProjects] = await Promise.all([
+    getShoots({ limit: 1000, dateStart, dateEnd }), // Fetch enough for a whole month
+    prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),
+    prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } })
+  ]);
+
   return (
     <>
       <Topbar title="Calendar" />
-      <main className="flex-1 overflow-y-auto p-8">
-        <div className="mb-8 flex items-center text-sm text-zinc-500">
-          <span>Home</span>
-          <span className="mx-2">/</span>
-          <span className="text-zinc-300">Calendar</span>
-        </div>
-        
-        <div className="rounded-xl border border-white/10 bg-white/5 p-8 backdrop-blur-md">
-          <h2 className="text-xl font-medium text-white">Calendar Content</h2>
-          <p className="mt-2 text-zinc-400">Placeholder content for the Calendar page.</p>
-        </div>
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#050505]">
+        <Suspense fallback={<div className="h-96 flex items-center justify-center text-zinc-500">Loading calendar...</div>}>
+          <ShootCalendarView 
+            shoots={shootData.shoots as any} 
+            clients={allClients}
+            projects={allProjects}
+          />
+        </Suspense>
       </main>
     </>
   );
