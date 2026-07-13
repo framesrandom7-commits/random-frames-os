@@ -1,13 +1,236 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  FOLLOW_UP
+  QUOTATION_SENT
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum LeadSource {
+  INSTAGRAM
+  WHATSAPP
+  WEBSITE
+  REFERRAL
+  WALK_IN
+  FACEBOOK
+  LINKEDIN
+  COLD_CALL
+  OTHER
+}
+
+enum BusinessType {
+  CORPORATE
+  WEDDING
+  FASHION
+  REAL_ESTATE
+  EVENTS
+  COMMERCIAL
+  PORTRAIT
+  OTHER
+}
+
+enum ActivityType {
+  NOTE
+  STATUS_CHANGE
+  FILE_UPLOAD
+  SYSTEM
+}
+
+enum CommunicationType {
+  EMAIL
+  CALL
+  MEETING
+  MESSAGE
+}
+
+enum ReminderType {
+  FOLLOW_UP
+  MEETING
+  CALL
+  DEADLINE
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EDITOR
+  VIEWER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          Role      @default(VIEWER)
+  passwordHash  String
+  
+  // Enterprise fields
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  archivedAt    DateTime?
+  createdBy     String?
+  updatedBy     String?
+
+  leadsCreated  Lead[]    @relation("LeadCreatedBy")
+  leadsUpdated  Lead[]    @relation("LeadUpdatedBy")
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  color       String?
+  
+  leadTags    LeadTag[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model LeadTag {
+  id        String   @id @default(cuid())
+  leadId    String
+  tagId     String
+  
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+
+  @@unique([leadId, tagId])
+}
+
+model Lead {
+  id            String       @id @default(cuid())
+  businessName  String
+  contactPerson String?
+  phone         String?
+  email         String?
+  instagram     String?
+  website       String?
+  
+  address       String?
+  city          String?
+  state         String?
+  country       String?
+  postalCode    String?
+  
+  businessType  BusinessType @default(OTHER)
+  leadSource    LeadSource   @default(OTHER)
+  status        LeadStatus   @default(NEW)
+  priority      LeadPriority @default(MEDIUM)
+  
+  budget        Decimal?     @db.Decimal(10, 2)
+  currency      String       @default("USD")
+  
+  leadScore     Int          @default(0)
+  
+  leadTags      LeadTag[]
+  
+  notes         String?
+  
+  convertedToClientId String? @unique
+  
+  activities     LeadActivity[]
+  communications LeadCommunication[]
+  reminders      LeadReminder[]
+  attachments    LeadAttachment[]
+  
+  // Enterprise fields
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  archivedAt    DateTime?
+  
+  createdById   String?
+  createdBy     User?        @relation("LeadCreatedBy", fields: [createdById], references: [id])
+  
+  updatedById   String?
+  updatedBy     User?        @relation("LeadUpdatedBy", fields: [updatedById], references: [id])
+}
+
+model LeadActivity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  description String
+  metadata    Json?
+  
+  leadId      String
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  // Future-proofing for transition to Client/Project
+  clientId    String?
+  projectId   String?
+  
+  createdAt   DateTime     @default(now())
+  createdBy   String?
+}
+
+model LeadCommunication {
+  id          String             @id @default(cuid())
+  type        CommunicationType
+  summary     String
+  details     String?
+  
+  leadId      String
+  lead        Lead               @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  clientId    String?
+  projectId   String?
+  
+  createdAt   DateTime           @default(now())
+  createdBy   String?
+}
+
+model LeadReminder {
+  id          String       @id @default(cuid())
+  type        ReminderType
+  date        DateTime
+  time        String?
+  completed   Boolean      @default(false)
+  
+  leadId      String
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  clientId    String?
+  projectId   String?
+  
+  createdAt   DateTime     @default(now())
+  createdBy   String?
+}
+
+model LeadAttachment {
+  id          String       @id @default(cuid())
+  fileName    String
+  fileUrl     String
+  fileSize    Int
+  fileType    String
+  
+  leadId      String?
+  lead        Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  clientId    String?
+  projectId   String?
+  
+  createdAt   DateTime     @default(now())
+  createdBy   String?
 }
