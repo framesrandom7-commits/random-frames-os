@@ -70,4 +70,19 @@ export const whatsappLinks = {
     const text = `Hi ${businessName},\n\nYour project "${projectName}" files are ready! 📸\n\nYou can access all your RAW and Edited files in this Google Drive folder:\n${link}\n\nThank you for choosing Random Frames!\n\nBest,\nRandom Frames Team`;
     return `https://wa.me/${formatPhone(phone)}?text=${encodeURIComponent(text)}`;
   },
+  /**
+   * Reject Before Quotation
+   */
+  rejectBeforeQuotation: (phone: string, name: string) => {
+    const text = `Hi ${name},\n\nThank you for taking the time to connect with Random Frames.\n\nI completely understand your decision.\n\nIf you ever need photography or videography services in the future, I'd be happy to help.\n\nYou can view my portfolio here:\nhttps://randomframesbysavan.in\n\nThank you once again.\n\nRegards,\nSavan Somaiah T P\nRandom Frames`;
+    return `https://wa.me/${formatPhone(phone)}?text=${encodeURIComponent(text)}`;
+  },
+
+  /**
+   * Reject After Quotation
+   */
+  rejectAfterQuotation: (phone: string, name: string) => {
+    const text = `Hi ${name},\n\nThank you for considering Random Frames.\n\nAlthough we couldn't finalize this project, I truly appreciate the opportunity.\n\nIf your requirements change in the future, I would love to work with you.\n\nPortfolio\nhttps://randomframesbysavan.in\n\nThank you.\n\nRegards,\nSavan Somaiah T P\nRandom Frames`;
+    return `https://wa.me/${formatPhone(phone)}?text=${encodeURIComponent(text)}`;
+  },
 };

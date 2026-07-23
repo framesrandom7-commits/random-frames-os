@@ -12,12 +12,18 @@ datasource db {
 
 enum LeadStatus {
   NEW
-  CONTACTED
-  FOLLOW_UP
+  ATTENDED
+  REQUIREMENT_DISCUSSION
   QUOTATION_SENT
   NEGOTIATION
-  WON
-  LOST
+  QUOTATION_ACCEPTED
+  CLIENT_FORM_SENT
+  CLIENT_FORM_RECEIVED
+  CONVERTED_TO_CLIENT
+  PROJECT_CREATED
+  FIRST_SHOOT_SCHEDULED
+  COMPLETED
+  CLOSED_LOST
 }
 
 enum LeadPriority {
@@ -28,14 +34,16 @@ enum LeadPriority {
 }
 
 enum LeadSource {
-  INSTAGRAM
-  WHATSAPP
   WEBSITE
-  REFERRAL
-  WALK_IN
+  MANUAL
+  WHATSAPP
+  INSTAGRAM
   FACEBOOK
   LINKEDIN
+  REFERRAL
+  WALK_IN
   COLD_CALL
+  EMAIL
   OTHER
 }
 
@@ -100,14 +108,32 @@ enum PaymentMethod {
 }
 
 enum ExpenseCategory {
-  EQUIPMENT
+  CLIENT_EXPENSE
   TRAVEL
-  SOFTWARE
-  MARKETING
-  OFFICE
-  MAINTENANCE
-  SALARY
-  OTHER
+  FUEL
+  FOOD
+  EQUIPMENT_RENTAL
+  ASSISTANT
+  MISCELLANEOUS
+}
+
+enum ShootEditingStatus {
+  PENDING
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
+
+enum ShootDeliveryStatus {
+  PENDING
+  PARTIAL
+  DELIVERED
+}
+
+enum ShootApprovalStatus {
+  PENDING
+  CHANGES_REQUESTED
+  APPROVED
 }
 
 enum ShootType {
@@ -234,7 +260,7 @@ model Lead {
   convertedToClientId String? @unique
   convertedToClient   Client? @relation("LeadConvertedToClient", fields: [convertedToClientId], references: [id])
   
-  activities     LeadActivity[]
+  activities     Activity[]
   communications LeadCommunication[]
   reminders      LeadReminder[]
   attachments    LeadAttachment[]
@@ -254,18 +280,32 @@ model Lead {
   notifications Notification[]
 }
 
-model LeadActivity {
+model Activity {
   id          String       @id @default(cuid())
   type        ActivityType
   description String
   metadata    Json?
   
-  leadId      String
-  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId      String?
+  lead        Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
   
-  // Future-proofing for transition to Client/Project
   clientId    String?
+  client      Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
   projectId   String?
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  shootId     String?
+  shoot       Shoot?       @relation(fields: [shootId], references: [id], onDelete: Cascade)
+  
+  invoiceId   String?
+  invoice     Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  paymentId   String?
+  payment     Payment?     @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  
+  expenseId   String?
+  expense     Expense?     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   
   createdAt   DateTime     @default(now())
   createdBy   String?
@@ -353,7 +393,9 @@ model Client {
   calendarEvents    CalendarEvent[]
   invoices          Invoice[]
   payments          Payment[]
+  expenses          Expense[]
   notifications     Notification[]
+  activities        Activity[]
 }
 
 model Project {
@@ -375,6 +417,7 @@ model Project {
   advanceAmount   Decimal?        @db.Decimal(10, 2)
   totalAmount     Decimal?        @db.Decimal(10, 2)
   balanceAmount   Decimal?        @db.Decimal(10, 2)
+  profitAmount    Decimal?        @db.Decimal(10, 2)
   
   notes           String?
   
@@ -395,7 +438,9 @@ model Project {
   calendarEvents  CalendarEvent[]
   invoices        Invoice[]
   payments        Payment[]
+  expenses        Expense[]
   notifications   Notification[]
+  activities      Activity[]
 }
 
 model Shoot {
@@ -412,6 +457,10 @@ model Shoot {
   location        String?
   googleMapsLink  String?
   
+  contactPerson   String?
+  contactNumber   String?
+  deliverables    String?
+  
   photographer    String?
   videographer    String?
   assistants      String?
@@ -419,6 +468,11 @@ model Shoot {
   clientRequirements String?
   weatherNotes    String?
   notes           String?
+  
+  editingStatus   ShootEditingStatus  @default(PENDING)
+  deliveryStatus  ShootDeliveryStatus @default(PENDING)
+  approvalStatus  ShootApprovalStatus @default(PENDING)
+  deliveredDate   DateTime?
   
   projectId       String
   project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -437,6 +491,7 @@ model Shoot {
   
   calendarEvents  CalendarEvent[]
   notifications   Notification[]
+  activities      Activity[]
 }
 
 model ShootEquipment {
@@ -523,14 +578,15 @@ model Invoice {
   status          InvoiceStatus @default(DRAFT)
   notes           String?
   
-  projectId       String?
-  project         Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
   clientId        String
   client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   
   payments        Payment[]
   notifications   Notification[]
+  activities      Activity[]
   
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -547,26 +603,33 @@ model Payment {
   invoiceId       String?
   invoice         Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   
-  projectId       String?
-  project         Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
   clientId        String
   client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   
   createdAt       DateTime      @default(now())
+  activities      Activity[]
 }
 
 model Expense {
   id              String          @id @default(cuid())
   title           String
-  category        ExpenseCategory @default(OTHER)
+  category        ExpenseCategory @default(MISCELLANEOUS)
   amount          Decimal         @db.Decimal(10, 2)
   date            DateTime
   paymentMethod   PaymentMethod   @default(OTHER)
-  vendor          String?
   notes           String?
   
+  clientId        String?
+  client          Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  
+  projectId       String
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
   createdAt       DateTime        @default(now())
+  activities      Activity[]
 }
 
 model Setting {

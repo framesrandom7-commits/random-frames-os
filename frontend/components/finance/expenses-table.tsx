@@ -37,7 +37,8 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
     amount: "",
     date: new Date().toISOString().split('T')[0],
     paymentMethod: "CARD" as PaymentMethod,
-    vendor: "",
+    clientId: "",
+    projectId: "",
     notes: ""
   });
 
@@ -72,17 +73,19 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
         amount: parseFloat(formData.amount),
         date: new Date(formData.date),
         paymentMethod: formData.paymentMethod,
-        vendor: formData.vendor || undefined,
+        clientId: formData.clientId || undefined,
+        projectId: formData.projectId,
         notes: formData.notes || undefined,
       });
       setIsAddOpen(false);
       setFormData({
         title: "",
-        category: "OTHER",
+        category: "MISCELLANEOUS",
         amount: "",
         date: new Date().toISOString().split('T')[0],
         paymentMethod: "CARD",
-        vendor: "",
+        clientId: "",
+        projectId: "",
         notes: ""
       });
     });
@@ -138,7 +141,7 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Category</Label>
-                  <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: (v || "OTHER") as ExpenseCategory})}>
+                  <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: (v || "MISCELLANEOUS") as ExpenseCategory})}>
                     <SelectTrigger className="bg-white/5 border-white/10"><SelectValue /></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(ExpenseCategory).map(c => <SelectItem key={c} value={c}>{c.replace("_", " ")}</SelectItem>)}
@@ -156,8 +159,12 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Vendor</Label>
-                <Input value={formData.vendor} onChange={e => setFormData({...formData, vendor: e.target.value})} className="bg-white/5 border-white/10" placeholder="e.g. Adobe Inc." />
+                <Label>Client ID (Optional)</Label>
+                <Input value={formData.clientId} onChange={e => setFormData({...formData, clientId: e.target.value})} className="bg-white/5 border-white/10" placeholder="Client ID" />
+              </div>
+              <div className="space-y-2">
+                <Label>Project ID (Optional)</Label>
+                <Input value={formData.projectId} onChange={e => setFormData({...formData, projectId: e.target.value})} className="bg-white/5 border-white/10" placeholder="Project ID" />
               </div>
               <div className="space-y-2">
                 <Label>Notes</Label>
@@ -178,7 +185,8 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
             <TableHeader className="bg-black/40 sticky top-0 z-10 backdrop-blur-md">
               <TableRow className="border-white/10 hover:bg-transparent">
                 <TableHead className="text-zinc-400 font-medium">Date</TableHead>
-                <TableHead className="text-zinc-400 font-medium">Title & Vendor</TableHead>
+                <TableHead className="text-zinc-400 font-medium">Title</TableHead>
+                <TableHead className="text-zinc-400 font-medium">Client</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Category</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Payment Method</TableHead>
                 <TableHead className="text-zinc-400 font-medium text-right">Amount</TableHead>
@@ -188,7 +196,7 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
             <TableBody>
               {data.expenses.length === 0 ? (
                 <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableCell colSpan={6} className="h-32 text-center text-zinc-500">
+                  <TableCell colSpan={7} className="h-32 text-center text-zinc-500">
                     No expenses found in this category.
                   </TableCell>
                 </TableRow>
@@ -200,7 +208,9 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium text-white">{expense.title}</div>
-                      {expense.vendor && <div className="text-xs text-zinc-500">{expense.vendor}</div>}
+                    </TableCell>
+                    <TableCell>
+                      <p className="text-sm font-medium text-white truncate">{(expense as any).client?.businessName || "No Client"}</p>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="bg-zinc-800 text-zinc-300 border-zinc-700">

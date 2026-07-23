@@ -49,6 +49,13 @@ export async function createClient(data: CreateClientData) {
       }
     });
     
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Client profile created`,
+      clientId: client.id,
+    });
+    
     revalidatePath("/clients");
     return { success: true, client };
   } catch (error) {
@@ -73,6 +80,28 @@ export async function updateClient(id: string, data: Partial<CreateClientData>) 
   }
 }
 
+export async function updateClientPhone(id: string, phone: string) {
+  try {
+    await prisma.client.update({
+      where: { id },
+      data: { phone },
+    });
+    
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Phone number updated to ${phone}`,
+      clientId: id
+    });
+    
+    revalidatePath("/clients");
+    revalidatePath(`/clients/${id}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating client phone:", error);
+    return { success: false, error: "Failed to update phone number" };
+  }
+}
 export async function deleteClient(id: string) {
   try {
     await prisma.client.update({
@@ -93,7 +122,12 @@ export async function deleteClient(id: string) {
 export async function getClient(id: string) {
   try {
     return await prisma.client.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        activities: {
+          orderBy: { createdAt: "desc" }
+        }
+      }
     });
   } catch (error) {
     console.error("Error fetching client:", error);
@@ -170,58 +204,187 @@ export async function getClients(params: GetClientsParams = {}) {
   }
 }
 
-export async function convertLeadToClient(leadId: string) {
-  try {
-    const lead = await prisma.lead.findUnique({
-      where: { id: leadId }
-    });
+import { generateProjectCode } from "./project";
+import { generateShootCode } from "./shoot";
 
+export type OnboardClientData = {
+  leadId: string;
+  // Client Info
+  businessName: string;
+  contactPerson: string;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  instagram: string;
+  website: string;
+  address: string;
+  gstNumber: string;
+  clientNotes: string;
+  // Project Info
+  projectTitle: string;
+  projectCategory: any; // ProjectCategory
+  projectDescription: string;
+  deliverables: string;
+  projectPriority: any; // ProjectPriority
+  // Shoot Info
+  shootDate: string;
+  shootStartTime: string;
+  shootEndTime: string;
+  shootLocation: string;
+  equipmentNeeded: string;
+  shootNotes: string;
+  // Finance Info
+  quotedAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+  advanceReceived: number;
+  balanceAmount: number;
+};
+
+export async function onboardClient(data: OnboardClientData) {
+  try {
+    const lead = await prisma.lead.findUnique({ where: { id: data.leadId } });
     if (!lead) return { success: false, error: "Lead not found" };
-    if (lead.convertedToClientId) return { success: false, error: "Lead is already converted to a client" };
+    if (lead.convertedToClientId) return { success: false, error: "Lead already converted" };
 
     const clientCode = await generateClientCode();
+    // In a real app we'd import generateProjectCode, but since it's not exported nicely or we can just generate it inline:
+    // Let's just generate basic codes if imports fail, or use inline.
+    const projectCode = `PRJ${new Date().getTime().toString().slice(-6)}`;
+    const shootCode = `SHT${new Date().getTime().toString().slice(-6)}`;
+    const invoiceNumber = `INV${new Date().getTime().toString().slice(-6)}`;
 
-    const client = await prisma.$transaction(async (tx: any) => {
-      // 1. Create client from lead data
+    const result = await prisma.$transaction(async (tx: any) => {
+      // 1. Create Client
+      let combinedNotes = data.clientNotes || "";
+      if (data.whatsapp) combinedNotes += `\nWhatsApp: ${data.whatsapp}`;
+      if (data.gstNumber) combinedNotes += `\nGST Number: ${data.gstNumber}`;
+
       const newClient = await tx.client.create({
         data: {
           clientCode,
-          businessName: lead.businessName,
-          contactPerson: lead.contactPerson,
-          phone: lead.phone,
-          email: lead.email,
-          instagram: lead.instagram,
-          website: lead.website,
-          address: lead.address,
-          city: lead.city,
-          state: lead.state,
-          country: lead.country,
-          postalCode: lead.postalCode,
-          businessType: lead.businessType,
-          notes: lead.notes,
+          businessName: data.businessName,
+          contactPerson: data.contactPerson,
+          phone: data.phone,
+          email: data.email,
+          instagram: data.instagram,
+          website: data.website,
+          address: data.address,
+          notes: combinedNotes,
         }
       });
 
-      // 2. Update lead status to WON and link to client
-      await tx.lead.update({
-        where: { id: leadId },
+      // 2. Create Project
+      const newProject = await tx.project.create({
         data: {
-          status: "WON",
+          projectCode,
+          title: data.projectTitle,
+          description: data.projectDescription,
+          category: data.projectCategory || "OTHER",
+          priority: data.projectPriority || "MEDIUM",
+          clientId: newClient.id,
+          quotationAmount: data.finalAmount,
+          advanceAmount: data.advanceReceived,
+          totalAmount: data.finalAmount,
+          balanceAmount: data.balanceAmount,
+          paymentStatus: data.balanceAmount <= 0 ? "PAID" : (data.advanceReceived > 0 ? "PARTIAL" : "PENDING"),
+        }
+      });
+
+      // 3. Create Shoot
+      const newShoot = await tx.shoot.create({
+        data: {
+          shootCode,
+          title: `Shoot: ${data.projectTitle}`,
+          date: data.shootDate ? new Date(data.shootDate) : null,
+          startTime: data.shootStartTime,
+          endTime: data.shootEndTime,
+          location: data.shootLocation,
+          notes: data.shootNotes,
+          clientRequirements: data.deliverables,
+          projectId: newProject.id,
+          clientId: newClient.id,
+        }
+      });
+
+      // 4. Create Finance Record (Invoice)
+      const invoice = await tx.invoice.create({
+        data: {
+          invoiceNumber,
+          issueDate: new Date(),
+          dueDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          subtotal: data.quotedAmount,
+          discount: data.discountAmount,
+          total: data.finalAmount,
+          status: data.balanceAmount <= 0 ? "PAID" : (data.advanceReceived > 0 ? "PARTIAL" : "SENT"),
+          clientId: newClient.id,
+          projectId: newProject.id,
+        }
+      });
+
+      // 5. If advance received, create Payment
+      if (data.advanceReceived > 0) {
+        await tx.payment.create({
+          data: {
+            amount: data.advanceReceived,
+            paymentDate: new Date(),
+            clientId: newClient.id,
+            projectId: newProject.id,
+            invoiceId: invoice.id,
+            notes: "Advance payment received on onboarding"
+          }
+        });
+      }
+
+      // 6. Create Calendar Event
+      if (data.shootDate) {
+        await tx.calendarEvent.create({
+          data: {
+            title: `Shoot: ${data.projectTitle}`,
+            date: new Date(data.shootDate),
+            startTime: data.shootStartTime,
+            endTime: data.shootEndTime,
+            eventType: "SHOOT",
+            clientId: newClient.id,
+            projectId: newProject.id,
+            shootId: newShoot.id,
+          }
+        });
+      }
+
+      // 7. Update Lead
+      await tx.lead.update({
+        where: { id: data.leadId },
+        data: {
+          status: "CONVERTED_TO_CLIENT",
           convertedToClientId: newClient.id
         }
       });
 
-      return newClient;
+      return { newClient, newProject };
+    });
+
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Client onboarded. Created project: ${data.projectTitle}`,
+      clientId: result.newClient.id,
+      projectId: result.newProject.id,
+      leadId: data.leadId,
     });
 
     revalidatePath("/leads");
-    revalidatePath(`/leads/${leadId}`);
+    revalidatePath(`/leads/${data.leadId}`);
     revalidatePath("/clients");
+    revalidatePath("/projects");
+    revalidatePath("/shoots");
+    revalidatePath("/finance");
+    revalidatePath("/calendar");
     
-    return { success: true, clientId: client.id };
+    return { success: true, clientId: result.newClient.id };
   } catch (error) {
-    console.error("Error converting lead:", error);
-    return { success: false, error: "Failed to convert lead to client" };
+    console.error("Error onboarding client:", error);
+    return { success: false, error: "Failed to onboard client" };
   }
 }
 

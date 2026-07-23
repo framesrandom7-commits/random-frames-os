@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Users, UserCircle, Briefcase, Camera, FileText } from "lucide-react";
+import { Plus, Users, UserCircle, Briefcase, Camera, FileText, Bell } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 // Import all forms
 import LeadForm from "@/components/leads/lead-form";
-import ClientForm from "@/components/clients/client-form";
+import ClientOnboardingForm from "@/components/clients/client-onboarding-form";
 import ProjectForm from "@/components/projects/project-form";
 import ShootForm from "@/components/shoots/shoot-form";
 
@@ -26,6 +27,7 @@ export default function QuickCreateMenu() {
   const [openClient, setOpenClient] = useState(false);
   const [openProject, setOpenProject] = useState(false);
   const [openShoot, setOpenShoot] = useState(false);
+  const router = useRouter();
 
   const [clients, setClients] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
@@ -50,9 +52,6 @@ export default function QuickCreateMenu() {
           New
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56 bg-zinc-900 border-white/10 text-zinc-200 p-2" sideOffset={8}>
-          <DropdownMenuLabel className="text-zinc-400 text-xs uppercase tracking-wider font-semibold">Create New</DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-white/10" />
-          
           <DropdownMenuItem className="gap-3 cursor-pointer focus:bg-white/10 focus:text-white" onSelect={() => setOpenLead(true)}>
             <Users className="w-4 h-4 text-emerald-400" />
             Lead / Enquiry
@@ -72,11 +71,21 @@ export default function QuickCreateMenu() {
             <Camera className="w-4 h-4 text-amber-400" />
             Shoot
           </DropdownMenuItem>
+          
+          <DropdownMenuItem className="gap-3 cursor-pointer focus:bg-white/10 focus:text-white" onSelect={() => router.push('/finance/invoices')}>
+            <FileText className="w-4 h-4 text-rose-400" />
+            Invoice
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem className="gap-3 cursor-pointer focus:bg-white/10 focus:text-white" onSelect={() => router.push('/notifications')}>
+            <Bell className="w-4 h-4 text-yellow-400" />
+            Reminder
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <LeadForm open={openLead} onOpenChange={setOpenLead} />
-      <ClientForm open={openClient} onOpenChange={setOpenClient} />
+      <ClientOnboardingForm open={openClient} onOpenChange={setOpenClient} />
       <ProjectForm open={openProject} onOpenChange={setOpenProject} clients={clients} />
       <ShootForm open={openShoot} onOpenChange={setOpenShoot} clients={clients} projects={projects} />
     </>

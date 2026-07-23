@@ -9,20 +9,26 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getShoots } from "@/app/actions/shoot";
 import ShootTable from "@/components/shoots/shoot-table";
-import { Prisma } from "@prisma/client";
+import { Prisma, Invoice } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import ProjectDriveButton from "@/components/projects/project-drive-button";
+import { ActivityTimeline } from "@/components/shared/activity-timeline";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
+import { WhatsAppButton } from "@/components/shared/whatsapp-button";
+import { updateClientPhone } from "@/app/actions/client";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProjectDetailsPage({ params }: { params: { id: string } }) {
-  const [project, shootData, clients, projects, invoicesData] = await Promise.all([
-    getProject(params.id),
-    getShoots({ projectId: params.id, limit: 100 }),
+export default async function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const [project, shootData, clients, projects, invoicesData, paymentsData, expensesData] = await Promise.all([
+    getProject(resolvedParams.id),
+    getShoots({ projectId: resolvedParams.id, limit: 100 }),
     prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),
     prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } }),
-    prisma.invoice.findMany({ where: { projectId: params.id }, orderBy: { issueDate: 'desc' } })
+    prisma.invoice.findMany({ where: { projectId: resolvedParams.id }, orderBy: { issueDate: 'desc' } }),
+    prisma.payment.findMany({ where: { projectId: resolvedParams.id }, orderBy: { paymentDate: 'desc' } }),
+    prisma.expense.findMany({ where: { projectId: resolvedParams.id }, orderBy: { date: 'desc' } })
   ]);
 
   if (!project) {
@@ -92,18 +98,18 @@ export default async function ProjectDetailsPage({ params }: { params: { id: str
                 googleDriveLink={project.googleDriveLink} 
               />
               
-              {project.client.phone && (
-                <a 
-                  href={whatsappLinks.generalMessage(project.client.phone, `Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`)} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  <Button variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 gap-2">
-                    <MessageCircle className="w-4 h-4" />
-                    WhatsApp Client
-                  </Button>
-                </a>
-              )}
+              <WhatsAppButton 
+                variant="outline" 
+                className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 gap-2"
+                phone={project.client.phone}
+                onSavePhone={async (phone) => {
+                  return updateClientPhone(project.client.id, phone);
+                }}
+                getMessageUrl={(phone) => whatsappLinks.generalMessage(phone, `Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`)}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                WhatsApp Client
+              </WhatsAppButton>
 
               <div className={`px-4 py-2 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2 ${getPaymentColor(project.paymentStatus)}`}>
                 <IndianRupee className="w-4 h-4" />
@@ -182,7 +188,7 @@ export default async function ProjectDetailsPage({ params }: { params: { id: str
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-zinc-500 text-sm">No deliverables assigned yet.</p>
+                  <p className="text-zinc-500 text-sm">No deliverables assigned yet. (Managed via Shoots)</p>
                 </CardContent>
               </Card>
             </div>
@@ -193,12 +199,9 @@ export default async function ProjectDetailsPage({ params }: { params: { id: str
                 <CardTitle className="text-white text-lg flex items-center gap-2">
                   <Clock className="w-5 h-5 text-zinc-400" /> Activity Timeline
                 </CardTitle>
-                <Button size="sm" variant="outline" className="h-8 bg-zinc-900 border-white/10 text-white">
-                  <Plus className="w-4 h-4 mr-2" /> Log Activity
-                </Button>
               </CardHeader>
               <CardContent>
-                <p className="text-zinc-500 text-center py-8">Timeline tracking will be integrated in future phases.</p>
+                <ActivityTimeline activities={project.activities || []} />
               </CardContent>
             </Card>
           </div>
@@ -216,17 +219,27 @@ export default async function ProjectDetailsPage({ params }: { params: { id: str
                   <span className="text-zinc-400 text-sm">Quotation Amount</span>
                   <span className="text-white">₹{Number(project.quotationAmount || 0).toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                <div className="flex items-center justify-between border-b border-white/5 pb-2 pt-1">
                   <span className="text-zinc-400 text-sm">Total Amount</span>
                   <span className="text-white">₹{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>
                 </div>
-                <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                  <span className="text-emerald-400 text-sm">Advance Received</span>
-                  <span className="text-emerald-400 font-medium">₹{Number(project.advanceAmount || 0).toLocaleString('en-IN')}</span>
+                <div className="flex items-center justify-between border-b border-white/5 pb-2 pt-1">
+                  <span className="text-emerald-400 text-sm">Total Revenue (Paid)</span>
+                  <span className="text-emerald-400 font-medium">₹{paymentsData.reduce((s, p) => s + Number(p.amount), 0).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex items-center justify-between border-b border-white/5 pb-2 pt-1">
+                  <span className="text-red-400 text-sm font-medium">Balance Due</span>
+                  <span className="text-red-400 font-bold text-lg">₹{Math.max(0, Number(project.totalAmount || 0) - paymentsData.reduce((s, p) => s + Number(p.amount), 0)).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex items-center justify-between border-b border-white/5 pb-2 pt-2">
+                  <span className="text-red-400 text-sm">Project Expenses</span>
+                  <span className="text-red-400 font-medium">₹{expensesData.reduce((s, e) => s + Number(e.amount), 0).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-red-400 text-sm font-medium">Balance Due</span>
-                  <span className="text-red-400 font-bold text-lg">₹{Number(project.balanceAmount || 0).toLocaleString('en-IN')}</span>
+                  <span className="text-zinc-400 text-sm font-medium">Project Net Profit</span>
+                  <span className={`font-bold text-lg ${paymentsData.reduce((s, p) => s + Number(p.amount), 0) - expensesData.reduce((s, e) => s + Number(e.amount), 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    ₹{(paymentsData.reduce((s, p) => s + Number(p.amount), 0) - expensesData.reduce((s, e) => s + Number(e.amount), 0)).toLocaleString('en-IN')}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -245,7 +258,7 @@ export default async function ProjectDetailsPage({ params }: { params: { id: str
                   {invoicesData.length === 0 ? (
                     <p className="text-zinc-500 text-sm">No invoices generated.</p>
                   ) : (
-                    invoicesData.slice(0, 5).map(inv => (
+                    invoicesData.slice(0, 5).map((inv) => (
                       <Link key={inv.id} href={`/finance/invoices/${inv.id}`} className="flex justify-between items-center p-2 rounded-md hover:bg-white/5 transition-colors border border-transparent hover:border-white/10">
                         <div>
                           <p className="text-white text-sm font-medium">{inv.invoiceNumber}</p>

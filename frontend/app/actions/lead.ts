@@ -155,7 +155,7 @@ export async function createLead(data: LeadFormData) {
       });
     }
     
-    await prisma.leadActivity.create({
+    await prisma.activity.create({
       data: {
         type: ActivityType.STATUS_CHANGE,
         description: `Lead created with status ${data.status || LeadStatus.NEW}`,
@@ -227,15 +227,28 @@ export async function updateLead(id: string, data: LeadUpdateFormData) {
 
 export async function updateLeadStatus(id: string, status: LeadStatus) {
   try {
+    let finalStatus = status;
+
+    if (status === LeadStatus.QUOTATION_ACCEPTED) {
+      const leadData = await prisma.lead.findUnique({ where: { id } });
+      if (leadData && leadData.email) {
+        const { sendClientFormEmail } = await import("@/lib/email");
+        const result = await sendClientFormEmail(leadData.id, leadData.email, leadData.businessName);
+        if (result.success) {
+          finalStatus = LeadStatus.CLIENT_FORM_SENT;
+        }
+      }
+    }
+
     const updatedLead = await prisma.lead.update({
       where: { id },
-      data: { status },
+      data: { status: finalStatus },
     });
     
-    await prisma.leadActivity.create({
+    await prisma.activity.create({
       data: {
         type: ActivityType.STATUS_CHANGE,
-        description: `Lead status changed to ${status}`,
+        description: `Lead status changed to ${finalStatus}`,
         leadId: id
       }
     });
@@ -265,16 +278,15 @@ export async function softDeleteLead(id: string): Promise<boolean> {
 
 export async function addLeadActivity(leadId: string, type: ActivityType, description: string, metadata?: Record<string, unknown>) {
   try {
-    const activity = await prisma.leadActivity.create({
-      data: {
-        type,
-        description,
-        metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : null,
-        leadId
-      }
+    const { logActivity } = await import('@/lib/timeline');
+    const result = await logActivity({
+      type,
+      description,
+      metadata,
+      leadId
     });
     revalidatePath(`/leads/${leadId}`);
-    return activity;
+    return result.activity;
   } catch (error) {
     console.error("Error adding activity:", error);
     return null;
@@ -309,9 +321,9 @@ export async function getLeadStats() {
     const [total, newLeads, contacted, won, lost, dueToday, overdue] = await Promise.all([
       prisma.lead.count({ where: { archivedAt: null } }),
       prisma.lead.count({ where: { archivedAt: null, status: LeadStatus.NEW } }),
-      prisma.lead.count({ where: { archivedAt: null, status: LeadStatus.CONTACTED } }),
-      prisma.lead.count({ where: { archivedAt: null, status: LeadStatus.WON } }),
-      prisma.lead.count({ where: { archivedAt: null, status: LeadStatus.LOST } }),
+      prisma.lead.count({ where: { archivedAt: null, status: LeadStatus.ATTENDED } }),
+      prisma.lead.count({ where: { archivedAt: null, status: LeadStatus.CONVERTED_TO_CLIENT } }),
+      prisma.lead.count({ where: { archivedAt: null, status: LeadStatus.CLOSED_LOST } }),
       prisma.lead.count({
         where: {
           archivedAt: null,
@@ -321,7 +333,7 @@ export async function getLeadStats() {
               completed: false
             }
           },
-          status: { notIn: [LeadStatus.WON, LeadStatus.LOST] }
+          status: { notIn: [LeadStatus.CONVERTED_TO_CLIENT, LeadStatus.CLOSED_LOST] }
         }
       }),
       prisma.lead.count({
@@ -333,7 +345,7 @@ export async function getLeadStats() {
               completed: false
             }
           },
-          status: { notIn: [LeadStatus.WON, LeadStatus.LOST] }
+          status: { notIn: [LeadStatus.CONVERTED_TO_CLIENT, LeadStatus.CLOSED_LOST] }
         }
       })
     ]);
@@ -398,6 +410,29 @@ export async function importLeads(data: LeadFormData[]): Promise<boolean> {
   }
 }
 
+export async function updateLeadPhone(id: string, phone: string) {
+  try {
+    await prisma.lead.update({
+      where: { id },
+      data: { phone },
+    });
+    
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Phone number updated to ${phone}`,
+      leadId: id
+    });
+    
+    revalidatePath("/leads");
+    revalidatePath(`/leads/${id}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating lead phone:", error);
+    return { success: false, error: "Failed to update phone number" };
+  }
+}
+
 export async function bulkDeleteLeads(ids: string[]): Promise<boolean> {
   try {
     await prisma.lead.updateMany({
@@ -425,7 +460,7 @@ export async function bulkUpdateLeadStatus(ids: string[], status: LeadStatus): P
       description: `Lead status bulk changed to ${status}`,
       leadId: id
     }));
-    await prisma.leadActivity.createMany({ data: activities });
+    await prisma.activity.createMany({ data: activities });
     
     revalidatePath("/leads");
     return true;
@@ -492,3 +527,53 @@ export async function addLeadAttachment(leadId: string, fileName: string, fileUr
 
 export type LeadWithRelations = NonNullable<Awaited<ReturnType<typeof getLead>>>;
 export type LeadListWithRelations = Awaited<ReturnType<typeof getLeads>>["leads"][number];
+
+export type CustomerFormData = {
+  contactPerson: string;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  businessName: string;
+  address: string;
+  gstNumber?: string;
+  instagram?: string;
+  website?: string;
+  notes?: string;
+};
+
+export async function submitCustomerForm(leadId: string, data: CustomerFormData) {
+  try {
+    let combinedNotes = data.notes || "";
+    if (data.whatsapp) combinedNotes += `\nWhatsApp: ${data.whatsapp}`;
+    if (data.gstNumber) combinedNotes += `\nGST Number: ${data.gstNumber}`;
+
+    await prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        contactPerson: data.contactPerson,
+        phone: data.phone,
+        email: data.email,
+        businessName: data.businessName,
+        address: data.address,
+        instagram: data.instagram,
+        website: data.website,
+        notes: combinedNotes,
+        status: "CLIENT_FORM_RECEIVED",
+      }
+    });
+
+    await prisma.activity.create({
+      data: {
+        leadId,
+        type: "STATUS_CHANGE", 
+        description: "Customer completed the onboarding information form. Status changed to CLIENT_FORM_RECEIVED."
+      }
+    });
+
+    revalidatePath(`/leads/${leadId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to submit customer form:", error);
+    return { success: false, error: "Failed to submit form" };
+  }
+}

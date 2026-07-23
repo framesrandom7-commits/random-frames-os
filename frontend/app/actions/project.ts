@@ -62,12 +62,63 @@ export async function createProject(data: CreateProjectData) {
       }
     });
     
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Project '${project.title}' created`,
+      projectId: project.id,
+      clientId: data.clientId,
+    });
+    
     revalidatePath("/projects");
     revalidatePath(`/clients/${data.clientId}`);
     return { success: true, project };
   } catch (error) {
     console.error("Error creating project:", error);
     return { success: false, error: "Failed to create project" };
+  }
+}
+
+export async function syncProjectFinancials(projectId: string) {
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        invoices: { where: { status: { not: "CANCELLED" } } },
+        payments: true,
+        expenses: true,
+      }
+    });
+
+    if (!project) return;
+
+    const totalInvoiced = project.invoices.reduce((sum, inv) => sum + Number(inv.total), 0);
+    const totalPaid = project.payments.reduce((sum, pay) => sum + Number(pay.amount), 0);
+    const totalExpenses = project.expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+    
+    const balanceAmount = totalInvoiced - totalPaid;
+    const profitAmount = totalInvoiced - totalExpenses; // Projected profit
+    
+    let paymentStatus: "PENDING" | "PARTIAL" | "PAID" = "PENDING";
+    if (totalPaid > 0) {
+      if (balanceAmount <= 0) {
+        paymentStatus = "PAID";
+      } else {
+        paymentStatus = "PARTIAL";
+      }
+    }
+
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        totalAmount: totalInvoiced,
+        balanceAmount: balanceAmount,
+        paymentStatus: paymentStatus,
+        profitAmount: profitAmount,
+      }
+    });
+  } catch (error) {
+    console.error("Failed to sync project financials:", error);
   }
 }
 
@@ -176,12 +227,60 @@ export async function getProject(id: string) {
     return await prisma.project.findUnique({
       where: { id },
       include: {
-        client: true
+        client: true,
+        activities: {
+          orderBy: { createdAt: "desc" }
+        }
       }
     });
   } catch (error) {
     console.error("Error fetching project:", error);
     return null;
+  }
+}
+
+export async function completeProject(id: string) {
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: {
+        shoots: true,
+      }
+    });
+
+    if (!project) {
+      return { success: false, error: "Project not found" };
+    }
+
+    if (project.balanceAmount && Number(project.balanceAmount) > 0) {
+      return { success: false, error: "Cannot complete project with outstanding balance" };
+    }
+
+    const incompleteShoots = project.shoots.some(s => s.status !== "COMPLETED");
+    if (incompleteShoots) {
+      return { success: false, error: "Cannot complete project with pending shoots" };
+    }
+
+    const updatedProject = await prisma.project.update({
+      where: { id },
+      data: { status: "COMPLETED" },
+    });
+
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "STATUS_CHANGE",
+      description: `Project status marked as COMPLETED`,
+      projectId: id,
+      clientId: updatedProject.clientId,
+    });
+
+    revalidatePath("/projects");
+    revalidatePath(`/projects/${id}`);
+    
+    return { success: true, project: updatedProject };
+  } catch (error) {
+    console.error("Error completing project:", error);
+    return { success: false, error: "Failed to complete project" };
   }
 }
 

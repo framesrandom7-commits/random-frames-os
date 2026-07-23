@@ -9,10 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Prisma, InvoiceStatus, PaymentMethod } from "@prisma/client";
 import { updateInvoice } from "@/app/actions/invoice";
 import { createPayment } from "@/app/actions/payment";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
 import { Printer, Download, Plus, Trash2, ArrowLeft, Building, MapPin, Phone, Mail, Calendar as CalendarIcon, Hash, CheckCircle, Upload, MessageCircle, Send, Save } from "lucide-react";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
+import { WhatsAppButton } from "@/components/shared/whatsapp-button";
+import { updateClientPhone } from "@/app/actions/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,7 +67,7 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
         ...formData,
         issueDate: new Date(formData.issueDate),
         dueDate: new Date(formData.dueDate),
-        projectId: formData.projectId === "none" ? undefined : formData.projectId,
+        projectId: formData.projectId,
       });
       alert("Invoice updated successfully!");
     });
@@ -81,7 +81,7 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
         paymentMethod: paymentData.paymentMethod,
         referenceNumber: paymentData.referenceNumber,
         invoiceId: invoice.id,
-        projectId: formData.projectId === "none" ? undefined : formData.projectId,
+        projectId: formData.projectId,
         clientId: formData.clientId,
       });
       alert("Payment recorded!");
@@ -89,16 +89,9 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
   };
 
   const handleDownloadPDF = async () => {
-    if (!invoiceRef.current) return;
     setIsDownloading(true);
     try {
-      const canvas = await html2canvas(invoiceRef.current, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${formData.invoiceNumber}.pdf`);
+      window.open(`/api/pdf/invoice/${invoice.id}`, '_blank');
     } catch (error) {
       console.error("Failed to generate PDF", error);
       alert("Failed to generate PDF. See console for details.");
@@ -321,41 +314,38 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
         {/* Toolbar (Hidden on Print) */}
         <div className="p-4 border-b border-white/10 flex items-center justify-end gap-2 bg-black/40 print:hidden">
           
-          <DropdownMenu>
-            <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 border border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-9 px-4 py-2">
-              <Send className="h-4 w-4 mr-2" /> Share
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10 text-zinc-200 min-w-40">
-              {activeClient?.phone && (
-                <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
-                  <a 
-                    href={whatsappLinks.sendInvoice(
-                      activeClient.phone, 
-                      activeClient.businessName, 
-                      formData.invoiceNumber,
-                      formData.total,
-                      `https://randomframes.app/invoice/${invoice.id}`
-                    )} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center w-full px-3 py-2 text-emerald-400"
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
-                  </a>
-                </DropdownMenuItem>
-              )}
-              {activeClient?.email && (
-                <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
-                  <a 
-                    href={`mailto:${activeClient.email}?subject=Invoice ${formData.invoiceNumber} from Random Frames&body=Hi ${activeClient.businessName},%0D%0A%0D%0AHere is your invoice for ${formData.total}.%0D%0A%0D%0AView Invoice: https://randomframes.app/invoice/${invoice.id}%0D%0A%0D%0AThank you!`}
-                    className="flex items-center w-full px-3 py-2 text-blue-400"
-                  >
+          {activeClient && (
+            <>
+              {activeClient.email && (
+                <a 
+                  href={`mailto:${activeClient.email}?subject=Invoice ${formData.invoiceNumber} from Random Frames&body=Hi ${activeClient.businessName},%0D%0A%0D%0AHere is your invoice for ${formData.total}.%0D%0A%0D%0AView Invoice: ${window.location.origin}/api/pdf/invoice/${invoice.id}%0D%0A%0D%0AThank you!`}
+                  className="inline-flex"
+                >
+                  <Button variant="outline" className="border-white/10 text-zinc-300 hover:text-white hover:bg-white/5">
                     <Mail className="h-4 w-4 mr-2" /> Email
-                  </a>
-                </DropdownMenuItem>
+                  </Button>
+                </a>
               )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+              
+              <WhatsAppButton
+                variant="outline"
+                className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
+                phone={activeClient.phone}
+                onSavePhone={async (phone) => {
+                  return updateClientPhone(activeClient.id, phone);
+                }}
+                getMessageUrl={(phone) => whatsappLinks.sendInvoice(
+                  phone,
+                  activeClient.businessName,
+                  formData.invoiceNumber,
+                  formData.total,
+                  `${window.location.origin}/api/pdf/invoice/${invoice.id}`
+                )}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
+              </WhatsAppButton>
+            </>
+          )}
 
           <Button variant="outline" onClick={handlePrint} className="border-white/10 text-zinc-300 hover:text-white hover:bg-white/5">
             <Printer className="h-4 w-4 mr-2" /> Print

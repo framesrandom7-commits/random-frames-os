@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { ExpenseCategory, PaymentMethod, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { syncProjectFinancials } from "./project";
 
 export type CreateExpenseData = {
   title: string;
@@ -10,7 +11,8 @@ export type CreateExpenseData = {
   amount: number;
   date: Date;
   paymentMethod: PaymentMethod;
-  vendor?: string;
+  clientId?: string;
+  projectId: string;
   notes?: string;
 };
 
@@ -23,9 +25,23 @@ export async function createExpense(data: CreateExpenseData) {
         amount: data.amount,
         date: data.date,
         paymentMethod: data.paymentMethod,
-        vendor: data.vendor,
+        clientId: data.clientId,
+        projectId: data.projectId,
         notes: data.notes,
       },
+    });
+
+    if (data.projectId) {
+      await syncProjectFinancials(data.projectId);
+    }
+
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Expense added: ${data.title} (${data.amount})`,
+      expenseId: expense.id,
+      projectId: data.projectId,
+      clientId: data.clientId,
     });
 
     revalidatePath("/finance/expenses");
@@ -39,8 +55,20 @@ export async function createExpense(data: CreateExpenseData) {
 
 export async function deleteExpense(id: string) {
   try {
-    await prisma.expense.delete({
+    const expense = await prisma.expense.delete({
       where: { id },
+    });
+
+    if (expense.projectId) {
+      await syncProjectFinancials(expense.projectId);
+    }
+
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Expense deleted: ${expense.title}`,
+      projectId: expense.projectId,
+      clientId: expense.clientId || undefined,
     });
 
     revalidatePath("/finance/expenses");
@@ -82,6 +110,7 @@ export async function getExpenses(params?: {
     const [expenses, total] = await Promise.all([
       prisma.expense.findMany({
         where,
+        include: { client: { select: { businessName: true } }, project: { select: { title: true } } },
         orderBy: { date: "desc" },
         skip,
         take: limit,

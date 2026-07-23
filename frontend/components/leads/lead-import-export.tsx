@@ -28,7 +28,7 @@ export default function LeadImportExport({ leads }: LeadImportExportProps) {
       ContactPerson: lead.contactPerson || "",
       Phone: lead.phone || "",
       Email: lead.email || "",
-      Status: lead.status,
+      "Status": lead.status,
       Priority: lead.priority,
       Source: lead.leadSource,
       Budget: lead.budget ? lead.budget.toString() : "",

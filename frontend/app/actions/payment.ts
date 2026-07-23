@@ -11,7 +11,7 @@ export type CreatePaymentData = {
   referenceNumber?: string;
   notes?: string;
   invoiceId?: string;
-  projectId?: string;
+  projectId: string;
   clientId: string;
 };
 
@@ -52,41 +52,7 @@ async function syncInvoiceStatus(invoiceId: string) {
   }
 }
 
-// Ensure project financials are up to date when payments change
-async function syncProjectFinancials(projectId: string) {
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    include: {
-      invoices: { where: { status: { not: "CANCELLED" } } },
-      payments: true,
-    }
-  });
-
-  if (!project) return;
-
-  const totalInvoiced = project.invoices.reduce((sum, inv) => sum + Number(inv.total), 0);
-  const totalPaid = project.payments.reduce((sum, pay) => sum + Number(pay.amount), 0);
-  
-  const balanceAmount = totalInvoiced - totalPaid;
-  
-  let paymentStatus: "PENDING" | "PARTIAL" | "PAID" = "PENDING";
-  if (totalPaid > 0) {
-    if (balanceAmount <= 0) {
-      paymentStatus = "PAID";
-    } else {
-      paymentStatus = "PARTIAL";
-    }
-  }
-
-  await prisma.project.update({
-    where: { id: projectId },
-    data: {
-      totalAmount: totalInvoiced,
-      balanceAmount: balanceAmount,
-      paymentStatus: paymentStatus,
-    }
-  });
-}
+import { syncProjectFinancials } from "./project";
 
 export async function createPayment(data: CreatePaymentData) {
   try {
@@ -109,6 +75,15 @@ export async function createPayment(data: CreatePaymentData) {
     if (data.projectId) {
       await syncProjectFinancials(data.projectId);
     }
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Payment of ${data.amount} received`,
+      paymentId: payment.id,
+      invoiceId: data.invoiceId,
+      projectId: data.projectId,
+      clientId: data.clientId,
+    });
     
     revalidatePath("/finance");
     revalidatePath("/finance/invoices");
@@ -135,6 +110,14 @@ export async function deletePayment(id: string) {
     if (payment.projectId) {
       await syncProjectFinancials(payment.projectId);
     }
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Payment of ${payment.amount} deleted`,
+      invoiceId: payment.invoiceId || undefined,
+      projectId: payment.projectId,
+      clientId: payment.clientId,
+    });
 
     revalidatePath("/finance");
     revalidatePath("/finance/invoices");

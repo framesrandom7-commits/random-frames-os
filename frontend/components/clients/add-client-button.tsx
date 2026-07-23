@@ -2,27 +2,24 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
+import { Plus } from "lucide-react";
 import ClientOnboardingForm from "@/components/clients/client-onboarding-form";
 
-export default function ConvertToClientButton({ leadId, disabled }: { leadId: string, disabled?: boolean }) {
+export default function AddClientButton({ label = "Add Client", className = "" }: { label?: string, className?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Button 
         onClick={() => setOpen(true)} 
-        disabled={disabled}
-        className="bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg"
+        className={`bg-[#C1121F] text-white hover:bg-[#a00f1a] shadow-lg ${className}`}
       >
-        <UserPlus className="mr-2 h-4 w-4" />
-        Convert to Client
+        <Plus className="mr-2 h-4 w-4" /> {label}
       </Button>
 
       <ClientOnboardingForm 
         open={open} 
         onOpenChange={setOpen} 
-        leadId={leadId} 
       />
     </>
   );

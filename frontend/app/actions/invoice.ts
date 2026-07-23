@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma, InvoiceStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { syncProjectFinancials } from "./project";
 
 export type CreateInvoiceData = {
   invoiceNumber: string;
@@ -14,7 +15,7 @@ export type CreateInvoiceData = {
   total: number;
   status?: InvoiceStatus;
   notes?: string;
-  projectId?: string;
+  projectId: string;
   clientId: string;
 };
 
@@ -28,42 +29,6 @@ export async function generateInvoiceNumber(): Promise<string> {
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const seq = (count + 1).toString().padStart(4, '0');
   return `INV-${year}${month}-${seq}`;
-}
-
-// Ensure project financials are up to date when invoices change
-async function syncProjectFinancials(projectId: string) {
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    include: {
-      invoices: { where: { status: { not: "CANCELLED" } } },
-      payments: true,
-    }
-  });
-
-  if (!project) return;
-
-  const totalInvoiced = project.invoices.reduce((sum, inv) => sum + Number(inv.total), 0);
-  const totalPaid = project.payments.reduce((sum, pay) => sum + Number(pay.amount), 0);
-  
-  const balanceAmount = totalInvoiced - totalPaid;
-  
-  let paymentStatus: "PENDING" | "PARTIAL" | "PAID" = "PENDING";
-  if (totalPaid > 0) {
-    if (balanceAmount <= 0) {
-      paymentStatus = "PAID";
-    } else {
-      paymentStatus = "PARTIAL";
-    }
-  }
-
-  await prisma.project.update({
-    where: { id: projectId },
-    data: {
-      totalAmount: totalInvoiced,
-      balanceAmount: balanceAmount,
-      paymentStatus: paymentStatus,
-    }
-  });
 }
 
 export async function createInvoice(data: CreateInvoiceData) {
@@ -87,6 +52,14 @@ export async function createInvoice(data: CreateInvoiceData) {
     if (data.projectId) {
       await syncProjectFinancials(data.projectId);
     }
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Invoice ${invoice.invoiceNumber} created (${invoice.total})`,
+      invoiceId: invoice.id,
+      projectId: data.projectId,
+      clientId: data.clientId,
+    });
     
     revalidatePath("/finance/invoices");
     revalidatePath(`/clients/${data.clientId}`);
@@ -128,6 +101,14 @@ export async function updateInvoice(id: string, data: UpdateInvoiceData) {
     if (invoice.projectId) {
       await syncProjectFinancials(invoice.projectId);
     }
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "STATUS_CHANGE",
+      description: `Invoice ${invoice.invoiceNumber} updated (Status: ${invoice.status})`,
+      invoiceId: invoice.id,
+      projectId: invoice.projectId,
+      clientId: invoice.clientId,
+    });
 
     revalidatePath("/finance/invoices");
     revalidatePath(`/finance/invoices/${id}`);
@@ -150,6 +131,13 @@ export async function deleteInvoice(id: string) {
     if (invoice.projectId) {
       await syncProjectFinancials(invoice.projectId);
     }
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Invoice ${invoice.invoiceNumber} deleted`,
+      projectId: invoice.projectId,
+      clientId: invoice.clientId,
+    });
 
     revalidatePath("/finance/invoices");
     revalidatePath(`/clients/${invoice.clientId}`);

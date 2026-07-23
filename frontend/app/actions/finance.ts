@@ -11,10 +11,9 @@ export async function getFinanceDashboardStats() {
     const startOfMonth = new Date(currentYear, currentMonth, 1);
     const startOfNextMonth = new Date(currentYear, currentMonth + 1, 1);
 
-    // Get all paid invoices total (Total Revenue)
-    const paidInvoices = await prisma.invoice.aggregate({
-      where: { status: "PAID" },
-      _sum: { total: true }
+    // Get all payments total (Total Revenue)
+    const allPayments = await prisma.payment.aggregate({
+      _sum: { amount: true }
     });
     
     // Get all expenses total (Total Expenses)
@@ -94,9 +93,9 @@ export async function getFinanceDashboardStats() {
     });
 
     return {
-      totalRevenue: Number(paidInvoices._sum.total || 0),
+      totalRevenue: Number(allPayments._sum.amount || 0),
       totalExpenses: Number(allExpenses._sum.amount || 0),
-      netProfit: Number(paidInvoices._sum.total || 0) - Number(allExpenses._sum.amount || 0),
+      netProfit: Number(allPayments._sum.amount || 0) - Number(allExpenses._sum.amount || 0),
       monthlyRevenue: Number(monthlyPayments._sum.amount || 0),
       monthlyExpenses: Number(monthlyExpenses._sum.amount || 0),
       monthlyNetProfit: Number(monthlyPayments._sum.amount || 0) - Number(monthlyExpenses._sum.amount || 0),

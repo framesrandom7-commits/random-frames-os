@@ -10,10 +10,10 @@ export type DateRangeFilter = {
 
 function getDateFilter(range?: DateRangeFilter) {
   if (!range?.startDate && !range?.endDate) return undefined;
-  return {
-    gte: range.startDate,
-    lte: range.endDate,
-  };
+  const filter: { gte?: Date; lte?: Date } = {};
+  if (range.startDate) filter.gte = range.startDate;
+  if (range.endDate) filter.lte = range.endDate;
+  return filter;
 }
 
 export async function getDashboardMetrics(range?: DateRangeFilter) {
@@ -32,8 +32,8 @@ export async function getDashboardMetrics(range?: DateRangeFilter) {
     expenses
   ] = await Promise.all([
     prisma.lead.count({ where: createdAtFilter }),
-    prisma.lead.count({ where: { status: "WON", ...createdAtFilter } }),
-    prisma.lead.count({ where: { status: "LOST", ...createdAtFilter } }),
+    prisma.lead.count({ where: { status: "CONVERTED_TO_CLIENT", ...createdAtFilter } }),
+    prisma.lead.count({ where: { status: "CLOSED_LOST", ...createdAtFilter } }),
     prisma.client.count({ where: createdAtFilter }),
     prisma.project.count({ where: createdAtFilter }),
     prisma.project.count({ where: { status: { in: ["COMPLETED", "DELIVERED"] }, ...createdAtFilter } }),
@@ -93,11 +93,22 @@ export async function getChartData(range?: DateRangeFilter) {
     where: createdAtFilter,
     _count: true
   });
-  const funnelOrder = ["NEW", "CONTACTED", "FOLLOW_UP", "QUOTATION_SENT", "NEGOTIATION", "WON", "LOST"];
+  const funnelOrder = [
+    "NEW", 
+    "ATTENDED", 
+    "REQUIREMENT_DISCUSSION", 
+    "QUOTATION_SENT", 
+    "NEGOTIATION", 
+    "QUOTATION_ACCEPTED", 
+    "CLIENT_FORM_SENT", 
+    "CLIENT_FORM_RECEIVED", 
+    "CONVERTED_TO_CLIENT", 
+    "CLOSED_LOST"
+  ];
   const leadFunnel = funnelOrder.map(status => {
     const found = leadsByStatus.find(l => l.status === status);
-    return { name: status.replace("_", " "), value: found ? found._count : 0 };
-  }).filter(f => f.value > 0 || f.name === "NEW" || f.name === "WON");
+    return { name: status.replace(/_/g, " "), value: found ? found._count : 0 };
+  }).filter(f => f.value > 0 || f.name === "NEW" || f.name === "CONVERTED TO CLIENT");
 
   // 3. Project Status Distribution
   const projectsByStatus = await prisma.project.groupBy({

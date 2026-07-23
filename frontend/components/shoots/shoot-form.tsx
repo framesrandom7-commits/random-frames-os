@@ -271,7 +271,7 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
 
             {/* Location & Team */}
             <div className="col-span-1 md:col-span-2 mt-4">
-              <h4 className="text-sm font-semibold text-zinc-400 border-b border-white/10 pb-2 mb-4">Logistics</h4>
+              <h4 className="text-sm font-semibold text-zinc-400 border-b border-white/10 pb-2 mb-4">Pre-Shoot Planning & Logistics</h4>
             </div>
 
             <div className="space-y-2 md:col-span-2">
@@ -372,6 +372,79 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
                 value={formData.notes || ""}
                 onChange={handleChange}
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+              />
+            </div>
+            {/* Post-Shoot Delivery */}
+            <div className="col-span-1 md:col-span-2 mt-4">
+              <h4 className="text-sm font-semibold text-zinc-400 border-b border-white/10 pb-2 mb-4">Post-Shoot Delivery</h4>
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="deliverables" className="text-zinc-300">Deliverables</Label>
+              <Textarea
+                id="deliverables"
+                name="deliverables"
+                placeholder="What needs to be delivered? (e.g. 50 edited photos, 1 highlight reel)"
+                value={formData.deliverables || ""}
+                onChange={handleChange}
+                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:col-span-2">
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Editing Status</Label>
+                <Select value={formData.editingStatus || "PENDING"} onValueChange={(val) => handleSelectChange("editingStatus", val || "")}>
+                  <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
+                    {["PENDING", "IN_PROGRESS", "REVIEW", "COMPLETED"].map((status) => (
+                      <SelectItem key={status} value={status}>{status.replace(/_/g, " ")}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Approval Status</Label>
+                <Select value={formData.approvalStatus || "PENDING"} onValueChange={(val) => handleSelectChange("approvalStatus", val || "")}>
+                  <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
+                    {["PENDING", "APPROVED", "CHANGES_REQUESTED"].map((status) => (
+                      <SelectItem key={status} value={status}>{status.replace(/_/g, " ")}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Delivery Status</Label>
+                <Select value={formData.deliveryStatus || "PENDING"} onValueChange={(val) => handleSelectChange("deliveryStatus", val || "")}>
+                  <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
+                    {["PENDING", "PARTIAL", "DELIVERED"].map((status) => (
+                      <SelectItem key={status} value={status}>{status.replace(/_/g, " ")}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="deliveredDate" className="text-zinc-300">Delivered Date</Label>
+              <Input
+                id="deliveredDate"
+                name="deliveredDate"
+                type="date"
+                value={formData.deliveredDate ? new Date(formData.deliveredDate).toISOString().split('T')[0] : ""}
+                onChange={(e) => setFormData(prev => ({ ...prev, deliveredDate: e.target.value ? new Date(e.target.value) : undefined }))}
+                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+                style={{ colorScheme: 'dark' }}
               />
             </div>
           </div>

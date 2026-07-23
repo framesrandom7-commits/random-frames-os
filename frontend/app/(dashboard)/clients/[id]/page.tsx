@@ -9,22 +9,30 @@ import { getProjects } from "@/app/actions/project";
 import ProjectCardGrid from "@/components/projects/project-card-grid";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { ArrowLeft, Mail, Phone, MapPin, Globe, AtSign, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, Globe, AtSign, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 import { getShoots } from "@/app/actions/shoot";
+import { format, formatDistanceToNow } from "date-fns";
 import ShootTable from "@/components/shoots/shoot-table";
+import { ActivityTimeline } from "@/components/shared/activity-timeline";
+import { WhatsAppButton } from "@/components/shared/whatsapp-button";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
+import { updateClientPhone } from "@/app/actions/client";
 
 export const dynamic = "force-dynamic";
 
-export default async function ClientDetailsPage({ params }: { params: { id: string } }) {
-  const [client, projectData, shootData, clients, projects, invoicesData] = await Promise.all([
-    getClient(params.id),
-    getProjects({ clientId: params.id, limit: 100 }),
-    getShoots({ clientId: params.id, limit: 100 }),
+export default async function ClientDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const [client, projectData, shootData, clients, projects, invoicesData, paymentsData, expensesData] = await Promise.all([
+    getClient(resolvedParams.id),
+    getProjects({ clientId: resolvedParams.id, limit: 100 }),
+    getShoots({ clientId: resolvedParams.id, limit: 100 }),
     prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),
     prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } }),
-    prisma.invoice.findMany({ where: { clientId: params.id }, orderBy: { issueDate: 'desc' }, include: { project: { select: { title: true } } } })
+    prisma.invoice.findMany({ where: { clientId: resolvedParams.id }, orderBy: { issueDate: 'desc' }, include: { project: { select: { title: true } } } }),
+    prisma.payment.findMany({ where: { clientId: resolvedParams.id }, orderBy: { paymentDate: 'desc' } }),
+    prisma.expense.findMany({ where: { clientId: resolvedParams.id }, orderBy: { date: 'desc' } })
   ]);
 
   if (!client) {
@@ -59,6 +67,18 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
               {client.contactPerson && <p className="text-lg text-zinc-400 mt-1">{client.contactPerson}</p>}
             </div>
             <div className="flex items-center gap-3">
+              <WhatsAppButton 
+                variant="outline" 
+                className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-7 text-xs px-3 py-0"
+                phone={client.phone}
+                onSavePhone={async (phone) => {
+                  return updateClientPhone(client.id, phone);
+                }}
+                getMessageUrl={(phone) => whatsappLinks.generalMessage(phone, `Hi ${client.contactPerson || client.businessName},\n\n`)}
+              >
+                <MessageCircle className="w-3 h-3 mr-1.5" />
+                WhatsApp
+              </WhatsAppButton>
               <Badge className={client.archivedAt ? "bg-red-500/20 text-red-500" : "bg-emerald-500/20 text-emerald-500"}>
                 {client.archivedAt ? "Archived" : "Active"}
               </Badge>
@@ -215,8 +235,22 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                    <span className="text-zinc-400 text-sm">Total Billed</span>
+                    <span className="text-zinc-400 text-sm">Total Invoiced</span>
                     <span className="text-white font-medium">${invoicesData.reduce((s, i) => s + Number(i.total), 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-white/5 pb-2 pt-2">
+                    <span className="text-zinc-400 text-sm">Total Revenue (Paid)</span>
+                    <span className="text-emerald-400 font-medium">${paymentsData.reduce((s, p) => s + Number(p.amount), 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-white/5 pb-2 pt-2">
+                    <span className="text-zinc-400 text-sm">Total Expenses</span>
+                    <span className="text-red-400 font-medium">${expensesData.reduce((s, e) => s + Number(e.amount), 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-white/5 pb-2 pt-2">
+                    <span className="text-zinc-400 text-sm">Net Profit</span>
+                    <span className={`font-bold ${paymentsData.reduce((s, p) => s + Number(p.amount), 0) - expensesData.reduce((s, e) => s + Number(e.amount), 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      ${(paymentsData.reduce((s, p) => s + Number(p.amount), 0) - expensesData.reduce((s, e) => s + Number(e.amount), 0)).toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center pt-2">
                     <Link href={`/finance?clientId=${client.id}`} className="text-sm text-[#C1121F] hover:text-white">
@@ -226,17 +260,15 @@ export default async function ClientDetailsPage({ params }: { params: { id: stri
                 </CardContent>
               </Card>
             </div>
-          </div>
             
-          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader className="flex flex-row items-center justify-between">
+            </div>
+            
+            <Card className="border-white/10 bg-white/5 backdrop-blur-md mt-6">
+              <CardHeader>
                 <CardTitle className="text-white text-lg">Activity Timeline</CardTitle>
-                <Button size="sm" variant="outline" className="h-8 bg-zinc-900 border-white/10 text-white">
-                  <Plus className="w-4 h-4 mr-2" /> Log Activity
-                </Button>
               </CardHeader>
               <CardContent>
-                <p className="text-zinc-500 text-center py-8">Timeline tracking for clients will be implemented in the next module iteration.</p>
+                <ActivityTimeline activities={client.activities || []} />
               </CardContent>
             </Card>
           </div>

@@ -12,11 +12,18 @@ import { Badge } from "@/components/ui/badge";
 import ReminderCard from "@/components/leads/reminder-card";
 import AttachmentCard from "@/components/leads/attachment-card";
 import ConvertToClientButton from "@/components/leads/convert-to-client-button";
+import CopyOnboardingLinkButton from "@/components/leads/copy-onboarding-link";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
+import { ActivityTimeline } from "@/components/shared/activity-timeline";
+import { WhatsAppButton } from "@/components/shared/whatsapp-button";
+import { updateLeadPhone } from "@/app/actions/lead";
+import QuotationActions from "@/components/leads/quotation-actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function LeadDetailsPage({ params }: { params: { id: string } }) {
-  const lead = await getLead(params.id);
+export default async function LeadDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const lead = await getLead(resolvedParams.id);
 
   if (!lead) {
     notFound();
@@ -74,7 +81,41 @@ export default async function LeadDetailsPage({ params }: { params: { id: string
                   </Button>
                 </Link>
               ) : (
-                <ConvertToClientButton leadId={lead.id} />
+                <div className="flex gap-2 items-center">
+                  {(lead.status === "NEW" || lead.status === "ATTENDED" || lead.status === "REQUIREMENT_DISCUSSION") && (
+                    <WhatsAppButton 
+                      variant="outline" 
+                      className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                      phone={lead.phone}
+                      onSavePhone={async (phone) => {
+                        "use server";
+                        return updateLeadPhone(lead.id, phone);
+                      }}
+                      getMessageUrl={(phone) => whatsappLinks.rejectBeforeQuotation(phone, lead.contactPerson || lead.businessName)}
+                    >
+                      Reject (Pre-Quote)
+                    </WhatsAppButton>
+                  )}
+                  {(lead.status === "QUOTATION_SENT" || lead.status === "NEGOTIATION" || lead.status === "QUOTATION_ACCEPTED") && (
+                    <WhatsAppButton 
+                      variant="outline" 
+                      className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                      phone={lead.phone}
+                      onSavePhone={async (phone) => {
+                        "use server";
+                        return updateLeadPhone(lead.id, phone);
+                      }}
+                      getMessageUrl={(phone) => whatsappLinks.rejectAfterQuotation(phone, lead.contactPerson || lead.businessName)}
+                    >
+                      Reject (Post-Quote)
+                    </WhatsAppButton>
+                  )}
+                  <QuotationActions lead={lead} />
+                  {lead.status === "QUOTATION_ACCEPTED" && (
+                    <CopyOnboardingLinkButton leadId={lead.id} />
+                  )}
+                  <ConvertToClientButton leadId={lead.id} />
+                </div>
               )}
             </div>
           </div>
@@ -142,35 +183,25 @@ export default async function LeadDetailsPage({ params }: { params: { id: string
               <CardContent>
                 {(() => {
                   const timelineItems = [
-                    ...(lead.activities || []).map((a) => ({ ...a, _timelineType: 'activity' })),
-                    ...(lead.communications || []).map((c) => ({ ...c, _timelineType: 'communication', description: c.summary }))
+                    ...(lead.activities || []),
+                    ...(lead.communications || []).map((c) => ({ 
+                      id: c.id, 
+                      type: 'NOTE' as any, 
+                      description: c.summary, 
+                      metadata: c.details ? { details: c.details } : null,
+                      createdAt: c.createdAt,
+                      createdBy: c.createdBy,
+                      leadId: lead.id,
+                      clientId: null,
+                      projectId: null,
+                      shootId: null,
+                      invoiceId: null,
+                      paymentId: null,
+                      expenseId: null
+                    }))
                   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-                  return timelineItems.length > 0 ? (
-                    <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
-                      {timelineItems.map((item) => (
-                        <div key={item.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                          <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-zinc-900 text-zinc-500 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow">
-                            {(item.type === 'CALL' || item.type === 'MEETING') && <PhoneCall className="w-4 h-4" />}
-                            {item.type === 'EMAIL' && <Mail className="w-4 h-4" />}
-                            {item.type === 'NOTE' && <FileText className="w-4 h-4" />}
-                            {item.type === 'STATUS_CHANGE' && <CheckCircle className="w-4 h-4" />}
-                            {!['CALL', 'MEETING', 'EMAIL', 'NOTE', 'STATUS_CHANGE'].includes(item.type) && <Clock className="w-4 h-4" />}
-                          </div>
-                          <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border border-white/10 bg-white/5 shadow">
-                            <div className="flex items-center justify-between mb-1">
-                              <h4 className="font-bold text-white text-sm capitalize">{item.type.replace(/_/g, ' ').toLowerCase()}</h4>
-                              <time className="text-xs text-zinc-500">{new Date(item.createdAt).toLocaleDateString()}</time>
-                            </div>
-                            <p className="text-sm text-zinc-400">{item.description}</p>
-                            {'details' in item && item.details && <p className="text-xs text-zinc-500 mt-2 p-2 bg-black/20 rounded">{item.details}</p>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-zinc-500 text-center py-8">No activities or communications logged yet.</p>
-                  );
+                  return <ActivityTimeline activities={timelineItems} />;
                 })()}
               </CardContent>
             </Card>

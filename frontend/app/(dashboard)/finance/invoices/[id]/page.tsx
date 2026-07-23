@@ -7,13 +7,14 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function InvoicePage({
-  params,
-}: {
-  params: { id: string };
+export default async function InvoiceDetailsPage({ 
+  params 
+}: { 
+  params: Promise<{ id: string }>;
 }) {
+  const resolvedParams = await params;
   const [invoice, clientsResponse, projectsResponse] = await Promise.all([
-    getInvoice(params.id),
+    getInvoice(resolvedParams.id),
     getClients({ limit: 1000 }),
     getProjects({ limit: 1000 }),
   ]);

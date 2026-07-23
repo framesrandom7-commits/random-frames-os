@@ -38,6 +38,11 @@ export type CreateShootData = {
   clientRequirements?: string | null;
   weatherNotes?: string | null;
   notes?: string | null;
+  deliverables?: string | null;
+  editingStatus?: any;
+  approvalStatus?: any;
+  deliveryStatus?: any;
+  deliveredDate?: Date | null;
 };
 
 export async function createShoot(data: CreateShootData) {
@@ -63,6 +68,15 @@ export async function createShoot(data: CreateShootData) {
           }
         } : {})
       }
+    });
+    
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Shoot scheduled: ${shoot.title}`,
+      shootId: shoot.id,
+      projectId: data.projectId,
+      clientId: data.clientId,
     });
     
     revalidatePath("/shoots");
@@ -115,6 +129,40 @@ export async function updateShoot(id: string, data: Partial<CreateShootData>) {
     } else {
       await prisma.calendarEvent.deleteMany({ where: { shootId: id } });
     }
+
+    // Sync Project Status
+    if (data.status || data.editingStatus || data.deliveryStatus) {
+      const allShoots = await prisma.shoot.findMany({ where: { projectId: shoot.projectId } });
+      let newProjectStatus = undefined;
+      
+      const allCompleted = allShoots.every(s => s.status === "COMPLETED");
+      const anyInProgress = allShoots.some(s => s.status === "IN_PROGRESS");
+      const allDelivered = allShoots.every(s => s.deliveryStatus === "DELIVERED");
+      
+      if (allDelivered) {
+        newProjectStatus = "DELIVERED";
+      } else if (allCompleted) {
+        newProjectStatus = "POST_PRODUCTION";
+      } else if (anyInProgress) {
+        newProjectStatus = "ACTIVE";
+      }
+
+      if (newProjectStatus) {
+        await prisma.project.update({
+          where: { id: shoot.projectId },
+          data: { status: newProjectStatus as any }
+        });
+      }
+    }
+    
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "STATUS_CHANGE",
+      description: `Shoot updated: ${shoot.title}`,
+      shootId: shoot.id,
+      projectId: shoot.projectId,
+      clientId: shoot.clientId,
+    });
     
     revalidatePath("/shoots");
     revalidatePath(`/shoots/${id}`);

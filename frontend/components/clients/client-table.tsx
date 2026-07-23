@@ -10,6 +10,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Client } from "@prisma/client";
 import { deleteClient } from "@/app/actions/client";
 import ClientForm from "./client-form";
+import AddClientButton from "./add-client-button";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
 interface ClientTableProps {
@@ -91,9 +92,7 @@ export default function ClientTable({ clients, page = 1, totalPages = 1, total =
             {isArchived ? "There are no archived clients." : "Get started by adding your first client."}
           </p>
           {!isArchived && (
-            <Button onClick={() => { setEditingClient(undefined); setOpen(true); }} className="bg-[#C1121F] text-white hover:bg-[#a00f1a] px-8 h-11 shadow-lg">
-              Add First Client
-            </Button>
+            <AddClientButton label="Add First Client" className="px-8 h-11" />
           )}
           <ClientForm open={open} onOpenChange={setOpen} client={editingClient} />
         </CardContent>

@@ -7,6 +7,7 @@ import { getClients, getClientStats } from "@/app/actions/client";
 import ClientTable from "@/components/clients/client-table";
 import ClientSearch from "@/components/clients/client-search";
 import ClientFilters from "@/components/clients/client-filters";
+import AddClientButton from "@/components/clients/add-client-button";
 import { BusinessType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -87,9 +88,7 @@ export default async function ClientsPage({
             <ClientFilters />
           </div>
           <div className="flex items-center gap-2">
-            <Button className="bg-[#C1121F] text-white hover:bg-[#a00f1a] shadow-lg">
-              <Plus className="mr-2 h-4 w-4" /> Add Client
-            </Button>
+            <AddClientButton />
           </div>
         </div>
 

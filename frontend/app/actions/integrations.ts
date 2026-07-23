@@ -30,7 +30,7 @@ export async function createProjectDriveFolder(projectId: string) {
     // const drive = google.drive({ version: 'v3', auth: oauth2Client });
     // const fileMetadata = { name: `${project.client.businessName} - ${project.title}`, mimeType: 'application/vnd.google-apps.folder' };
     // const res = await drive.files.create({ requestBody: fileMetadata, fields: 'id, webViewLink' });
-    
+
     // Simulating API call delay and mock response since we don't have OAuth credentials active yet.
     await new Promise(resolve => setTimeout(resolve, 1500));
     const mockFolderId = `gdrive_folder_${Math.random().toString(36).substring(7)}`;
@@ -88,12 +88,12 @@ export async function syncWeb3FormsEmails() {
     // Simulating Gmail API scanning:
     // const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
     // const res = await gmail.users.messages.list({ userId: 'me', q: 'from:web3forms' });
-    
+
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     // Simulate finding a new unread email that hasn't been synced
     const mockEmailId = `email_${Math.random().toString(36).substring(7)}`;
-    
+
     // Check if we already synced this simulated email (not really possible since it's random, but models the logic)
     const existing = await prisma.lead.findUnique({
       where: { sourceEmailId: mockEmailId }
@@ -105,7 +105,7 @@ export async function syncWeb3FormsEmails() {
     const newLead = await prisma.lead.create({
       data: {
         businessName: "Web3Forms Enquiry - " + Math.floor(Math.random() * 1000),
-        contactPerson: "Jane Doe",
+        contactPerson: "Savan Somaiah T P",
         email: "frames.random.7@gmail.com",
         phone: "8073080077",
         leadSource: LeadSource.WEBSITE,
@@ -128,7 +128,7 @@ export async function syncWeb3FormsEmails() {
 
     revalidatePath("/leads");
     revalidatePath("/notifications");
-    
+
     return { success: true, count: 1, message: "1 new lead created from Gmail." };
   } catch (error: any) {
     console.error("Failed to sync Gmail:", error);

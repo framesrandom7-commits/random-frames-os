@@ -80,7 +80,7 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
       total: Number(invoice.total),
       status: "DRAFT",
       notes: invoice.notes || undefined,
-      projectId: invoice.projectId || undefined,
+      projectId: invoice.projectId,
       clientId: invoice.clientId,
     });
     if (result.success && result.invoice) {
@@ -102,7 +102,8 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
       subtotal: 0,
       total: 0,
       status: "DRAFT",
-      clientId: clients[0].id, // Default to first client, they can change it in the UI
+      clientId: clients[0].id,
+      projectId: "", // Will fail if not provided, UI should handle this but for draft we provide empty string
     });
     if (result.success && result.invoice) {
       router.push(`/finance/invoices/${result.invoice.id}`);

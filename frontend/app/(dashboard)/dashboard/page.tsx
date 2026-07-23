@@ -6,8 +6,15 @@ import UpcomingShoots from "@/components/dashboard/upcoming-shoots";
 import QuickActions from "@/components/dashboard/quick-actions";
 import UpcomingReminders from "@/components/dashboard/upcoming-reminders";
 import { Users, UserCircle, Briefcase, DollarSign } from "lucide-react";
+import { getDashboardMetrics } from "@/app/actions/reports";
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const metrics = await getDashboardMetrics();
+
+  const formatCurr = (val: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
+
   return (
     <>
       <Topbar title="Dashboard" />
@@ -19,10 +26,10 @@ export default function DashboardPage() {
         </div>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard title="Total Leads" value="124" icon={Users} trend="+12% from last month" />
-          <StatCard title="Active Clients" value="45" icon={UserCircle} trend="+5% from last month" />
-          <StatCard title="Projects" value="28" icon={Briefcase} trend="+2% from last month" />
-          <StatCard title="Revenue" value="$42,500" icon={DollarSign} trend="+18% from last month" />
+          <StatCard title="Total Leads" value={metrics.totalLeads.toString()} icon={Users} trend="" />
+          <StatCard title="Active Clients" value={metrics.totalClients.toString()} icon={UserCircle} trend="" />
+          <StatCard title="Projects" value={metrics.totalProjects.toString()} icon={Briefcase} trend="" />
+          <StatCard title="Revenue" value={formatCurr(metrics.totalRevenue)} icon={DollarSign} trend="" />
         </div>
 
         <div className="mt-8 grid gap-6 grid-cols-1 lg:grid-cols-3">
