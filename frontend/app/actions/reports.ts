@@ -16,36 +16,43 @@ function getDateFilter(range?: DateRangeFilter) {
   return filter;
 }
 
-export async function getDashboardMetrics(range?: DateRangeFilter) {
+export async function getDashboardData(range?: DateRangeFilter) {
   const dateFilter = getDateFilter(range);
   const createdAtFilter = dateFilter ? { createdAt: dateFilter } : undefined;
 
   const [
-    totalLeads,
-    wonLeads,
-    lostLeads,
+    leadsByStatus,
+    projectsByStatus,
     totalClients,
-    totalProjects,
-    completedProjects,
     totalShoots,
+    leadsBySource,
+    projectsByPayment,
     invoices,
     expenses
   ] = await Promise.all([
-    prisma.lead.count({ where: createdAtFilter }),
-    prisma.lead.count({ where: { status: "CONVERTED_TO_CLIENT", ...createdAtFilter } }),
-    prisma.lead.count({ where: { status: "CLOSED_LOST", ...createdAtFilter } }),
+    prisma.lead.groupBy({ by: ['status'], where: createdAtFilter, _count: true }),
+    prisma.project.groupBy({ by: ['status'], where: createdAtFilter, _count: true }),
     prisma.client.count({ where: createdAtFilter }),
-    prisma.project.count({ where: createdAtFilter }),
-    prisma.project.count({ where: { status: { in: ["COMPLETED", "DELIVERED"] }, ...createdAtFilter } }),
     prisma.shoot.count({ where: dateFilter ? { date: dateFilter } : undefined }),
-    prisma.invoice.findMany({ where: dateFilter ? { issueDate: dateFilter } : undefined, select: { total: true, status: true, payments: { select: { amount: true } } } }),
-    prisma.expense.findMany({ where: dateFilter ? { date: dateFilter } : undefined, select: { amount: true } })
+    prisma.lead.groupBy({ by: ['leadSource'], where: createdAtFilter, _count: true }),
+    prisma.project.groupBy({ by: ['paymentStatus'], where: createdAtFilter, _count: true }),
+    prisma.invoice.findMany({ where: dateFilter ? { issueDate: dateFilter } : undefined, select: { total: true, status: true, issueDate: true, payments: { select: { amount: true, paymentDate: true } } } }),
+    prisma.expense.findMany({ where: dateFilter ? { date: dateFilter } : undefined, select: { amount: true, date: true } })
   ]);
 
+  // Metrics processing
+  const totalLeads = leadsByStatus.reduce((sum, item) => sum + item._count, 0);
+  const wonLeads = leadsByStatus.find(l => l.status === "CONVERTED_TO_CLIENT")?._count || 0;
+  const lostLeads = leadsByStatus.find(l => l.status === "CLOSED_LOST")?._count || 0;
   const conversionRate = totalLeads > 0 ? (wonLeads / totalLeads) * 100 : 0;
+
+  const totalProjects = projectsByStatus.reduce((sum, item) => sum + item._count, 0);
+  const completedProjects = projectsByStatus.filter(p => p.status === "COMPLETED" || p.status === "DELIVERED").reduce((sum, p) => sum + p._count, 0);
 
   let totalRevenue = 0;
   let outstandingPayments = 0;
+  
+  const monthlyData: Record<string, { revenue: number; expenses: number }> = {};
 
   invoices.forEach(inv => {
     const paidAmount = inv.payments.reduce((sum, p) => sum + Number(p.amount), 0);
@@ -54,45 +61,28 @@ export async function getDashboardMetrics(range?: DateRangeFilter) {
     if (inv.status !== "PAID" && inv.status !== "CANCELLED") {
       outstandingPayments += (Number(inv.total) - paidAmount);
     }
+
+    inv.payments.forEach(p => {
+      const monthYear = `${p.paymentDate.getFullYear()}-${String(p.paymentDate.getMonth() + 1).padStart(2, '0')}`;
+      if (!monthlyData[monthYear]) monthlyData[monthYear] = { revenue: 0, expenses: 0 };
+      monthlyData[monthYear].revenue += Number(p.amount);
+    });
   });
 
   const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
   const netProfit = totalRevenue - totalExpenses;
 
-  return {
-    totalLeads,
-    wonLeads,
-    lostLeads,
-    conversionRate,
-    totalClients,
-    totalProjects,
-    completedProjects,
-    totalShoots,
-    totalRevenue,
-    totalExpenses,
-    netProfit,
-    outstandingPayments
-  };
-}
-
-export async function getChartData(range?: DateRangeFilter) {
-  const dateFilter = getDateFilter(range);
-  const createdAtFilter = dateFilter ? { createdAt: dateFilter } : undefined;
-
-  // 1. Lead Sources
-  const leadsBySource = await prisma.lead.groupBy({
-    by: ['leadSource'],
-    where: createdAtFilter,
-    _count: true
+  expenses.forEach(exp => {
+    const monthYear = `${exp.date.getFullYear()}-${String(exp.date.getMonth() + 1).padStart(2, '0')}`;
+    if (!monthlyData[monthYear]) monthlyData[monthYear] = { revenue: 0, expenses: 0 };
+    monthlyData[monthYear].expenses += Number(exp.amount);
   });
+
+  // Chart data processing
   const sourceDistribution = leadsBySource.map(l => ({ name: l.leadSource.replace("_", " "), value: l._count }));
+  const projectDistribution = projectsByStatus.map(p => ({ name: p.status.replace("_", " "), value: p._count }));
+  const paymentDistribution = projectsByPayment.map(p => ({ name: p.paymentStatus, value: p._count }));
 
-  // 2. Lead Funnel
-  const leadsByStatus = await prisma.lead.groupBy({
-    by: ['status'],
-    where: createdAtFilter,
-    _count: true
-  });
   const funnelOrder = [
     "NEW", 
     "ATTENDED", 
@@ -110,49 +100,6 @@ export async function getChartData(range?: DateRangeFilter) {
     return { name: status.replace(/_/g, " "), value: found ? found._count : 0 };
   }).filter(f => f.value > 0 || f.name === "NEW" || f.name === "CONVERTED TO CLIENT");
 
-  // 3. Project Status Distribution
-  const projectsByStatus = await prisma.project.groupBy({
-    by: ['status'],
-    where: createdAtFilter,
-    _count: true
-  });
-  const projectDistribution = projectsByStatus.map(p => ({ name: p.status.replace("_", " "), value: p._count }));
-
-  // 4. Payment Status Distribution
-  const projectsByPayment = await prisma.project.groupBy({
-    by: ['paymentStatus'],
-    where: createdAtFilter,
-    _count: true
-  });
-  const paymentDistribution = projectsByPayment.map(p => ({ name: p.paymentStatus, value: p._count }));
-
-  // 5. Monthly Revenue Trend
-  // We need to fetch all invoices/expenses and group by month locally since Prisma groupBy on dates is complex depending on DB.
-  const allInvoices = await prisma.invoice.findMany({
-    where: dateFilter ? { issueDate: dateFilter } : undefined,
-    select: { issueDate: true, payments: { select: { amount: true, paymentDate: true } } }
-  });
-  const allExpenses = await prisma.expense.findMany({
-    where: dateFilter ? { date: dateFilter } : undefined,
-    select: { date: true, amount: true }
-  });
-
-  const monthlyData: Record<string, { revenue: number; expenses: number }> = {};
-  
-  allInvoices.forEach(inv => {
-    inv.payments.forEach(p => {
-      const monthYear = `${p.paymentDate.getFullYear()}-${String(p.paymentDate.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthlyData[monthYear]) monthlyData[monthYear] = { revenue: 0, expenses: 0 };
-      monthlyData[monthYear].revenue += Number(p.amount);
-    });
-  });
-
-  allExpenses.forEach(exp => {
-    const monthYear = `${exp.date.getFullYear()}-${String(exp.date.getMonth() + 1).padStart(2, '0')}`;
-    if (!monthlyData[monthYear]) monthlyData[monthYear] = { revenue: 0, expenses: 0 };
-    monthlyData[monthYear].expenses += Number(exp.amount);
-  });
-
   const revenueTrend = Object.keys(monthlyData).sort().map(key => {
     const [year, month] = key.split('-');
     const monthName = new Date(Number(year), Number(month) - 1, 1).toLocaleString('default', { month: 'short' });
@@ -166,11 +113,14 @@ export async function getChartData(range?: DateRangeFilter) {
   });
 
   return {
-    sourceDistribution,
-    leadFunnel,
-    projectDistribution,
-    paymentDistribution,
-    revenueTrend
+    metrics: {
+      totalLeads, wonLeads, lostLeads, conversionRate,
+      totalClients, totalProjects, completedProjects, totalShoots,
+      totalRevenue, totalExpenses, netProfit, outstandingPayments
+    },
+    chartData: {
+      sourceDistribution, leadFunnel, projectDistribution, paymentDistribution, revenueTrend
+    }
   };
 }
 

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Briefcase, Camera, IndianRupee, Wallet, Target, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { RevenueTrendChart, LeadFunnelChart, SourcePieChart, ProjectDistributionChart } from "./charts";
 import { TopClientsList, TopProjectsList, UpcomingDeliveriesList, OverdueInvoicesList } from "./top-lists";
-import { getDashboardMetrics, getChartData, getTopLists, DateRangeFilter } from "@/app/actions/reports";
+import { getDashboardData, getTopLists, DateRangeFilter } from "@/app/actions/reports";
 import { exportToCSV, exportToExcel, exportToPDF } from "@/lib/export";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -48,14 +48,13 @@ export default function ReportsDashboard() {
         dateFilter = { startDate: start, endDate: new Date() };
       }
 
-      const [metricsData, chartsData, listsData] = await Promise.all([
-        getDashboardMetrics(dateFilter),
-        getChartData(dateFilter),
+      const [dashboardData, listsData] = await Promise.all([
+        getDashboardData(dateFilter),
         getTopLists(dateFilter)
       ]);
 
-      setMetrics(metricsData);
-      setCharts(chartsData);
+      setMetrics(dashboardData.metrics);
+      setCharts(dashboardData.chartData);
       setLists(listsData);
       setIsLoading(false);
     }

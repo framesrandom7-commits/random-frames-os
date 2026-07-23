@@ -35,14 +35,17 @@ export type CreateShootData = {
   photographer?: string | null;
   videographer?: string | null;
   assistants?: string | null;
-  clientRequirements?: string | null;
-  weatherNotes?: string | null;
-  notes?: string | null;
-  deliverables?: string | null;
-  editingStatus?: any;
-  approvalStatus?: any;
-  deliveryStatus?: any;
-  deliveredDate?: Date | null;
+  droneOperator?: string | null;
+  editor?: string | null;
+  makeupArtist?: string | null;
+  callTime?: string | null;
+  wrapTime?: string | null;
+  timeZone?: string | null;
+  clientBrief?: string | null;
+  specialRequests?: string | null;
+  moodBoard?: string | null;
+  referenceImages?: string | null;
+  deliverablesChecklist?: string | null;
 };
 
 export async function createShoot(data: CreateShootData) {
@@ -131,20 +134,17 @@ export async function updateShoot(id: string, data: Partial<CreateShootData>) {
     }
 
     // Sync Project Status
-    if (data.status || data.editingStatus || data.deliveryStatus) {
+    if (data.status) {
       const allShoots = await prisma.shoot.findMany({ where: { projectId: shoot.projectId } });
       let newProjectStatus = undefined;
       
       const allCompleted = allShoots.every(s => s.status === "COMPLETED");
-      const anyInProgress = allShoots.some(s => s.status === "IN_PROGRESS");
-      const allDelivered = allShoots.every(s => s.deliveryStatus === "DELIVERED");
+      const anyInProgress = allShoots.some(s => s.status === "IN_PROGRESS" || s.status === "EDITING" || s.status === "READY_FOR_REVIEW");
       
-      if (allDelivered) {
-        newProjectStatus = "DELIVERED";
-      } else if (allCompleted) {
-        newProjectStatus = "POST_PRODUCTION";
+      if (allCompleted) {
+        newProjectStatus = "COMPLETED";
       } else if (anyInProgress) {
-        newProjectStatus = "ACTIVE";
+        newProjectStatus = "SHOOTING";
       }
 
       if (newProjectStatus) {
@@ -220,9 +220,9 @@ export async function duplicateShoot(id: string) {
         ...shootData,
         shootCode,
         title: `${shootData.title} (Copy)`,
-        status: "SCHEDULED",
+        status: "PLANNED",
         equipment: {
-          create: equipment.map(e => ({ name: e.name, isCompleted: false }))
+          create: equipment.map(e => ({ name: e.name, status: "REQUIRED" }))
         },
         shots: {
           create: shots.map(s => ({ title: s.title, description: s.description, order: s.order, isCompleted: false }))
@@ -381,7 +381,7 @@ export async function getShootStats() {
         where: { archivedAt: null, date: { gte: startOfToday, lte: endOfToday }, status: { notIn: ["CANCELLED", "POSTPONED"] } } 
       }),
       prisma.shoot.count({ 
-        where: { archivedAt: null, date: { gt: endOfToday }, status: "SCHEDULED" } 
+        where: { archivedAt: null, date: { gt: endOfToday }, status: "PLANNED" } 
       }),
       prisma.shoot.count({ 
         where: { archivedAt: null, date: { gte: startOfWeek, lte: endOfWeek }, status: { notIn: ["CANCELLED"] } } 
@@ -437,7 +437,7 @@ export async function toggleEquipment(id: string, isCompleted: boolean, shootId:
   try {
     await prisma.shootEquipment.update({
       where: { id },
-      data: { isCompleted }
+      data: { status: isCompleted ? "PACKED" : "REQUIRED" }
     });
     revalidatePath(`/shoots/${shootId}`);
     return true;

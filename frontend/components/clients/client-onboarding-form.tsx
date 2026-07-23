@@ -28,11 +28,6 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
   const [formData, setFormData] = useState<Partial<OnboardClientData>>({
     projectCategory: "OTHER",
     projectPriority: "MEDIUM",
-    quotedAmount: 0,
-    discountAmount: 0,
-    finalAmount: 0,
-    advanceReceived: 0,
-    balanceAmount: 0,
   });
 
   useEffect(() => {
@@ -52,9 +47,6 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
             website: lead.website || "",
             address: lead.address || "",
             clientNotes: lead.notes || "",
-            quotedAmount: lead.budget ? Number(lead.budget) : 0,
-            finalAmount: lead.budget ? Number(lead.budget) : 0,
-            balanceAmount: lead.budget ? Number(lead.budget) : 0,
           }));
         }
       } finally {
@@ -70,11 +62,6 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
         setFormData({
           projectCategory: "OTHER",
           projectPriority: "MEDIUM",
-          quotedAmount: 0,
-          discountAmount: 0,
-          finalAmount: 0,
-          advanceReceived: 0,
-          balanceAmount: 0,
         });
       }, 0);
     }
@@ -83,21 +70,7 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
-    setFormData(prev => {
-      const updated = { ...prev, [name]: type === 'number' ? Number(value) : value };
-      
-      // Auto calculate finance
-      if (name === 'quotedAmount' || name === 'discountAmount' || name === 'advanceReceived') {
-        const quoted = name === 'quotedAmount' ? Number(value) : (prev.quotedAmount || 0);
-        const discount = name === 'discountAmount' ? Number(value) : (prev.discountAmount || 0);
-        const advance = name === 'advanceReceived' ? Number(value) : (prev.advanceReceived || 0);
-        
-        updated.finalAmount = Math.max(0, quoted - discount);
-        updated.balanceAmount = Math.max(0, updated.finalAmount - advance);
-      }
-      
-      return updated;
-    });
+    setFormData(prev => ({ ...prev, [name]: type === 'number' ? Number(value) : value }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -130,24 +103,11 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
         projectDescription: formData.projectDescription || "",
         deliverables: formData.deliverables || "",
         projectPriority: formData.projectPriority || "MEDIUM",
-        
-        shootDate: formData.shootDate || "",
-        shootStartTime: formData.shootStartTime || "",
-        shootEndTime: formData.shootEndTime || "",
-        shootLocation: formData.shootLocation || "",
-        equipmentNeeded: formData.equipmentNeeded || "",
-        shootNotes: formData.shootNotes || "",
-        
-        quotedAmount: formData.quotedAmount || 0,
-        discountAmount: formData.discountAmount || 0,
-        finalAmount: formData.finalAmount || 0,
-        advanceReceived: formData.advanceReceived || 0,
-        balanceAmount: formData.balanceAmount || 0,
       };
 
       const result = await onboardClient(dataToSubmit);
       if (result.success) {
-        toast.success("Client fully onboarded with Project, Shoot, and Finances!");
+        toast.success("Client fully onboarded with Project!");
         onOpenChange(false);
         if (result.clientId) {
           router.push(`/clients/${result.clientId}`);
@@ -164,7 +124,7 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
         <DialogHeader className="p-6 pb-2 border-b border-white/10 sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-md z-10">
           <DialogTitle className="text-2xl font-bold">Client Onboarding Wizard</DialogTitle>
           <DialogDescription className="text-zinc-400">
-            Create Client, Project, Shoot, and Invoice all at once.
+            Create Client and Initial Project.
           </DialogDescription>
         </DialogHeader>
 
@@ -263,67 +223,7 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
               </div>
             </section>
 
-            {/* 3. SHOOT INFORMATION */}
-            <section className="space-y-4">
-              <h3 className="text-lg font-bold text-amber-400 flex items-center border-b border-white/10 pb-2">
-                3. Shoot Information (Optional)
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Shoot Date</Label>
-                  <Input type="date" name="shootDate" value={formData.shootDate || ""} onChange={handleChange} className="bg-black/50 border-white/10" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Location</Label>
-                  <Input name="shootLocation" value={formData.shootLocation || ""} onChange={handleChange} className="bg-black/50 border-white/10" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Start Time</Label>
-                  <Input type="time" name="shootStartTime" value={formData.shootStartTime || ""} onChange={handleChange} className="bg-black/50 border-white/10" />
-                </div>
-                <div className="space-y-2">
-                  <Label>End Time</Label>
-                  <Input type="time" name="shootEndTime" value={formData.shootEndTime || ""} onChange={handleChange} className="bg-black/50 border-white/10" />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label>Equipment Needed</Label>
-                  <Textarea name="equipmentNeeded" value={formData.equipmentNeeded || ""} onChange={handleChange} className="bg-black/50 border-white/10" placeholder="e.g. Sony A7SIII, Gimbal, Drone..." />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label>Shoot Notes</Label>
-                  <Textarea name="shootNotes" value={formData.shootNotes || ""} onChange={handleChange} className="bg-black/50 border-white/10" />
-                </div>
-              </div>
-            </section>
-
-            {/* 4. FINANCE INFORMATION */}
-            <section className="space-y-4">
-              <h3 className="text-lg font-bold text-rose-400 flex items-center border-b border-white/10 pb-2">
-                4. Finance
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Quoted Amount</Label>
-                  <Input type="number" name="quotedAmount" value={formData.quotedAmount} onChange={handleChange} className="bg-black/50 border-white/10 font-bold" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Discount</Label>
-                  <Input type="number" name="discountAmount" value={formData.discountAmount} onChange={handleChange} className="bg-black/50 border-white/10 font-bold text-rose-400" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Final Amount</Label>
-                  <Input readOnly disabled type="number" name="finalAmount" value={formData.finalAmount} className="bg-white/10 border-white/10 font-bold text-white" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Advance Received</Label>
-                  <Input type="number" name="advanceReceived" value={formData.advanceReceived} onChange={handleChange} className="bg-black/50 border-white/10 font-bold text-emerald-400" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Balance Amount</Label>
-                  <Input readOnly disabled type="number" name="balanceAmount" value={formData.balanceAmount} className="bg-white/10 border-white/10 font-bold text-orange-400" />
-                </div>
-              </div>
-            </section>
+            {/* Shoot and Finance Information removed as per architecture rules */}
 
             <DialogFooter className="pt-8 border-t border-white/10 sticky bottom-0 bg-[#0a0a0a]/95 backdrop-blur-md p-4 mt-0 mx(-6)">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="bg-transparent border-white/20 text-white hover:bg-white/10">

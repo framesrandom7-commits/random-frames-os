@@ -8,23 +8,11 @@ export default async function UpcomingShoots() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const { shoots } = await getShoots({ 
-    limit: 5, 
+  const { shoots: allUpcoming } = await getShoots({ 
+    limit: 10, 
     dateStart: today,
     sortBy: "date",
     sortOrder: "asc",
-    status: "SCHEDULED" // Or we can omit to get all statuses
-  });
-
-  // Filter out cancelled shoots manually or use the status filter above. 
-  // Above we only take SCHEDULED, but maybe CONFIRMED or IN_PROGRESS should also appear.
-  // We'll just fetch without status and filter below, or we could change getShoots to accept an array of statuses.
-  // Actually, getShoots takes a single status. Let's just fetch all and filter in memory.
-  const { shoots: allUpcoming } = await getShoots({
-    limit: 10,
-    dateStart: today,
-    sortBy: "date",
-    sortOrder: "asc"
   });
 
   const validShoots = allUpcoming.filter(s => s.status !== "CANCELLED" && s.status !== "POSTPONED").slice(0, 5);

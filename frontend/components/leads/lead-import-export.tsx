@@ -67,9 +67,9 @@ export default function LeadImportExport({ leads }: LeadImportExportProps) {
             const row = rawRow as Record<string, string>;
             return {
             businessName: row.BusinessName || "Unknown Business",
-            contactPerson: row.ContactPerson || null,
-            phone: row.Phone || null,
-            email: row.Email || null,
+            contactPerson: row.ContactPerson || "Unknown Contact",
+            phone: row.Phone || "0000000000",
+            email: row.Email || "",
             status: Object.values(LeadStatus).includes(row.Status as LeadStatus) ? row.Status as LeadStatus : LeadStatus.NEW,
             priority: Object.values(LeadPriority).includes(row.Priority as LeadPriority) ? row.Priority as LeadPriority : LeadPriority.MEDIUM,
             leadSource: Object.values(LeadSource).includes(row.Source as LeadSource) ? row.Source as LeadSource : LeadSource.OTHER,

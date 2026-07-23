@@ -14,11 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
 interface WhatsAppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   phone?: string | null;
   onSavePhone: (phone: string) => Promise<{ success: boolean; error?: string }>;
-  getMessageUrl: (phone: string) => string;
+  getMessageUrl?: (phone: string) => string;
+  whatsappTemplate?: keyof typeof whatsappLinks;
+  whatsappArgs?: any[];
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   children?: React.ReactNode;
   className?: string;
@@ -28,6 +31,8 @@ export function WhatsAppButton({
   phone,
   onSavePhone,
   getMessageUrl,
+  whatsappTemplate,
+  whatsappArgs = [],
   children,
   className,
   variant = "default",
@@ -37,10 +42,18 @@ export function WhatsAppButton({
   const [inputPhone, setInputPhone] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  const getResolvedUrl = (p: string) => {
+    if (whatsappTemplate && whatsappLinks[whatsappTemplate]) {
+      // @ts-expect-error - Type string cannot be used to index
+      return whatsappLinks[whatsappTemplate](p, ...whatsappArgs);
+    }
+    return getMessageUrl ? getMessageUrl(p) : "";
+  };
+
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (phone) {
-      window.open(getMessageUrl(phone), "_blank", "noopener,noreferrer");
+      window.open(getResolvedUrl(phone), "_blank", "noopener,noreferrer");
     } else {
       setIsOpen(true);
     }
@@ -59,7 +72,7 @@ export function WhatsAppButton({
         toast.success("Phone number saved successfully");
         setIsOpen(false);
         // Open WhatsApp immediately after saving
-        window.open(getMessageUrl(inputPhone), "_blank", "noopener,noreferrer");
+        window.open(getResolvedUrl(inputPhone), "_blank", "noopener,noreferrer");
       } else {
         toast.error(result.error || "Failed to save phone number");
       }

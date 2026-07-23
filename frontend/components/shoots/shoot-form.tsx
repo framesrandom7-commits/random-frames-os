@@ -44,7 +44,7 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
 
       setFormData({
         shootType: "OTHER",
-        status: "SCHEDULED",
+        status: "PLANNED",
         clientId: defaultClientId,
         projectId: defaultProjectId,
       });
@@ -100,7 +100,17 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
         photographer: formData.photographer,
         videographer: formData.videographer,
         assistants: formData.assistants,
-        clientRequirements: formData.clientRequirements,
+        droneOperator: formData.droneOperator,
+        editor: formData.editor,
+        makeupArtist: formData.makeupArtist,
+        callTime: formData.callTime,
+        wrapTime: formData.wrapTime,
+        timeZone: formData.timeZone,
+        clientBrief: formData.clientBrief,
+        specialRequests: formData.specialRequests,
+        moodBoard: formData.moodBoard,
+        referenceImages: formData.referenceImages,
+        deliverablesChecklist: formData.deliverablesChecklist,
         weatherNotes: formData.weatherNotes,
         notes: formData.notes,
       };
@@ -340,12 +350,12 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="clientRequirements" className="text-zinc-300">Client Requirements</Label>
+              <Label htmlFor="clientBrief" className="text-zinc-300">Client Brief</Label>
               <Textarea
-                id="clientRequirements"
-                name="clientRequirements"
+                id="clientBrief"
+                name="clientBrief"
                 placeholder="Specific instructions from the client..."
-                value={formData.clientRequirements || ""}
+                value={formData.clientBrief || ""}
                 onChange={handleChange}
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
               />
@@ -374,77 +384,32 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
               />
             </div>
-            {/* Post-Shoot Delivery */}
+            {/* Requirements & Assets */}
             <div className="col-span-1 md:col-span-2 mt-4">
-              <h4 className="text-sm font-semibold text-zinc-400 border-b border-white/10 pb-2 mb-4">Post-Shoot Delivery</h4>
+              <h4 className="text-sm font-semibold text-zinc-400 border-b border-white/10 pb-2 mb-4">Requirements & Assets</h4>
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="deliverables" className="text-zinc-300">Deliverables</Label>
+              <Label htmlFor="deliverablesChecklist" className="text-zinc-300">Deliverables Checklist</Label>
               <Textarea
-                id="deliverables"
-                name="deliverables"
+                id="deliverablesChecklist"
+                name="deliverablesChecklist"
                 placeholder="What needs to be delivered? (e.g. 50 edited photos, 1 highlight reel)"
-                value={formData.deliverables || ""}
+                value={formData.deliverablesChecklist || ""}
                 onChange={handleChange}
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:col-span-2">
-              <div className="space-y-2">
-                <Label className="text-zinc-300">Editing Status</Label>
-                <Select value={formData.editingStatus || "PENDING"} onValueChange={(val) => handleSelectChange("editingStatus", val || "")}>
-                  <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
-                    {["PENDING", "IN_PROGRESS", "REVIEW", "COMPLETED"].map((status) => (
-                      <SelectItem key={status} value={status}>{status.replace(/_/g, " ")}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-zinc-300">Approval Status</Label>
-                <Select value={formData.approvalStatus || "PENDING"} onValueChange={(val) => handleSelectChange("approvalStatus", val || "")}>
-                  <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
-                    {["PENDING", "APPROVED", "CHANGES_REQUESTED"].map((status) => (
-                      <SelectItem key={status} value={status}>{status.replace(/_/g, " ")}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-zinc-300">Delivery Status</Label>
-                <Select value={formData.deliveryStatus || "PENDING"} onValueChange={(val) => handleSelectChange("deliveryStatus", val || "")}>
-                  <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
-                    {["PENDING", "PARTIAL", "DELIVERED"].map((status) => (
-                      <SelectItem key={status} value={status}>{status.replace(/_/g, " ")}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="deliveredDate" className="text-zinc-300">Delivered Date</Label>
-              <Input
-                id="deliveredDate"
-                name="deliveredDate"
-                type="date"
-                value={formData.deliveredDate ? new Date(formData.deliveredDate).toISOString().split('T')[0] : ""}
-                onChange={(e) => setFormData(prev => ({ ...prev, deliveredDate: e.target.value ? new Date(e.target.value) : undefined }))}
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="specialRequests" className="text-zinc-300">Special Requests</Label>
+              <Textarea
+                id="specialRequests"
+                name="specialRequests"
+                placeholder="Any special requests or constraints..."
+                value={formData.specialRequests || ""}
+                onChange={handleChange}
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
-                style={{ colorScheme: 'dark' }}
               />
             </div>
           </div>

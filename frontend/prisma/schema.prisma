@@ -117,23 +117,19 @@ enum ExpenseCategory {
   MISCELLANEOUS
 }
 
-enum ShootEditingStatus {
-  PENDING
-  IN_PROGRESS
-  REVIEW
-  COMPLETED
+enum EquipmentStatus {
+  REQUIRED
+  PACKED
+  MISSING
 }
 
-enum ShootDeliveryStatus {
+enum DeliverableStatus {
   PENDING
-  PARTIAL
-  DELIVERED
-}
-
-enum ShootApprovalStatus {
-  PENDING
+  EDITING
+  READY_FOR_REVIEW
   CHANGES_REQUESTED
   APPROVED
+  DELIVERED
 }
 
 enum ShootType {
@@ -146,9 +142,11 @@ enum ShootType {
 }
 
 enum ShootStatus {
-  SCHEDULED
+  PLANNED
   CONFIRMED
   IN_PROGRESS
+  EDITING
+  READY_FOR_REVIEW
   COMPLETED
   CANCELLED
   POSTPONED
@@ -230,6 +228,7 @@ model Lead {
   businessName  String
   contactPerson String?
   phone         String?
+  whatsapp      String?
   email         String?
   instagram     String?
   website       String?
@@ -448,31 +447,35 @@ model Shoot {
   shootCode       String          @unique
   title           String
   shootType       ShootType       @default(OTHER)
-  status          ShootStatus     @default(SCHEDULED)
+  status          ShootStatus     @default(PLANNED)
   
   date            DateTime?
   startTime       String?
   endTime         String?
+  callTime        String?
+  wrapTime        String?
+  timeZone        String?
   
   location        String?
   googleMapsLink  String?
   
   contactPerson   String?
   contactNumber   String?
-  deliverables    String?
   
   photographer    String?
   videographer    String?
   assistants      String?
+  droneOperator   String?
+  editor          String?
+  makeupArtist    String?
   
-  clientRequirements String?
-  weatherNotes    String?
-  notes           String?
-  
-  editingStatus   ShootEditingStatus  @default(PENDING)
-  deliveryStatus  ShootDeliveryStatus @default(PENDING)
-  approvalStatus  ShootApprovalStatus @default(PENDING)
-  deliveredDate   DateTime?
+  clientBrief           String?
+  specialRequests       String?
+  moodBoard             String?
+  referenceImages       String?
+  deliverablesChecklist String?
+  weatherNotes          String?
+  notes                 String?
   
   projectId       String
   project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -482,6 +485,7 @@ model Shoot {
   
   equipment       ShootEquipment[]
   shots           ShootShot[]
+  deliverables    Deliverable[]
   
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -495,23 +499,45 @@ model Shoot {
 }
 
 model ShootEquipment {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   name        String
-  isCompleted Boolean  @default(false)
+  status      EquipmentStatus @default(REQUIRED)
+  notes       String?
   
   shootId     String
-  shoot       Shoot    @relation(fields: [shootId], references: [id], onDelete: Cascade)
+  shoot       Shoot           @relation(fields: [shootId], references: [id], onDelete: Cascade)
 }
 
 model ShootShot {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  order       Int      @default(0)
-  isCompleted Boolean  @default(false)
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  order          Int      @default(0)
+  isCompleted    Boolean  @default(false)
+  priority       String?
+  referenceImage String?
+  notes          String?
   
-  shootId     String
-  shoot       Shoot    @relation(fields: [shootId], references: [id], onDelete: Cascade)
+  shootId        String
+  shoot          Shoot    @relation(fields: [shootId], references: [id], onDelete: Cascade)
+}
+
+model Deliverable {
+  id              String            @id @default(cuid())
+  type            String
+  assignedEditor  String?
+  status          DeliverableStatus @default(PENDING)
+  dueDate         DateTime?
+  completionDate  DateTime?
+  clientApproval  Boolean           @default(false)
+  downloadLink    String?
+  version         Int               @default(1)
+  
+  shootId         String
+  shoot           Shoot             @relation(fields: [shootId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 }
 
 enum CalendarEventType {

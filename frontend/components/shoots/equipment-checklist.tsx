@@ -45,7 +45,7 @@ export default function EquipmentChecklist({ shootId, equipment }: { shootId: st
     });
   };
 
-  const completedCount = equipment.filter(e => e.isCompleted).length;
+  const completedCount = equipment.filter(e => e.status === "PACKED").length;
   const progress = equipment.length > 0 ? (completedCount / equipment.length) * 100 : 0;
 
   return (
@@ -82,15 +82,15 @@ export default function EquipmentChecklist({ shootId, equipment }: { shootId: st
           equipment.map((item) => (
             <div 
               key={item.id} 
-              className={`flex items-center justify-between p-2 rounded hover:bg-white/5 transition-colors group ${item.isCompleted ? 'opacity-60' : ''}`}
+              className={`flex items-center justify-between p-2 rounded hover:bg-white/5 transition-colors group ${item.status === "PACKED" ? 'opacity-60' : ''}`}
             >
               <div className="flex items-center gap-3">
                 <Checkbox 
-                  checked={item.isCompleted} 
+                  checked={item.status === "PACKED"} 
                   onChange={(e) => handleToggle(item.id, e.target.checked)}
                   className="border-white/20 checked:bg-emerald-500 checked:border-emerald-500"
                 />
-                <span className={`text-sm ${item.isCompleted ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>
+                <span className={`text-sm ${item.status === "PACKED" ? 'text-zinc-500 line-through' : 'text-zinc-200'}`}>
                   {item.name}
                 </span>
               </div>

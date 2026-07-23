@@ -172,7 +172,7 @@ export default async function ShootDetailsPage({ params }: { params: Promise<{ i
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Client Requirements</h4>
-                    <p className="text-zinc-300 text-sm whitespace-pre-wrap">{shoot.clientRequirements || "—"}</p>
+                    <p className="text-zinc-300 text-sm whitespace-pre-wrap">{shoot.clientBrief || "—"}</p>
                   </div>
                   <div className="pt-3 border-t border-white/5">
                     <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">

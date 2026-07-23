@@ -120,13 +120,40 @@ async function syncTags(leadId: string, tags: string[]) {
   }
 }
 
+export async function checkLeadDuplicates(email?: string | null, phone?: string | null) {
+  try {
+    if (!email && !phone) return { duplicate: false };
+    
+    const where: Prisma.LeadWhereInput = { archivedAt: null, OR: [] };
+    if (email) where.OR!.push({ email: { equals: email, mode: "insensitive" } });
+    if (phone) {
+      where.OR!.push({ phone: { equals: phone } });
+      where.OR!.push({ whatsapp: { equals: phone } });
+    }
+    
+    const duplicates = await prisma.lead.findMany({
+      where,
+      select: { id: true, businessName: true, email: true, phone: true, whatsapp: true }
+    });
+    
+    return { 
+      duplicate: duplicates.length > 0, 
+      matches: duplicates 
+    };
+  } catch (error) {
+    console.error("Error checking lead duplicates:", error);
+    return { duplicate: false, matches: [] };
+  }
+}
+
 export async function createLead(data: LeadFormData) {
   try {
-    const { tags, reminderDate, reminderTime, reminderType, ...leadData } = data;
+    const { tags, reminderDate, reminderTime, reminderType, whatsapp, ...leadData } = data;
     
     const newLead = await prisma.lead.create({
       data: {
         ...leadData,
+        whatsapp,
         reminders: reminderDate && reminderType ? {
           create: {
             date: new Date(reminderDate),
@@ -173,11 +200,14 @@ export async function createLead(data: LeadFormData) {
 
 export async function updateLead(id: string, data: LeadUpdateFormData) {
   try {
-    const { tags, id: _id, reminderDate, reminderTime, reminderType, ...leadData } = data;
+    const { tags, id: _id, reminderDate, reminderTime, reminderType, whatsapp, ...leadData } = data;
     
     const updatedLead = await prisma.lead.update({
       where: { id },
-      data: leadData,
+      data: {
+        ...leadData,
+        whatsapp,
+      },
     });
     
     if (reminderDate && reminderType) {

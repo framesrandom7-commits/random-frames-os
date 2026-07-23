@@ -168,7 +168,7 @@ export async function syncAutomatedNotifications() {
   // 3. Upcoming Shoots
   const upcomingShoots = await prisma.shoot.findMany({
     where: {
-      status: { in: ['SCHEDULED', 'CONFIRMED'] },
+      status: { in: ['PLANNED', 'CONFIRMED'] },
       date: { lte: threeDaysFromNow, gte: now }
     }
   });

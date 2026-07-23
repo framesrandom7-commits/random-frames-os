@@ -103,9 +103,11 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                 className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 gap-2"
                 phone={project.client.phone}
                 onSavePhone={async (phone) => {
+                  "use server";
                   return updateClientPhone(project.client.id, phone);
                 }}
-                getMessageUrl={(phone) => whatsappLinks.generalMessage(phone, `Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`)}
+                whatsappTemplate="generalMessage"
+                whatsappArgs={[`Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`]}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
                 WhatsApp Client

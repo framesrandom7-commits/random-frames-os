@@ -30,6 +30,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
       businessName: "",
       contactPerson: "",
       phone: "",
+      whatsapp: "",
       email: "",
       instagram: "",
       website: "",
@@ -66,6 +67,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
         businessName: "",
         contactPerson: "",
         phone: "",
+        whatsapp: "",
         email: "",
         instagram: "",
         website: "",
@@ -145,6 +147,18 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
                 {...register("phone")} 
                 className="bg-zinc-900/50 border-white/10 focus-visible:ring-[#C1121F]" 
               />
+              {errors.phone && <p className="text-red-500 text-sm">{String(errors.phone.message)}</p>}
+            </div>
+
+            {/* WhatsApp */}
+            <div className="space-y-2">
+              <Label htmlFor="whatsapp" className="text-zinc-400">WhatsApp</Label>
+              <Input 
+                id="whatsapp" 
+                {...register("whatsapp")} 
+                className="bg-zinc-900/50 border-white/10 focus-visible:ring-[#C1121F]" 
+              />
+              {errors.whatsapp && <p className="text-red-500 text-sm">{String(errors.whatsapp.message)}</p>}
             </div>
 
             {/* Email */}

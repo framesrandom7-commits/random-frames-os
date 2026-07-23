@@ -22,8 +22,26 @@ import QuotationActions from "@/components/leads/quotation-actions";
 export const dynamic = "force-dynamic";
 
 export default async function LeadDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
-  const lead = await getLead(resolvedParams.id);
+  let resolvedParams;
+  try {
+    resolvedParams = await params;
+  } catch (error) {
+    notFound();
+  }
+
+  // Validate UUID (cuid format check or general alphanumeric check)
+  if (!resolvedParams.id || typeof resolvedParams.id !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(resolvedParams.id)) {
+    notFound();
+  }
+
+  let lead;
+  try {
+    lead = await getLead(resolvedParams.id);
+  } catch (error) {
+    console.error("Failed to fetch lead details:", error);
+    // Let error.tsx handle the unhandled DB crashes
+    throw new Error("Failed to load lead details from the database.");
+  }
 
   if (!lead) {
     notFound();
@@ -86,12 +104,13 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
                     <WhatsAppButton 
                       variant="outline" 
                       className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-                      phone={lead.phone}
+                      phone={lead.whatsapp || lead.phone}
                       onSavePhone={async (phone) => {
                         "use server";
                         return updateLeadPhone(lead.id, phone);
                       }}
-                      getMessageUrl={(phone) => whatsappLinks.rejectBeforeQuotation(phone, lead.contactPerson || lead.businessName)}
+                      whatsappTemplate="rejectBeforeQuotation"
+                      whatsappArgs={[lead.contactPerson || lead.businessName]}
                     >
                       Reject (Pre-Quote)
                     </WhatsAppButton>
@@ -100,12 +119,13 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
                     <WhatsAppButton 
                       variant="outline" 
                       className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-                      phone={lead.phone}
+                      phone={lead.whatsapp || lead.phone}
                       onSavePhone={async (phone) => {
                         "use server";
                         return updateLeadPhone(lead.id, phone);
                       }}
-                      getMessageUrl={(phone) => whatsappLinks.rejectAfterQuotation(phone, lead.contactPerson || lead.businessName)}
+                      whatsappTemplate="rejectAfterQuotation"
+                      whatsappArgs={[lead.contactPerson || lead.businessName]}
                     >
                       Reject (Post-Quote)
                     </WhatsAppButton>
@@ -141,6 +161,13 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
                   <div>
                     <p className="text-sm font-medium text-zinc-500">Phone</p>
                     <p className="text-white">{lead.phone || "—"}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Phone className="w-5 h-5 text-green-400 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-zinc-500">WhatsApp</p>
+                    <p className="text-white">{lead.whatsapp || "—"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -232,6 +259,10 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-400 flex items-center gap-2"><Clock className="w-4 h-4"/> Created At</span>
                   <span className="text-white text-sm">{new Date(lead.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-400 flex items-center gap-2"><Clock className="w-4 h-4"/> Last Updated</span>
+                  <span className="text-white text-sm">{new Date(lead.updatedAt).toLocaleDateString()}</span>
                 </div>
               </CardContent>
             </Card>

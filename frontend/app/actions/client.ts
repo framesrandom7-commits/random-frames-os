@@ -226,19 +226,6 @@ export type OnboardClientData = {
   projectDescription: string;
   deliverables: string;
   projectPriority: any; // ProjectPriority
-  // Shoot Info
-  shootDate: string;
-  shootStartTime: string;
-  shootEndTime: string;
-  shootLocation: string;
-  equipmentNeeded: string;
-  shootNotes: string;
-  // Finance Info
-  quotedAmount: number;
-  discountAmount: number;
-  finalAmount: number;
-  advanceReceived: number;
-  balanceAmount: number;
 };
 
 export async function onboardClient(data: OnboardClientData) {
@@ -283,74 +270,16 @@ export async function onboardClient(data: OnboardClientData) {
           category: data.projectCategory || "OTHER",
           priority: data.projectPriority || "MEDIUM",
           clientId: newClient.id,
-          quotationAmount: data.finalAmount,
-          advanceAmount: data.advanceReceived,
-          totalAmount: data.finalAmount,
-          balanceAmount: data.balanceAmount,
-          paymentStatus: data.balanceAmount <= 0 ? "PAID" : (data.advanceReceived > 0 ? "PARTIAL" : "PENDING"),
+          // Removed finance values, they should be initialized to 0 or null
+          quotationAmount: 0,
+          advanceAmount: 0,
+          totalAmount: 0,
+          balanceAmount: 0,
+          paymentStatus: "PENDING",
         }
       });
 
-      // 3. Create Shoot
-      const newShoot = await tx.shoot.create({
-        data: {
-          shootCode,
-          title: `Shoot: ${data.projectTitle}`,
-          date: data.shootDate ? new Date(data.shootDate) : null,
-          startTime: data.shootStartTime,
-          endTime: data.shootEndTime,
-          location: data.shootLocation,
-          notes: data.shootNotes,
-          clientRequirements: data.deliverables,
-          projectId: newProject.id,
-          clientId: newClient.id,
-        }
-      });
-
-      // 4. Create Finance Record (Invoice)
-      const invoice = await tx.invoice.create({
-        data: {
-          invoiceNumber,
-          issueDate: new Date(),
-          dueDate: new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-          subtotal: data.quotedAmount,
-          discount: data.discountAmount,
-          total: data.finalAmount,
-          status: data.balanceAmount <= 0 ? "PAID" : (data.advanceReceived > 0 ? "PARTIAL" : "SENT"),
-          clientId: newClient.id,
-          projectId: newProject.id,
-        }
-      });
-
-      // 5. If advance received, create Payment
-      if (data.advanceReceived > 0) {
-        await tx.payment.create({
-          data: {
-            amount: data.advanceReceived,
-            paymentDate: new Date(),
-            clientId: newClient.id,
-            projectId: newProject.id,
-            invoiceId: invoice.id,
-            notes: "Advance payment received on onboarding"
-          }
-        });
-      }
-
-      // 6. Create Calendar Event
-      if (data.shootDate) {
-        await tx.calendarEvent.create({
-          data: {
-            title: `Shoot: ${data.projectTitle}`,
-            date: new Date(data.shootDate),
-            startTime: data.shootStartTime,
-            endTime: data.shootEndTime,
-            eventType: "SHOOT",
-            clientId: newClient.id,
-            projectId: newProject.id,
-            shootId: newShoot.id,
-          }
-        });
-      }
+      // Removed Shoot, Invoice, Payment, and Calendar Event creation as per new architecture
 
       // 7. Update Lead
       await tx.lead.update({

@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, UserCircle, Briefcase, Camera, Calendar, DollarSign, BarChart, Settings, Aperture } from "lucide-react";
+import { LayoutDashboard, Users, UserCircle, Briefcase, Camera, Calendar, DollarSign, BarChart, Settings, Aperture, PieChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UserProfile from "./user-profile";
-import QuickCreateMenu from "./quick-create-menu";
+import { useCommand } from "@/components/providers/command-provider";
+import { Button } from "@/components/ui/button";
+import { Zap } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Home", href: "/", icon: LayoutDashboard },
+  { name: "Dashboard", href: "/dashboard", icon: PieChart },
   { name: "Leads", href: "/leads", icon: Users },
   { name: "Clients", href: "/clients", icon: UserCircle },
   { name: "Projects", href: "/projects", icon: Briefcase },
@@ -21,6 +24,7 @@ const navigation = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { toggle } = useCommand();
 
   return (
     <div className="flex h-screen w-64 flex-col border-r border-white/10 bg-black text-white">
@@ -31,14 +35,12 @@ export default function Sidebar() {
         <span className="text-lg font-bold tracking-tight">Random Frames</span>
       </div>
       
-      <div className="px-4 py-4 shrink-0">
-        <QuickCreateMenu />
-      </div>
+
       
       <div className="flex flex-1 flex-col overflow-y-auto px-4 pb-4">
         <nav className="flex-1 space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || (pathname === "/" && item.href === "/dashboard");
+            const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
             return (
               <Link
                 key={item.name}
