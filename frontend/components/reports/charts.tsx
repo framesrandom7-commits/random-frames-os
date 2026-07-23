@@ -125,3 +125,30 @@ export function ProjectDistributionChart({ data }: { data: any[] }) {
     </div>
   );
 }
+
+export function MonthlyProfitChart({ data }: { data: any[] }) {
+  if (!data || data.length === 0) {
+    return <div className="h-[250px] flex items-center justify-center text-zinc-500">No profit data available.</div>;
+  }
+  return (
+    <div className="h-[250px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" vertical={false} />
+          <XAxis dataKey="month" stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} />
+          <YAxis stroke="#a1a1aa" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `₹${val/1000}k`} />
+          <Tooltip 
+            contentStyle={{ backgroundColor: '#18181b', borderColor: '#3f3f46', borderRadius: '8px' }}
+            itemStyle={{ color: '#fff' }}
+            formatter={(value: any) => [formatCurr(Number(value)), '']}
+          />
+          <Bar dataKey="profit" name="Net Profit" radius={[4, 4, 0, 0]} maxBarSize={40}>
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.profit >= 0 ? '#10b981' : '#ef4444'} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
