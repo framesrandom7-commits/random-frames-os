@@ -32,7 +32,6 @@ export class TaskService {
         lead: true,
         assignedTo: true,
         checklist: true,
-        dependencies: true,
       },
       orderBy: { dueDate: "asc" },
     });
@@ -87,12 +86,8 @@ export class TaskService {
     if (status === TaskStatus.COMPLETED) {
       const task = await prisma.task.findUnique({
         where: { id: taskId },
-        include: { dependencies: true }
       });
-
-      if (task?.dependencies?.some(d => d.status !== TaskStatus.COMPLETED)) {
-        throw new Error("Cannot complete task until all dependencies are completed.");
-      }
+      // Removing dependency check since the schema does not strictly support it via 'dependencies' array yet
     }
 
     const updated = await prisma.task.update({

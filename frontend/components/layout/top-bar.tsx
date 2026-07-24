@@ -1,18 +1,33 @@
 "use client";
 
 import React from "react";
-import { Search } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { useCommand } from "@/components/providers/command-provider";
 import UserProfile from "@/components/dashboard/user-profile";
 import { NotificationDropdown } from "@/components/layout/notification-dropdown";
+import { useNavigation } from "@/components/navigation/navigation-context";
+import { useDeviceType } from "@/hooks/use-breakpoints";
 
 export function TopBar({ user }: { user?: { name: string, roleName: string } }) {
   const { toggle } = useCommand();
+  const { setDrawerOpen } = useNavigation();
+  const deviceType = useDeviceType();
 
   return (
     <div className="sticky top-0 z-40 px-6 lg:px-8 pt-6 lg:pt-8 pb-4">
       <div className="flex h-16 w-full items-center justify-between gap-4 rounded-[20px] bg-[#171A21]/80 backdrop-blur-xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.2)] px-4">
         
+        {/* Hamburger Menu (Tablet/Mobile) */}
+        {(deviceType === "tablet" || deviceType === "mobile") && (
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-colors focus:outline-none"
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5 text-white" />
+          </button>
+        )}
+
         {/* Hero Search Bar */}
         <button
           onClick={toggle}

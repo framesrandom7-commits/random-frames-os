@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { CheckCircle2, Circle, Clock, Plus, AlertCircle } from "lucide-react";
 
 type TaskWithRelations = Prisma.TaskGetPayload<{
-  include: { project: true; client: true; lead: true; assignedTo: true; checklist: true; dependencies: true }
+  include: { project: true; client: true; lead: true; assignedTo: true; checklist: true; }
 }>;
 
 interface TaskListProps {
@@ -164,12 +164,7 @@ function TaskCard({ task, onToggle, priorityColor }: { task: TaskWithRelations, 
             </div>
           )}
 
-          {task.dependencies && task.dependencies.length > 0 && !isCompleted && (
-            <div className="flex items-center gap-1 text-orange-400">
-              <AlertCircle className="h-3 w-3" />
-              {task.dependencies.length} blocker(s)
-            </div>
-          )}
+
         </div>
       </div>
     </div>

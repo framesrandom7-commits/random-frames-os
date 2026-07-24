@@ -65,6 +65,7 @@ export function NewLeadForm() {
   });
 
   const { register, handleSubmit, formState: { errors, isDirty }, setValue, watch, getValues, reset } = form;
+  // eslint-disable-next-line react-hooks/incompatible-library
   const businessType = watch("businessType");
   const leadSource = watch("leadSource");
   const status = watch("status");

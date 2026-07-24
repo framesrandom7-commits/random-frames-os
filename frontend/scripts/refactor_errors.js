@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { Project, SyntaxKind } = require("ts-morph");
 
 async function main() {

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 

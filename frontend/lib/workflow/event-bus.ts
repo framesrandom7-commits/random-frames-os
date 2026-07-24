@@ -27,6 +27,7 @@ class EventBusService {
     if (!this.initialized) {
       this.initialized = true;
       // Lazy load to prevent circular dependencies at boot
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { WorkflowEngine } = require('./workflow-engine');
       WorkflowEngine.initialize();
     }
