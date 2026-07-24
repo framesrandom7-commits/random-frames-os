@@ -33,7 +33,7 @@ export default async function ExpensesPage({
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <ExpensesTable data={expensesResponse} categories={categories} />
+      <ExpensesTable data={expensesResponse as any} categories={categories} />
     </div>
   );
 }

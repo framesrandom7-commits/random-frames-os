@@ -40,7 +40,7 @@ export default async function TasksPage({
         <TaskList 
           initialTasks={tasks} 
           projects={projectsRes.projects}
-          clients={clientsRes.clients}
+          clients={(clientsRes as any).clients || []}
         />
       </div>
     </div>

@@ -145,7 +145,7 @@ export default function ExpensesTable({ data, categories }: ExpensesTableProps) 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Category</Label>
-                  <Select value={formData.categoryId} onValueChange={(v) => setFormData({...formData, categoryId: v})}>
+                  <Select value={formData.categoryId || ""} onValueChange={(v) => setFormData({...formData, categoryId: v || ""})}>
                     <SelectTrigger className="bg-white/5 border-white/10"><SelectValue /></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}

@@ -32,9 +32,10 @@ interface InvoiceGeneratorProps {
   invoice: InvoiceWithRelations;
   clients: { id: string; businessName: string; address?: string | null; email?: string | null; phone?: string | null }[];
   projects: { id: string; title: string; clientId: string }[];
+  settings?: Record<string, any>;
 }
 
-export default function InvoiceGenerator({ invoice, clients, projects }: InvoiceGeneratorProps) {
+export default function InvoiceGenerator({ invoice, clients, projects, settings = {} }: InvoiceGeneratorProps) {
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
   const [isDownloading, setIsDownloading] = useState(false);
@@ -69,6 +70,9 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
     amount: total - invoice.payments.reduce((s, p) => s + Number(p.amount), 0),
     paymentMethod: "BANK_TRANSFER" as PaymentMethod,
     referenceNumber: "",
+    upiTransactionId: "",
+    bankReference: "",
+    paymentScreenshotUrl: "",
   });
 
   const formatCurrency = (amount: number) => {
@@ -99,6 +103,9 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
         paymentDate: new Date(),
         paymentMethod: paymentData.paymentMethod,
         referenceNumber: paymentData.referenceNumber,
+        upiTransactionId: paymentData.upiTransactionId,
+        bankReference: paymentData.bankReference,
+        paymentScreenshotUrl: paymentData.paymentScreenshotUrl,
         invoiceId: invoice.id,
         projectId: formData.projectId,
         clientId: formData.clientId,
@@ -361,16 +368,42 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Reference No. (Optional)</Label>
-                <Input 
-                  value={paymentData.referenceNumber} 
-                  onChange={e => setPaymentData({...paymentData, referenceNumber: e.target.value})}
-                  className="bg-black/40 border-white/10"
-                />
-              </div>
+              
+              {paymentData.paymentMethod === 'UPI' && (
+                <div className="space-y-2">
+                  <Label>UPI Transaction ID</Label>
+                  <Input 
+                    value={paymentData.upiTransactionId} 
+                    onChange={e => setPaymentData({...paymentData, upiTransactionId: e.target.value})}
+                    className="bg-black/40 border-white/10"
+                  />
+                </div>
+              )}
+              
+              {paymentData.paymentMethod === 'BANK_TRANSFER' && (
+                <div className="space-y-2">
+                  <Label>Bank Reference / UTR Number</Label>
+                  <Input 
+                    value={paymentData.bankReference} 
+                    onChange={e => setPaymentData({...paymentData, bankReference: e.target.value})}
+                    className="bg-black/40 border-white/10"
+                  />
+                </div>
+              )}
+              
+              {(paymentData.paymentMethod === 'CASH' || paymentData.paymentMethod === 'CHEQUE' || paymentData.paymentMethod === 'OTHER') && (
+                <div className="space-y-2">
+                  <Label>Reference No. (Optional)</Label>
+                  <Input 
+                    value={paymentData.referenceNumber} 
+                    onChange={e => setPaymentData({...paymentData, referenceNumber: e.target.value})}
+                    className="bg-black/40 border-white/10"
+                  />
+                </div>
+              )}
+
               <Button onClick={handleRecordPayment} disabled={isPending || paymentData.amount <= 0 || paymentData.amount > balanceDue} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
-                <Plus className="h-4 w-4 mr-2" /> Record Payment
+                <CheckCircle className="h-4 w-4 mr-2" /> Mark as Paid
               </Button>
             </div>
           )}
@@ -387,7 +420,7 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
             <>
               {activeClient.email && (
                 <a 
-                  href={`mailto:${activeClient.email}?subject=Invoice ${formData.invoiceNumber} from Random Frames&body=Hi ${activeClient.businessName},%0D%0A%0D%0AHere is your invoice for ${formData.total}.%0D%0A%0D%0AView Invoice: ${window.location.origin}/api/pdf/invoice/${invoice.id}%0D%0A%0D%0AThank you!`}
+                  href={`mailto:${activeClient.email}?subject=Invoice ${formData.invoiceNumber} from Random Frames&body=Hi ${activeClient.businessName},%0D%0A%0D%0AHere is your invoice for ${invoice.total}.%0D%0A%0D%0AView Invoice: ${window.location.origin}/api/pdf/invoice/${invoice.id}%0D%0A%0D%0AThank you!`}
                   className="inline-flex"
                 >
                   <Button variant="outline" className="border-white/10 text-zinc-300 hover:text-white hover:bg-white/5">
@@ -419,12 +452,19 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
           <Button variant="outline" onClick={handlePrint} className="border-white/10 text-zinc-300 hover:text-white hover:bg-white/5">
             <Printer className="h-4 w-4 mr-2" /> Print
           </Button>
+          
+          {settings?.PAYMENT_UPI_QR_URL && (
+            <Button variant="outline" className="border-white/10 text-zinc-300 hover:text-white hover:bg-white/5" onClick={() => window.open(settings.PAYMENT_UPI_QR_URL, '_blank')}>
+              View UPI QR Code
+            </Button>
+          )}
+
           <Button 
             onClick={handleDownloadPDF} 
             disabled={isDownloading}
             className="bg-[#C1121F] hover:bg-[#a00f1a] text-white"
           >
-            <Download className="h-4 w-4 mr-2" /> {isDownloading ? "Generating..." : "Download PDF"}
+            <Download className="h-4 w-4 mr-2" /> {isDownloading ? "Generating..." : "Download Invoice"}
           </Button>
         </div>
 
@@ -570,11 +610,30 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
             )}
 
             {/* Footer */}
-            <div className="absolute bottom-12 left-12 right-12 border-t border-zinc-200 pt-6">
-              <div className="text-center text-xs text-zinc-500 space-y-1">
+            <div className="absolute bottom-12 left-12 right-12 border-t border-zinc-200 pt-6 flex justify-between">
+              <div className="text-xs text-zinc-500 space-y-1">
                 <p>Thank you for your business!</p>
                 <p>Payment is due within {Math.ceil((new Date(formData.dueDate).getTime() - new Date(formData.issueDate).getTime()) / (1000 * 3600 * 24))} days.</p>
-                <p className="font-medium mt-2">Make all checks payable to Random Frames OS or wire transfer to Account: 1234567890</p>
+              </div>
+              
+              <div className="text-xs text-zinc-600 space-y-1 text-right">
+                {(!settings?.PAYMENT_BANK_ACCOUNT && !settings?.PAYMENT_UPI_ID) ? (
+                  <p className="italic text-zinc-400">Payment details are not configured.</p>
+                ) : (
+                  <>
+                    {settings?.PAYMENT_BANK_ACCOUNT && (
+                      <p className="font-medium mt-2">
+                        Bank Transfer: {settings.PAYMENT_BANK_HOLDER} | {settings.PAYMENT_BANK_NAME} | Acct: {settings.PAYMENT_BANK_ACCOUNT} | IFSC: {settings.PAYMENT_BANK_IFSC}
+                      </p>
+                    )}
+                    {settings?.PAYMENT_UPI_ID && (
+                      <p className="font-medium">UPI ID: {settings.PAYMENT_UPI_ID}</p>
+                    )}
+                    {settings?.PAYMENT_INSTRUCTIONS && (
+                      <p className="text-zinc-500 mt-1">{settings.PAYMENT_INSTRUCTIONS}</p>
+                    )}
+                  </>
+                )}
               </div>
             </div>
 

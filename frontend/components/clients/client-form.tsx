@@ -73,7 +73,7 @@ export default function ClientForm({ open, onOpenChange, client }: ClientFormPro
           toast.success("Client updated successfully");
           onOpenChange(false);
         } else {
-          toast.error(result.error || "Failed to update client");
+          toast.error((result as any).error || "Failed to update client");
         }
       } else {
         const result = await createClient(dataToSubmit);
@@ -81,7 +81,7 @@ export default function ClientForm({ open, onOpenChange, client }: ClientFormPro
           toast.success("Client created successfully");
           onOpenChange(false);
         } else {
-          toast.error(result.error || "Failed to create client");
+          toast.error((result as any).error || "Failed to create client");
         }
       }
     });

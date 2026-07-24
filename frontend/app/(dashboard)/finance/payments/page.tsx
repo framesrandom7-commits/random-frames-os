@@ -30,8 +30,8 @@ export default async function PaymentsPage({
       />
       <div className="flex-1 overflow-hidden">
         <PaymentsTable 
-          data={paymentsResponse} 
-          clients={clientsResponse.clients} 
+          data={paymentsResponse as any} 
+          clients={(clientsResponse as any).clients || []} 
           projects={projectsResponse.projects} 
         />
       </div>

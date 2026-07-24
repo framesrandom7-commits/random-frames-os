@@ -59,6 +59,8 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
     false // Assume domestic tax for now
   );
 
+  const activeClient = clients.find((c: any) => c.id === formData.clientId) as any;
+
   const handleAddItem = () => {
     setItems([...items, { description: "", quantity: 1, unitPrice: 0, total: 0 }]);
   };
@@ -270,7 +272,6 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
                 getMessageUrl={(phone) => whatsappLinks.sendQuotation(
                   phone,
                   activeClient.businessName,
-                  formData.quotationNumber,
                   total,
                   `${window.location.origin}/api/pdf/quotation/${quotation.id}`
                 )}

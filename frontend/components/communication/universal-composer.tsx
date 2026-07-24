@@ -72,7 +72,7 @@ export function UniversalComposer({ clientId, projectId, templates }: UniversalC
         {templates.length > 0 && (
           <div className="flex items-center gap-4">
             <span className="text-sm text-white/50 w-20">Template:</span>
-            <Select value={selectedTemplateId} onValueChange={handleTemplateChange}>
+            <Select value={selectedTemplateId} onValueChange={handleTemplateChange as any}>
               <SelectTrigger className="bg-black/20 border-white/10 flex-1">
                 <SelectValue placeholder="Select a template..." />
               </SelectTrigger>

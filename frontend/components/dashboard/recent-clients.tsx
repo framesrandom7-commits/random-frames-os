@@ -6,7 +6,8 @@ import Link from "next/link";
 import { UserCircle } from "lucide-react";
 
 export default async function RecentClients() {
-  const { clients } = await getClients({ limit: 5, sortBy: "createdAt", sortOrder: "desc" });
+  const response = await getClients({ limit: 5, sortBy: "createdAt", sortOrder: "desc" });
+  const clients = 'clients' in response ? response.clients : [];
 
   return (
     <Card className="border-white/10 bg-white/5 backdrop-blur-md shadow-lg h-full">

@@ -24,8 +24,9 @@ export const dynamic = "force-dynamic";
 
 export default async function ClientDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const [client, projectData, shootData, clients, projects, invoicesData, paymentsData, expensesData] = await Promise.all([
-    getClient(resolvedParams.id),
+  const clientData = await getClient(resolvedParams.id);
+  const client = clientData as any;
+  const [projectData, shootData, clients, projects, invoicesData, paymentsData, expensesData] = await Promise.all([
     getProjects({ clientId: resolvedParams.id, limit: 100 }),
     getShoots({ clientId: resolvedParams.id, limit: 100 }),
     prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),

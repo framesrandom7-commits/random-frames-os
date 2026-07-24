@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { X, ExternalLink, Image as ImageIcon, Film, Music, FileText } from "lucide-react";
+import { X, ExternalLink, Image as ImageIcon, Film, Music, FileText, Download } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 
 interface MediaPreviewProps {

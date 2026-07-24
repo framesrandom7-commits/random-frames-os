@@ -3,6 +3,7 @@
 import { verifySession as getSession } from '@/lib/auth';
 import { StorageService, StorageFile } from "@/lib/storage/StorageService";
 import { Logger } from "@/lib/logger";
+import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 
 export async function getDriveFolderContents(folderId: string): Promise<{ success: boolean, files?: StorageFile[], error?: string }> {
   try {
@@ -16,7 +17,7 @@ export async function getDriveFolderContents(folderId: string): Promise<{ succes
 
     return { success: true, files };
   } catch (error: any) {
-    Logger.error('Failed to get drive folder contents', error, { module: 'DriveActions', operation: 'getDriveFolderContents', status: 'ERROR' });
-    return { success: false, error: error.message };
-  }
+  console.error("Error in getDriveFolderContents:", error);
+  return GlobalErrorService.handleError(error, "Action:getDriveFolderContents");
+}
 }

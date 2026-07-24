@@ -67,7 +67,7 @@ export class VariableResolver {
       const invoice = await prisma.invoice.findUnique({ where: { id: context.invoiceId }});
       if (invoice) {
         variables.invoice_number = invoice.invoiceNumber;
-        variables.amount = invoice.totalAmount ? invoice.totalAmount.toString() : "0.00";
+        variables.amount = invoice.total ? invoice.total.toString() : "0.00";
         if (invoice.dueDate) {
           variables.due_date = format(new Date(invoice.dueDate), 'MMM d, yyyy');
         }
@@ -78,7 +78,7 @@ export class VariableResolver {
       const quotation = await prisma.quotation.findUnique({ where: { id: context.quotationId }});
       if (quotation) {
         variables.quotation_number = quotation.quotationNumber;
-        variables.amount = quotation.totalAmount ? quotation.totalAmount.toString() : "0.00";
+        variables.amount = quotation.total ? quotation.total.toString() : "0.00";
       }
     }
 

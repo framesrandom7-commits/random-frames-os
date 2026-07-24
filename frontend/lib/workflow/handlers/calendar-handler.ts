@@ -1,6 +1,6 @@
 import { EventBus } from "../event-bus";
 import { WorkflowEvent } from "../events";
-import { NotificationEngine, NotificationChannel } from "@/lib/notifications/notification-engine";
+import { NotificationCenter, NotificationChannel } from "@/lib/core/notifications/notification-center";
 import { prisma } from "@/lib/prisma";
 
 export function registerCalendarHandlers() {
@@ -18,7 +18,7 @@ export function registerCalendarHandlers() {
     if (reminder.type === 'EMAIL') channel = NotificationChannel.EMAIL;
     if (reminder.type === 'WHATSAPP') channel = NotificationChannel.WHATSAPP;
 
-    await NotificationEngine.dispatch({
+    await NotificationCenter.dispatch({
       title: reminder.title,
       message: reminder.description || `Reminder for ${reminder.event?.title || reminder.task?.title}`,
       type: 'GENERAL_REMINDER',

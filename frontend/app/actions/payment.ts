@@ -13,6 +13,9 @@ export type CreatePaymentData = {
   paymentDate: Date;
   paymentMethod: PaymentMethod;
   referenceNumber?: string;
+  upiTransactionId?: string;
+  bankReference?: string;
+  paymentScreenshotUrl?: string;
   notes?: string;
   invoiceId?: string;
   projectId: string;
@@ -29,6 +32,9 @@ export async function createPayment(data: CreatePaymentData) {
         paymentDate: data.paymentDate,
         paymentMethod: data.paymentMethod,
         referenceNumber: data.referenceNumber || NumberGenerator.generatePaymentReference(),
+        upiTransactionId: data.upiTransactionId,
+        bankReference: data.bankReference,
+        paymentScreenshotUrl: data.paymentScreenshotUrl,
         notes: data.notes,
         invoiceId: data.invoiceId,
         projectId: data.projectId,

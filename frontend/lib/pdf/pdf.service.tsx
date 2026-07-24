@@ -16,7 +16,7 @@ export class PDFService {
    * Useful for API Route responses (e.g. NextResponse).
    */
   static async generateStream(documentElement: React.ReactElement): Promise<ReadableStream> {
-    const stream = await renderToStream(documentElement);
+    const stream = await renderToStream(documentElement as any);
     
     // Convert NodeJS ReadableStream to Web ReadableStream
     return new ReadableStream({
@@ -36,7 +36,7 @@ export class PDFService {
     // Note: renderToBuffer might not exist directly in some versions, 
     // but the library provides a way to buffer the stream.
     // We will collect the stream into a Buffer.
-    const stream = await renderToStream(documentElement);
+    const stream = await renderToStream(documentElement as any);
     
     return new Promise((resolve, reject) => {
       const chunks: any[] = [];

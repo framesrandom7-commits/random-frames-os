@@ -7,6 +7,7 @@ import { EventBus } from "@/lib/workflow/event-bus";
 import { WorkflowEvent } from "@/lib/workflow/events";
 import { NumberGenerator } from "@/lib/finance/number-generator.service";
 import { syncProjectFinancials } from "./project";
+import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 
 export type InvoiceItemData = {
   description: string;
@@ -78,9 +79,9 @@ export async function createInvoice(data: CreateInvoiceData) {
     
     return { success: true, invoice };
   } catch (error) {
-    console.error("Error creating invoice:", error);
-    return { success: false, error: "Failed to create invoice" };
-  }
+  console.error("Error in createInvoice:", error);
+  return GlobalErrorService.handleError(error, "Action:createInvoice");
+}
 }
 
 export async function updateInvoice(id: string, data: UpdateInvoiceData) {
@@ -142,9 +143,9 @@ export async function updateInvoice(id: string, data: UpdateInvoiceData) {
     
     return { success: true, invoice };
   } catch (error) {
-    console.error("Error updating invoice:", error);
-    return { success: false, error: "Failed to update invoice" };
-  }
+  console.error("Error in updateInvoice:", error);
+  return GlobalErrorService.handleError(error, "Action:updateInvoice");
+}
 }
 
 export async function deleteInvoice(id: string) {
@@ -168,9 +169,9 @@ export async function deleteInvoice(id: string) {
     
     return { success: true };
   } catch (error) {
-    console.error("Error deleting invoice:", error);
-    return { success: false, error: "Failed to delete invoice" };
-  }
+  console.error("Error in deleteInvoice:", error);
+  return GlobalErrorService.handleError(error, "Action:deleteInvoice");
+}
 }
 
 
@@ -215,9 +216,9 @@ export async function getInvoices(params?: {
       limit
     };
   } catch (error) {
-    console.error("Error fetching invoices:", error);
-    return { invoices: [], total: 0, totalPages: 0, page: 1, limit: 50 };
-  }
+  console.error("Error in getInvoices:", error);
+  return GlobalErrorService.handleError(error, "Action:getInvoices");
+}
 }
 
 export async function getInvoice(id: string) {
@@ -235,9 +236,9 @@ export async function getInvoice(id: string) {
     });
     return invoice;
   } catch (error) {
-    console.error("Error fetching invoice:", error);
-    return null;
-  }
+  console.error("Error in getInvoice:", error);
+  return GlobalErrorService.handleError(error, "Action:getInvoice");
+}
 }
 
 // Function to handle automatic overdue status update
@@ -255,9 +256,9 @@ export async function updateOverdueInvoices() {
     });
     return { success: true };
   } catch (error) {
-    console.error("Error updating overdue invoices:", error);
-    return { success: false };
-  }
+  console.error("Error in updateOverdueInvoices:", error);
+  return GlobalErrorService.handleError(error, "Action:updateOverdueInvoices");
+}
 }
 
 export type InvoiceWithRelations = NonNullable<Awaited<ReturnType<typeof getInvoice>>>;

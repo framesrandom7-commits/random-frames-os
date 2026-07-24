@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { FinanceService } from "@/lib/finance/finance.service";
+import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 
 export async function getFinanceDashboardStats() {
   try {
@@ -144,8 +145,8 @@ export async function getFinanceDashboardStats() {
       recentExpenses: formattedRecentExpenses
     };
   } catch (error) {
-    console.error("Error fetching finance stats:", error);
-    return null;
-  }
+  console.error("Error in getFinanceDashboardStats:", error);
+  return GlobalErrorService.handleError(error, "Action:getFinanceDashboardStats");
+}
 }
 

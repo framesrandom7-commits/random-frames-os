@@ -70,9 +70,9 @@ export async function createClient(data: CreateClientData) {
     revalidatePath("/clients");
     return { success: true, client };
   } catch (error) {
-    console.error("Error creating client:", error);
-    return { success: false, error: "Failed to create client" };
-  }
+  console.error("Error in createClient:", error);
+  return GlobalErrorService.handleError(error, "Action:createClient");
+}
 }
 
 export async function updateClient(id: string, data: Partial<CreateClientData>) {
@@ -86,9 +86,9 @@ export async function updateClient(id: string, data: Partial<CreateClientData>) 
     revalidatePath(`/clients/${id}`);
     return { success: true, client };
   } catch (error) {
-    console.error("Error updating client:", error);
-    return { success: false, error: "Failed to update client" };
-  }
+  console.error("Error in updateClient:", error);
+  return GlobalErrorService.handleError(error, "Action:updateClient");
+}
 }
 
 export async function updateClientPhone(id: string, phone: string) {
@@ -109,9 +109,9 @@ export async function updateClientPhone(id: string, phone: string) {
     revalidatePath(`/clients/${id}`);
     return { success: true };
   } catch (error) {
-    console.error("Error updating client phone:", error);
-    return { success: false, error: "Failed to update phone number" };
-  }
+  console.error("Error in updateClientPhone:", error);
+  return GlobalErrorService.handleError(error, "Action:updateClientPhone");
+}
 }
 export async function deleteClient(id: string) {
   try {
@@ -125,9 +125,9 @@ export async function deleteClient(id: string) {
     revalidatePath("/clients");
     return true;
   } catch (error) {
-    console.error("Error deleting client:", error);
-    return false;
-  }
+  console.error("Error in deleteClient:", error);
+  return GlobalErrorService.handleError(error, "Action:deleteClient");
+}
 }
 
 export async function getClient(id: string) {
@@ -141,9 +141,9 @@ export async function getClient(id: string) {
       }
     });
   } catch (error) {
-    console.error("Error fetching client:", error);
-    return null;
-  }
+  console.error("Error in getClient:", error);
+  return GlobalErrorService.handleError(error, "Action:getClient");
+}
 }
 
 export type GetClientsParams = {
@@ -210,13 +210,14 @@ export async function getClients(params: GetClientsParams = {}) {
       currentPage: page,
     };
   } catch (error) {
-    console.error("Error fetching clients:", error);
-    return { clients: [], total: 0, totalPages: 0, currentPage: page };
-  }
+  console.error("Error in getClients:", error);
+  return GlobalErrorService.handleError(error, "Action:getClients");
+}
 }
 
 import { generateProjectCode } from "./project";
 import { generateShootCode } from "./shoot";
+import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 
 export type OnboardClientData = {
   leadId: string;
@@ -323,9 +324,9 @@ export async function onboardClient(data: OnboardClientData) {
     
     return { success: true, clientId: result.newClient.id };
   } catch (error) {
-    console.error("Error onboarding client:", error);
-    return { success: false, error: "Failed to onboard client" };
-  }
+  console.error("Error in onboardClient:", error);
+  return GlobalErrorService.handleError(error, "Action:onboardClient");
+}
 }
 
 export async function getClientStats() {
@@ -346,12 +347,7 @@ export async function getClientStats() {
       inactiveClients: archivedClients
     };
   } catch (error) {
-    console.error("Error fetching client stats:", error);
-    return {
-      totalClients: 0,
-      newClientsThisMonth: 0,
-      activeClients: 0,
-      inactiveClients: 0
-    };
-  }
+  console.error("Error in getClientStats:", error);
+  return GlobalErrorService.handleError(error, "Action:getClientStats");
+}
 }

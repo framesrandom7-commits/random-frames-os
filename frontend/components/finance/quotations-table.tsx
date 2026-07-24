@@ -154,18 +154,14 @@ export default function QuotationsTable({ data, clients }: QuotationsTableProps)
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0 text-zinc-400 hover:text-white hover:bg-white/10">
-                            <span className="sr-only">Open menu</span>
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
+                        <DropdownMenuTrigger className="h-8 w-8 p-0 text-zinc-400 hover:text-white hover:bg-white/10 inline-flex items-center justify-center rounded-md">
+                          <span className="sr-only">Open menu</span>
+                          <MoreVertical className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800 text-zinc-300">
-                          <DropdownMenuItem asChild className="hover:bg-zinc-800 hover:text-white cursor-pointer focus:bg-zinc-800 focus:text-white">
-                            <Link href={`/finance/quotations/${quotation.id}`}>
-                              <FileText className="mr-2 h-4 w-4" />
-                              View & Edit
-                            </Link>
+                          <DropdownMenuItem onSelect={() => router.push(`/finance/quotations/${quotation.id}`)} className="hover:bg-zinc-800 hover:text-white cursor-pointer focus:bg-zinc-800 focus:text-white">
+                            <FileText className="mr-2 h-4 w-4" />
+                            View & Edit
                           </DropdownMenuItem>
                           {/* More actions can go here */}
                         </DropdownMenuContent>

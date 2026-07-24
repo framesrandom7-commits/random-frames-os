@@ -34,8 +34,8 @@ export default async function InvoicesPage({
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <InvoicesTable 
-        data={invoicesResponse} 
-        clients={clientsResponse.clients} 
+        data={invoicesResponse as any} 
+        clients={(clientsResponse as any).clients || []} 
         projects={projectsResponse.projects} 
       />
     </div>

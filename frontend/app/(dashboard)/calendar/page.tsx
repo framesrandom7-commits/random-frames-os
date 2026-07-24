@@ -41,8 +41,8 @@ export default async function CalendarPage({
     getProjects({ limit: 1000 }),
   ]);
 
-  const clients = clientsResponse.clients.map(c => ({ id: c.id, businessName: c.businessName }));
-  const projects = projectsResponse.projects.map(p => ({ id: p.id, title: p.title, clientId: p.clientId }));
+  const clients = (clientsResponse as any).clients.map((c: any) => ({ id: c.id, businessName: c.businessName }));
+  const projects = (projectsResponse as any).projects.map((p: any) => ({ id: p.id, title: p.title, clientId: p.clientId }));
 
   // Get Today's events and Overdue items for the Sidebar
   const todayStart = new Date();
@@ -53,14 +53,14 @@ export default async function CalendarPage({
   const allRecentEvents = await getCalendarEvents({
     dateStart: new Date(todayStart.getFullYear(), todayStart.getMonth() - 1, 1).toISOString(),
     dateEnd: new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0).toISOString(),
-  });
+  }) as any[];
 
-  const todaysEvents = allRecentEvents.filter(e => {
+  const todaysEvents = allRecentEvents.filter((e: any) => {
     const eDate = new Date(e.date);
     return eDate >= todayStart && eDate <= todayEnd;
   });
 
-  const overdueEvents = allRecentEvents.filter(e => {
+  const overdueEvents = allRecentEvents.filter((e: any) => {
     const eDate = new Date(e.date);
     return eDate < todayStart && e.status !== "COMPLETED" && e.status !== "CANCELLED";
   });
@@ -84,8 +84,8 @@ export default async function CalendarPage({
         
         <div className="flex-1 overflow-hidden flex flex-col">
           <FullCalendarWrapper 
-            events={events} 
-            clients={clients} 
+            events={events as any} 
+            clients={clients as any} 
             projects={projects}
             currentDate={new Date(currentDate)}
           />

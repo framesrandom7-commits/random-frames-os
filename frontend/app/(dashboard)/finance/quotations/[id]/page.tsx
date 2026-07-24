@@ -24,10 +24,10 @@ export default async function QuotationDetailsPage({
   }
 
   return (
-    <div className="h-full overflow-hidden flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       <QuotationGenerator 
-        quotation={quotation} 
-        clients={clientsResponse.clients} 
+        quotation={quotation as any} 
+        clients={(clientsResponse as any).clients || []} 
         projects={projectsResponse.projects} 
       />
     </div>

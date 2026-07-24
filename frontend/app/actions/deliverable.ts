@@ -9,6 +9,7 @@ import {
   addDeliverableVersionSchema 
 } from "@/lib/validations/deliverable";
 import { z } from "zod";
+import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 
 export async function createDeliverable(data: z.infer<typeof createDeliverableSchema>) {
   try {
@@ -60,9 +61,9 @@ export async function createDeliverable(data: z.infer<typeof createDeliverableSc
     revalidatePath(`/shoots/${deliverable.shootId}`);
     return { success: true, deliverable };
   } catch (error) {
-    console.error("Error creating deliverable:", error);
-    return { success: false, error: "Failed to create deliverable" };
-  }
+  console.error("Error in createDeliverable:", error);
+  return GlobalErrorService.handleError(error, "Action:createDeliverable");
+}
 }
 
 export async function updateDeliverable(id: string, data: z.infer<typeof updateDeliverableSchema>) {
@@ -98,9 +99,9 @@ export async function updateDeliverable(id: string, data: z.infer<typeof updateD
     revalidatePath(`/shoots/${deliverable.shootId}`);
     return { success: true, deliverable };
   } catch (error) {
-    console.error("Error updating deliverable:", error);
-    return { success: false, error: "Failed to update deliverable" };
-  }
+  console.error("Error in updateDeliverable:", error);
+  return GlobalErrorService.handleError(error, "Action:updateDeliverable");
+}
 }
 
 export async function addDeliverableFile(data: z.infer<typeof addDeliverableFileSchema>) {
@@ -126,9 +127,9 @@ export async function addDeliverableFile(data: z.infer<typeof addDeliverableFile
     revalidatePath(`/shoots/${file.deliverable.shootId}`);
     return { success: true, file };
   } catch (error) {
-    console.error("Error adding file:", error);
-    return { success: false, error: "Failed to add file" };
-  }
+  console.error("Error in addDeliverableFile:", error);
+  return GlobalErrorService.handleError(error, "Action:addDeliverableFile");
+}
 }
 
 export async function addDeliverableVersion(data: z.infer<typeof addDeliverableVersionSchema>) {
@@ -167,9 +168,9 @@ export async function addDeliverableVersion(data: z.infer<typeof addDeliverableV
     revalidatePath(`/shoots/${version.deliverable.shootId}`);
     return { success: true, version };
   } catch (error) {
-    console.error("Error adding version:", error);
-    return { success: false, error: "Failed to add version" };
-  }
+  console.error("Error in addDeliverableVersion:", error);
+  return GlobalErrorService.handleError(error, "Action:addDeliverableVersion");
+}
 }
 
 export async function deleteDeliverable(id: string) {
@@ -184,9 +185,9 @@ export async function deleteDeliverable(id: string) {
     revalidatePath(`/shoots/${deliverable.shootId}`);
     return { success: true };
   } catch (error) {
-    console.error("Error deleting deliverable:", error);
-    return { success: false, error: "Failed to delete deliverable" };
-  }
+  console.error("Error in deleteDeliverable:", error);
+  return GlobalErrorService.handleError(error, "Action:deleteDeliverable");
+}
 }
 export async function deleteDeliverableFile(fileId: string) {
   try {
@@ -201,9 +202,9 @@ export async function deleteDeliverableFile(fileId: string) {
     revalidatePath(`/shoots/${file.deliverable.shootId}`);
     return { success: true };
   } catch (error) {
-    console.error("Error deleting file:", error);
-    return { success: false, error: "Failed to delete file" };
-  }
+  console.error("Error in deleteDeliverableFile:", error);
+  return GlobalErrorService.handleError(error, "Action:deleteDeliverableFile");
+}
 }
 
 export async function getDeliverablesByShoot(shootId: string) {
@@ -217,9 +218,9 @@ export async function getDeliverablesByShoot(shootId: string) {
       orderBy: { createdAt: "asc" }
     });
   } catch (error) {
-    console.error("Error fetching deliverables:", error);
-    return [];
-  }
+  console.error("Error in getDeliverablesByShoot:", error);
+  return GlobalErrorService.handleError(error, "Action:getDeliverablesByShoot");
+}
 }
 
 export async function getPendingDeliverables() {
@@ -240,7 +241,7 @@ export async function getPendingDeliverables() {
       take: 5
     });
   } catch (error) {
-    console.error("Error fetching pending deliverables:", error);
-    return [];
-  }
+  console.error("Error in getPendingDeliverables:", error);
+  return GlobalErrorService.handleError(error, "Action:getPendingDeliverables");
+}
 }

@@ -89,8 +89,8 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
         total: Number(i.total),
       })),
     });
-    if (result.success && result.invoice) {
-      router.push(`/finance/invoices/${result.invoice.id}`);
+    if (result.success && 'invoice' in result && result.invoice) {
+      router.push(`/finance/invoices/${(result.invoice as any).id}`);
     }
   };
 
@@ -117,8 +117,8 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
         total: 0
       }]
     });
-    if (result.success && result.invoice) {
-      router.push(`/finance/invoices/${result.invoice.id}`);
+    if (result.success && 'invoice' in result && result.invoice) {
+      router.push(`/finance/invoices/${(result.invoice as any).id}`);
     }
   };
 

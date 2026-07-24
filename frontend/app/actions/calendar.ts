@@ -3,7 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { CalendarEventType, CalendarEventStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { syncToGoogleCalendar } from "./integrations";
+
+import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 
 export async function getCalendarEvents(params?: {
   dateStart?: string;
@@ -48,9 +49,9 @@ export async function getCalendarEvents(params?: {
 
     return events;
   } catch (error) {
-    console.error("Error fetching calendar events:", error);
-    throw new Error("Failed to fetch calendar events");
-  }
+  console.error("Error in getCalendarEvents:", error);
+  return GlobalErrorService.handleError(error, "Action:getCalendarEvents");
+}
 }
 
 export async function createCalendarEvent(data: {
@@ -77,9 +78,9 @@ export async function createCalendarEvent(data: {
     revalidatePath("/calendar");
     return event;
   } catch (error) {
-    console.error("Error creating calendar event:", error);
-    throw new Error("Failed to create calendar event");
-  }
+  console.error("Error in createCalendarEvent:", error);
+  return GlobalErrorService.handleError(error, "Action:createCalendarEvent");
+}
 }
 
 export async function updateCalendarEvent(
@@ -108,9 +109,9 @@ export async function updateCalendarEvent(
     revalidatePath("/calendar");
     return event;
   } catch (error) {
-    console.error("Error updating calendar event:", error);
-    throw new Error("Failed to update calendar event");
-  }
+  console.error("Error in updateCalendarEvent:", error);
+  return GlobalErrorService.handleError(error, "Action:updateCalendarEvent");
+}
 }
 
 export async function deleteCalendarEvent(id: string) {
@@ -120,7 +121,7 @@ export async function deleteCalendarEvent(id: string) {
     });
     revalidatePath("/calendar");
   } catch (error) {
-    console.error("Error deleting calendar event:", error);
-    throw new Error("Failed to delete calendar event");
-  }
+  console.error("Error in deleteCalendarEvent:", error);
+  return GlobalErrorService.handleError(error, "Action:deleteCalendarEvent");
+}
 }

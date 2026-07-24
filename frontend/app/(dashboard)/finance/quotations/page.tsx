@@ -32,8 +32,8 @@ export default async function QuotationsPage({
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <QuotationsTable 
-        data={quotationsResponse} 
-        clients={clientsResponse.clients} 
+        data={quotationsResponse as any} 
+        clients={(clientsResponse as any).clients || []} 
       />
     </div>
   );

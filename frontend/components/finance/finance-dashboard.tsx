@@ -245,7 +245,7 @@ export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
                   <div key={expense.id} className="flex items-center justify-between p-2">
                     <div>
                       <div className="font-medium text-white text-sm">{expense.title}</div>
-                      <div className="text-[10px] text-zinc-500 uppercase">{expense.category.replace("_", " ")}</div>
+                      <div className="text-[10px] text-zinc-500 uppercase">{expense.categoryId?.replace("_", " ")}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-red-400 text-sm">-{formatCurrency(Number(expense.amount))}</div>

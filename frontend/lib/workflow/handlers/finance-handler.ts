@@ -15,7 +15,7 @@ export function registerFinanceHandlers() {
     const project = await prisma.project.findUnique({ where: { id: payload.projectId } });
     if (!project) return;
     
-    if (project.status === 'LEAD' || project.status === 'PROPOSAL') {
+    if (project.status === 'INQUIRY') {
       await prisma.project.update({
         where: { id: payload.projectId },
         data: { status: 'PLANNED' }

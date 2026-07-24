@@ -1,7 +1,7 @@
 import { WorkflowEvent } from "../events";
 import { EventBus } from "../event-bus";
 import { JobQueue } from "@/lib/jobs/JobQueue";
-import { NotificationEngine } from "@/lib/notifications/notification-engine";
+import { NotificationCenter } from "@/lib/core/notifications/notification-center";
 import { prisma } from "@/lib/prisma";
 import { Logger } from "@/lib/logger";
 
@@ -44,7 +44,7 @@ export function registerStorageHandlers() {
       userId: payload.userId
     });
 
-    await NotificationEngine.dispatch({
+    await NotificationCenter.dispatch({
       title: "Storage Setup Queued",
       message: `Setting up Google Drive folders for project '${project.title}'...`,
       type: 'STORAGE',
@@ -82,7 +82,7 @@ export function registerStorageHandlers() {
   // 4. GENERIC FOLDER CREATED NOTIFICATION
   EventBus.subscribe(WorkflowEvent.FOLDER_CREATED, 'Storage_FolderCreated', async (payload) => {
     if (payload.userId && payload.entityType === 'Project') {
-      await NotificationEngine.dispatch({
+      await NotificationCenter.dispatch({
         title: "Storage Setup Complete",
         message: `Google Drive storage is ready.`,
         type: 'SUCCESS',

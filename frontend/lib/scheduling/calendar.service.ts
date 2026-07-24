@@ -44,6 +44,36 @@ export class CalendarService {
     });
   }
 
+  public static async checkAvailability(
+    data: {
+      date: Date;
+      startTime?: string;
+      endTime?: string;
+      isAllDay: boolean;
+      eventType: string;
+      projectId?: string;
+      clientId?: string;
+      leadId?: string;
+      shootId?: string;
+      userId?: string;
+    },
+    validateConflict: boolean = true
+  ) {
+    // Determine bounds for conflict detection
+    if (validateConflict && !data.isAllDay) {
+      const start = this.combineDateTime(data.date, data.startTime || null);
+      const end = this.combineDateTime(data.date, data.endTime || null);
+      
+      if (start && end) {
+        const requiresTravelTime = data.eventType === 'SHOOT';
+        const validation = await SchedulingEngine.validateSlot(start, end, { requiresTravelTime });
+        if (!validation.valid) {
+          throw new Error(`Scheduling Conflict: ${validation.reason}`);
+        }
+      }
+    }
+  }
+
   /**
    * Create a single event
    */
@@ -67,8 +97,8 @@ export class CalendarService {
   ) {
     // Determine bounds for conflict detection
     if (validateConflict && !data.isAllDay) {
-      const start = this.combineDateTime(data.date, data.startTime);
-      const end = this.combineDateTime(data.date, data.endTime);
+      const start = this.combineDateTime(data.date, data.startTime || null);
+      const end = this.combineDateTime(data.date, data.endTime || null);
       
       if (start && end) {
         const requiresTravelTime = data.eventType === 'SHOOT';

@@ -17,12 +17,12 @@ export default async function FinancePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 pb-8">
+    <div className="h-full flex flex-col overflow-hidden">
       <PageHeader 
         title="Finance"
         subtitle="Manage invoices, payments, and expenses"
       />
-      <FinanceDashboard stats={stats} />
+      <FinanceDashboard stats={stats as any} />
     </div>
   );
 }

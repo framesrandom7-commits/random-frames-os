@@ -34,7 +34,7 @@ export default function FullCalendarWrapper({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const calendarRef = useRef<FullCalendar>(null);
+  const calendarRef = useRef<any>(null);
   
   const [isPending, startTransition] = useTransition();
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventWithRelations | undefined>();
@@ -104,7 +104,7 @@ export default function FullCalendarWrapper({
           updateData.endTime = `${newEnd.getHours().toString().padStart(2, '0')}:${newEnd.getMinutes().toString().padStart(2, '0')}`;
         }
 
-        const res = await updateCalendarEvent(eventId, updateData);
+        const res = await updateCalendarEvent(eventId, updateData) as any;
         if (res.error) {
           toast.error(res.error);
           info.revert(); // Revert UI if server fails
@@ -131,7 +131,7 @@ export default function FullCalendarWrapper({
           endTime: `${newEnd.getHours().toString().padStart(2, '0')}:${newEnd.getMinutes().toString().padStart(2, '0')}`
         };
 
-        const res = await updateCalendarEvent(eventId, updateData);
+        const res = await updateCalendarEvent(eventId, updateData) as any;
         if (res.error) {
           toast.error(res.error);
           info.revert();
@@ -191,7 +191,7 @@ export default function FullCalendarWrapper({
       <div className="flex-1 overflow-hidden fc-dark-theme">
         <FullCalendar
           ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin] as any}
           initialView="dayGridMonth"
           initialDate={currentDate}
           headerToolbar={{
@@ -221,9 +221,9 @@ export default function FullCalendarWrapper({
       </div>
 
       <EventForm 
-        isOpen={isEventFormOpen}
-        onClose={() => setIsEventFormOpen(false)}
-        event={selectedEvent}
+        open={isEventFormOpen}
+        onOpenChange={setIsEventFormOpen}
+        event={selectedEvent as any}
         initialDate={initialDateForForm}
         clients={clients}
         projects={projects}

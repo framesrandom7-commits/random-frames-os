@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Logger } from "@/lib/logger";
+import { LoggerService } from "../logger/logger.service";
 
 export interface CreateNotificationDto {
   title: string;
@@ -55,19 +55,17 @@ export class InAppNotificationProvider implements NotificationProvider {
 
 export class EmailNotificationProvider implements NotificationProvider {
   async dispatch(data: CreateNotificationDto): Promise<void> {
-    // In a real implementation, we would use EmailService here
-    Logger.info(`[EmailNotificationProvider] Sending email: ${data.title}`);
+    LoggerService.info(`[EmailNotificationProvider] Sending email: ${data.title}`);
   }
 }
 
 export class WhatsAppNotificationProvider implements NotificationProvider {
   async dispatch(data: CreateNotificationDto): Promise<void> {
-    // In a real implementation, we would use WhatsAppService / WhatsAppShareLinkProvider here
-    Logger.info(`[WhatsAppNotificationProvider] Generating WhatsApp template: ${data.title}`);
+    LoggerService.info(`[WhatsAppNotificationProvider] Generating WhatsApp template: ${data.title}`);
   }
 }
 
-export class NotificationEngineService {
+export class NotificationCenterClass {
   private providers: Map<NotificationChannel, NotificationProvider>;
 
   constructor() {
@@ -91,9 +89,9 @@ export class NotificationEngineService {
         }
       }
 
-      Logger.info(`[NotificationEngine] Dispatched notification: ${data.title} via ${channels.join(', ')}`);
+      LoggerService.info(`[NotificationCenter] Dispatched notification: ${data.title} via ${channels.join(', ')}`);
     } catch (error) {
-      Logger.error(`[NotificationEngine] Failed to dispatch notification: ${data.title}`, error);
+      LoggerService.error(`[NotificationCenter] Failed to dispatch notification: ${data.title}`, error);
       throw error;
     }
   }
@@ -109,4 +107,4 @@ export class NotificationEngineService {
   }
 }
 
-export const NotificationEngine = new NotificationEngineService();
+export const NotificationCenter = new NotificationCenterClass();

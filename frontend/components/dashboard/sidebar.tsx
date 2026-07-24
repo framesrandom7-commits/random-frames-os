@@ -16,7 +16,7 @@ const navigation = [
   { name: "Shoots", href: "/shoots", icon: Camera },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Finance", href: "/finance", icon: DollarSign },
-  { name: "Reports", href: "/reports", icon: BarChart },
+  { name: "Analytics", href: "/analytics", icon: BarChart },
 ];
 
 export default function Sidebar() {

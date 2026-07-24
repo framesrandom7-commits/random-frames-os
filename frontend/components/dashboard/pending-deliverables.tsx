@@ -5,7 +5,8 @@ import Link from "next/link";
 import { getPendingDeliverables } from "@/app/actions/deliverable";
 
 export default async function PendingDeliverables() {
-  const deliverables = await getPendingDeliverables();
+  const response = await getPendingDeliverables();
+  const deliverables = Array.isArray(response) ? response : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {

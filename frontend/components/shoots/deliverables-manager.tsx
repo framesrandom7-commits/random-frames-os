@@ -24,7 +24,7 @@ export default function DeliverablesManager({ shootId }: { shootId: string }) {
     setIsLoading(true);
     try {
       const data = await getDeliverablesByShoot(shootId);
-      setDeliverables(data || []);
+      setDeliverables(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to load deliverables:", error);
       toast.error("Failed to load deliverables");

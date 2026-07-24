@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { ExpenseCategory, PaymentMethod, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { syncProjectFinancials } from "./project";
+import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 
 export type CreateExpenseData = {
   title: string;
@@ -52,9 +53,9 @@ export async function createExpense(data: CreateExpenseData) {
     revalidatePath("/finance");
     return { success: true, expense };
   } catch (error) {
-    console.error("Error creating expense:", error);
-    return { success: false, error: "Failed to create expense" };
-  }
+  console.error("Error in createExpense:", error);
+  return GlobalErrorService.handleError(error, "Action:createExpense");
+}
 }
 
 export async function deleteExpense(id: string) {
@@ -79,9 +80,9 @@ export async function deleteExpense(id: string) {
     revalidatePath("/finance");
     return { success: true };
   } catch (error) {
-    console.error("Error deleting expense:", error);
-    return { success: false, error: "Failed to delete expense" };
-  }
+  console.error("Error in deleteExpense:", error);
+  return GlobalErrorService.handleError(error, "Action:deleteExpense");
+}
 }
 
 export async function getExpenses(params?: {
@@ -134,7 +135,7 @@ export async function getExpenses(params?: {
       limit
     };
   } catch (error) {
-    console.error("Error fetching expenses:", error);
-    return { expenses: [], total: 0, totalPages: 0, page: 1, limit: 50 };
-  }
+  console.error("Error in getExpenses:", error);
+  return GlobalErrorService.handleError(error, "Action:getExpenses");
+}
 }

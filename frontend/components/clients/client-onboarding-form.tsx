@@ -109,11 +109,11 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
       if (result.success) {
         toast.success("Client fully onboarded with Project!");
         onOpenChange(false);
-        if (result.clientId) {
-          router.push(`/clients/${result.clientId}`);
+        if ((result as any).clientId) {
+          router.push(`/clients/${(result as any).clientId}`);
         }
       } else {
-        toast.error(result.error || "Failed to onboard client");
+        toast.error((result as any).error || "Failed to onboard client");
       }
     });
   };

@@ -24,10 +24,12 @@ export default async function ClientsPage({
   const sortBy = typeof searchParams.sortBy === "string" ? searchParams.sortBy : "createdAt";
   const sortOrder = searchParams.sortOrder === "asc" ? "asc" : "desc";
 
-  const [clientData, stats] = await Promise.all([
-    getClients({ page, limit: 50, search, businessType, archived, sortBy, sortOrder }),
-    getClientStats()
+  const [statsData, clientsRaw] = await Promise.all([
+    getClientStats(),
+    getClients({ page, limit: 50, search, businessType, archived, sortBy, sortOrder })
   ]);
+  const stats = statsData as any;
+  const clientsData = clientsRaw as any;
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,10 +99,10 @@ export default async function ClientsPage({
         {/* Client Table */}
         <Suspense fallback={<div className="h-96 flex items-center justify-center text-zinc-500">Loading clients...</div>}>
           <ClientTable 
-            clients={clientData.clients} 
-            page={clientData.currentPage} 
-            totalPages={clientData.totalPages} 
-            total={clientData.total} 
+            clients={clientsData.clients || []} 
+            page={clientsData.currentPage || 1} 
+            totalPages={clientsData.totalPages || 1} 
+            total={clientsData.total || 0} 
           />
         </Suspense>
     </div>
