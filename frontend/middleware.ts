@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifySession } from "./lib/auth";
+import { verifyToken } from "./lib/auth";
 
 const publicRoutes = ["/login", "/forgot-password", "/reset-password"];
 
@@ -17,7 +17,9 @@ export async function middleware(request: NextRequest) {
   }
 
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
-  const session = await verifySession();
+  
+  const token = request.cookies.get("rf_session")?.value;
+  const session = token ? await verifyToken(token) : null;
 
   // Redirect to login if not authenticated and trying to access a protected route
   if (!isPublicRoute && !session) {
