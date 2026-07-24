@@ -1,24 +1,28 @@
 
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BellRing } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { getNotifications } from "@/app/actions/notifications";
+import NotificationsClient from "./notifications-client";
+import Link from "next/link";
 
-export default function NotificationsWidget() {
+export default async function NotificationsWidget() {
+  const notifications = await getNotifications({ status: "PENDING" });
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold text-white tracking-tight">Notifications</h2>
-      <Card className="border-white/10 bg-white/5 backdrop-blur-md shadow-lg">
-        <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-3">
-          <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center">
-            <BellRing className="h-6 w-6 text-zinc-500" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-sm font-medium text-white">All caught up!</h3>
-            <p className="text-sm text-zinc-400">You don't have any new notifications right now.</p>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xs font-bold text-[#E53935] uppercase tracking-widest">
+          Notifications
+        </h2>
+        <Link href="/notifications" className="text-[10px] font-medium text-zinc-500 hover:text-white transition-colors uppercase tracking-wider">
+          Mark all read
+        </Link>
+      </div>
+      
+      <div className="bg-[#171A21]/50 p-6 rounded-[24px] border border-white/5 max-h-[600px] overflow-y-auto custom-scrollbar">
+        <NotificationsClient initialNotifications={notifications} />
+      </div>
     </div>
   );
 }

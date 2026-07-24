@@ -70,6 +70,17 @@ export async function createProject(data: CreateProjectData) {
       clientId: data.clientId,
     });
     
+    const { verifySession: getSession } = await import('@/lib/auth');
+    const session = await getSession();
+    const { EventBus } = await import('@/lib/workflow/event-bus');
+    const { WorkflowEvent } = await import('@/lib/workflow/events');
+    
+    EventBus.publish(WorkflowEvent.PROJECT_CREATED, {
+      projectId: project.id,
+      clientId: data.clientId,
+      userId: session?.userId,
+    });
+    
     revalidatePath("/projects");
     revalidatePath(`/clients/${data.clientId}`);
     return { success: true, project };
@@ -224,7 +235,7 @@ export async function duplicateProject(id: string) {
 
 export async function getProject(id: string) {
   try {
-    return await prisma.project.findUnique({
+    const project = await prisma.project.findUnique({
       where: { id },
       include: {
         client: true,
@@ -233,6 +244,17 @@ export async function getProject(id: string) {
         }
       }
     });
+
+    if (!project) return null;
+
+    return {
+      ...project,
+      quotationAmount: project.quotationAmount ? Number(project.quotationAmount) : null,
+      advanceAmount: project.advanceAmount ? Number(project.advanceAmount) : null,
+      totalAmount: project.totalAmount ? Number(project.totalAmount) : null,
+      balanceAmount: project.balanceAmount ? Number(project.balanceAmount) : null,
+      profitAmount: project.profitAmount ? Number(project.profitAmount) : null,
+    };
   } catch (error) {
     console.error("Error fetching project:", error);
     return null;
@@ -353,8 +375,17 @@ export async function getProjects(params: GetProjectsParams = {}) {
       prisma.project.count({ where }),
     ]);
 
+    const formattedProjects = projects.map(p => ({
+      ...p,
+      quotationAmount: p.quotationAmount ? Number(p.quotationAmount) : null,
+      advanceAmount: p.advanceAmount ? Number(p.advanceAmount) : null,
+      totalAmount: p.totalAmount ? Number(p.totalAmount) : null,
+      balanceAmount: p.balanceAmount ? Number(p.balanceAmount) : null,
+      profitAmount: p.profitAmount ? Number(p.profitAmount) : null,
+    }));
+
     return {
-      projects,
+      projects: formattedProjects,
       total,
       totalPages: Math.ceil(total / limit),
       currentPage: page,

@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Aperture } from "lucide-react";
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,13 +13,13 @@ export default function LoginPage() {
         <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden ring-1 ring-white/5 transition-all duration-300 hover:ring-white/10">
           <CardHeader className="space-y-5 pb-6 pt-10 text-center flex flex-col items-center">
             {/* Logo */}
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#C1121F] text-white shadow-lg transition-transform duration-500 hover:scale-105">
-              <Aperture size={32} strokeWidth={1.5} className="transition-transform duration-700 hover:rotate-180" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-black shadow-lg transition-transform duration-500 hover:scale-105 overflow-hidden ring-1 ring-white/10">
+              <Image src="/logo.jpg" alt="Random Frames OS Logo" width={64} height={64} className="object-cover w-full h-full" />
             </div>
             
             <div className="space-y-1.5">
-              <CardTitle className="text-2xl font-bold tracking-tight text-white">
-                Random Frames OS
+              <CardTitle className="text-2xl font-bold tracking-tight text-white font-heading uppercase">
+                Random Frames
               </CardTitle>
               <CardDescription className="text-zinc-400 font-medium text-base">
                 Business Operating System

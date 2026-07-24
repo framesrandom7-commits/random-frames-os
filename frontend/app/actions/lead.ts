@@ -62,7 +62,12 @@ export async function getLeads(params?: GetLeadsParams) {
       prisma.lead.count({ where }),
     ]);
 
-    return { leads, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const formattedLeads = leads.map(lead => ({
+      ...lead,
+      budget: lead.budget ? Number(lead.budget) : null
+    }));
+
+    return { leads: formattedLeads, total, page, limit, totalPages: Math.ceil(total / limit) };
   } catch (error) {
     console.error("Error fetching leads:", error);
     return { leads: [], total: 0, page: 1, limit: 50, totalPages: 0 };
@@ -92,7 +97,12 @@ export async function getLead(id: string) {
       }
     });
 
-    return lead;
+    if (!lead) return null;
+
+    return {
+      ...lead,
+      budget: lead.budget ? Number(lead.budget) : null
+    };
   } catch (error) {
     console.error("Error fetching lead:", error);
     return null;

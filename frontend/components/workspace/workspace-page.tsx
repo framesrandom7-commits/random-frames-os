@@ -1,45 +1,49 @@
-import React from "react";
+import React, { Suspense } from "react";
 import AppShell from "@/components/layout/app-shell";
 import GreetingWidget from "./greeting-widget";
-import SearchWidget from "./search-widget";
 import TodaysFocusWidget from "./todays-focus-widget";
 import ContinueWorkingWidget from "./continue-working-widget";
 import UpcomingWidget from "./upcoming-widget";
 import NotificationsWidget from "./notifications-widget";
 import RecentActivityWidget from "./recent-activity-widget";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface WorkspacePageProps {
-  user: {
-    firstName: string;
-  };
-}
-
-export default function WorkspacePage({ user }: WorkspacePageProps) {
+export default function WorkspacePage({ user }: { user: { name: string, roleName: string } }) {
   return (
     <AppShell>
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-[#050505]">
-        <div className="max-w-6xl mx-auto space-y-10">
-          
-          <section className="space-y-6">
-            <GreetingWidget user={user} />
-            <SearchWidget />
-          </section>
+      <div className="space-y-10">
+        <Suspense fallback={<Skeleton className="h-24 w-full rounded-2xl bg-white/5" />}>
+          <GreetingWidget user={user} />
+        </Suspense>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-10">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">
+          {/* Main Workspace Column (Left) */}
+          <div className="xl:col-span-8 space-y-10">
+            <Suspense fallback={<Skeleton className="h-[200px] w-full rounded-[24px] bg-white/5" />}>
               <TodaysFocusWidget />
+            </Suspense>
+
+            <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-[24px] bg-white/5" />}>
               <ContinueWorkingWidget />
+            </Suspense>
+
+            <Suspense fallback={<Skeleton className="h-[150px] w-full rounded-[24px] bg-white/5" />}>
               <RecentActivityWidget />
-            </div>
-            
-            <div className="space-y-10">
-              <UpcomingWidget />
-              <NotificationsWidget />
-            </div>
+            </Suspense>
           </div>
-          
+
+          {/* Right Sidebar Column */}
+          <div className="xl:col-span-4 space-y-10 xl:-mt-8">
+            <Suspense fallback={<Skeleton className="h-[400px] w-full rounded-[24px] bg-white/5" />}>
+              <UpcomingWidget />
+            </Suspense>
+            
+            <Suspense fallback={<Skeleton className="h-[300px] w-full rounded-[24px] bg-white/5" />}>
+              <NotificationsWidget />
+            </Suspense>
+          </div>
         </div>
-      </main>
+      </div>
     </AppShell>
   );
 }

@@ -82,6 +82,16 @@ export async function createShoot(data: CreateShootData) {
       clientId: data.clientId,
     });
     
+    const { verifySession: getSession } = await import('@/lib/auth');
+    const session = await getSession();
+    const { EventBus } = await import('@/lib/workflow/event-bus');
+    const { WorkflowEvent } = await import('@/lib/workflow/events');
+    EventBus.publish(WorkflowEvent.SHOOT_SCHEDULED, {
+      shootId: shoot.id,
+      projectId: data.projectId,
+      userId: session?.userId,
+    });
+    
     revalidatePath("/shoots");
     revalidatePath(`/projects/${data.projectId}`);
     revalidatePath(`/clients/${data.clientId}`);

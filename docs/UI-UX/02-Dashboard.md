@@ -52,9 +52,12 @@ Contains
 
 - Global Search
 - Notifications
-- Profile
-- Settings
-- Dark / Light Mode
+- Profile Menu
+  - My Profile
+  - Settings
+  - Appearance
+  - Backup & Export
+  - Log Out
 
 ---
 

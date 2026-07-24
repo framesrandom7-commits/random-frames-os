@@ -173,18 +173,15 @@ enum ReminderType {
   DEADLINE
 }
 
-enum Role {
-  ADMIN
-  MANAGER
-  EDITOR
-  VIEWER
-}
-
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
-  role          Role      @default(VIEWER)
+  contactEmail  String?
+  
+  roleId        String?
+  role          Role?     @relation(fields: [roleId], references: [id])
+  
   passwordHash  String
   
   // Enterprise fields
@@ -197,6 +194,74 @@ model User {
   leadsCreated  Lead[]    @relation("LeadCreatedBy")
   leadsUpdated  Lead[]    @relation("LeadUpdatedBy")
   notifications Notification[]
+  integrationSettings IntegrationSettings[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+model IntegrationSettings {
+  id                  String   @id @default(cuid())
+  provider            String   @unique // e.g. "GOOGLE_DRIVE"
+  accessToken         String?  // Not permanently stored, but if stored temporarily, encrypted
+  refreshToken        String?  // Encrypted AES-256-GCM
+  tokenExpiry         DateTime?
+  
+  rootFolderId        String?
+  rootFolderUrl       String?
+  
+  storageUsageBytes   BigInt   @default(0)
+  fileCount           Int      @default(0)
+  lastSyncAt          DateTime?
+  syncStatus          String   @default("IDLE") // IDLE, SYNCING, ERROR
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  userId              String?
+  user                User?    @relation(fields: [userId], references: [id])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  
+  permissions RolePermission[]
+  users       User[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  action      String   @unique // e.g. 'dashboard.view'
+  description String?
+  module      String?  // e.g. 'Dashboard'
+  
+  roles       RolePermission[]
+  
+  createdAt   DateTime @default(now())
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+  
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  
+  @@unique([roleId, permissionId])
 }
 
 model Tag {
@@ -380,6 +445,10 @@ model Client {
   gstNumber     String?
   notes         String?
   
+  // DAM Storage Fields
+  driveFolderId   String?
+  driveFolderUrl  String?
+  
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   archivedAt    DateTime?
@@ -420,9 +489,28 @@ model Project {
   
   notes           String?
   
-  // Integration fields
-  googleDriveFolderId String?
-  googleDriveLink     String?
+  // DAM Storage Fields
+  driveRootFolderId   String?
+  driveRootFolderUrl  String?
+  rawFolderId         String?
+  rawFolderUrl        String?
+  editFolderId        String?
+  editFolderUrl       String?
+  deliveryFolderId    String?
+  deliveryFolderUrl   String?
+  documentsFolderId   String?
+  documentsFolderUrl  String?
+  referencesFolderId  String?
+  referencesFolderUrl String?
+  socialFolderId      String?
+  socialFolderUrl     String?
+  backupFolderId      String?
+  backupFolderUrl     String?
+  
+  storageUsageBytes   BigInt    @default(0)
+  fileCount           Int       @default(0)
+  lastSyncAt          DateTime?
+  syncStatus          String    @default("IDLE")
   
   clientId        String
   client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -477,6 +565,18 @@ model Shoot {
   weatherNotes          String?
   notes                 String?
   
+  // DAM Storage Fields
+  cameraAFolderId   String?
+  cameraAFolderUrl  String?
+  cameraBFolderId   String?
+  cameraBFolderUrl  String?
+  droneFolderId     String?
+  droneFolderUrl    String?
+  audioFolderId     String?
+  audioFolderUrl    String?
+  btsFolderId       String?
+  btsFolderUrl      String?
+  
   projectId       String
   project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
@@ -522,22 +622,62 @@ model ShootShot {
   shoot          Shoot    @relation(fields: [shootId], references: [id], onDelete: Cascade)
 }
 
+enum ReviewStatus {
+  NOT_SENT
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+}
+
+enum DeliverablePriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model Deliverable {
   id              String            @id @default(cuid())
   type            String
   assignedEditor  String?
   status          DeliverableStatus @default(PENDING)
+  priority        DeliverablePriority @default(MEDIUM)
   dueDate         DateTime?
   completionDate  DateTime?
-  clientApproval  Boolean           @default(false)
-  downloadLink    String?
-  version         Int               @default(1)
+  
+  reviewStatus    ReviewStatus      @default(NOT_SENT)
+  reviewDate      DateTime?
+  reviewerNotes   String?
   
   shootId         String
   shoot           Shoot             @relation(fields: [shootId], references: [id], onDelete: Cascade)
   
+  files           DeliverableFile[]
+  versions        DeliverableVersion[]
+  
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+}
+
+model DeliverableFile {
+  id              String       @id @default(cuid())
+  deliverableId   String
+  name            String
+  url             String
+  sizeBytes       Int?
+  uploadedAt      DateTime     @default(now())
+  
+  deliverable     Deliverable  @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+}
+
+model DeliverableVersion {
+  id              String       @id @default(cuid())
+  deliverableId   String
+  versionNumber   Int
+  changeNotes     String?
+  createdBy       String?
+  createdAt       DateTime     @default(now())
+  
+  deliverable     Deliverable  @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
 }
 
 enum CalendarEventType {
@@ -674,6 +814,13 @@ enum NotificationType {
   PAYMENT_RECEIVED
   OVERDUE_PAYMENT
   GENERAL_REMINDER
+  SYSTEM
+  STORAGE
+  WORKFLOW
+  SUCCESS
+  INFO
+  WARNING
+  ERROR
 }
 
 enum NotificationStatus {
@@ -720,6 +867,47 @@ model Notification {
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  isRead    Boolean  @default(false)
+  actionUrl String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  RETRYING
+  CANCELLED
+}
+
+model BackgroundJob {
+  id          String    @id @default(cuid())
+  type        String
+  payload     Json?
+  status      JobStatus @default(QUEUED)
+  progress    Int       @default(0)
+  
+  error       String?
+  retryCount  Int       @default(0)
+  
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  module      String?
+  entityId    String?
+  entityType  String?
+  
+  userId      String?
+  metadata    Json?
+  
+  createdAt   DateTime @default(now())
 }

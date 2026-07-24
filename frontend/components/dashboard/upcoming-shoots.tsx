@@ -1,5 +1,4 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, MapPin } from "lucide-react";
 import { getShoots } from "@/app/actions/shoot";
 import Link from "next/link";
@@ -18,12 +17,12 @@ export default async function UpcomingShoots() {
   const validShoots = allUpcoming.filter(s => s.status !== "CANCELLED" && s.status !== "POSTPONED").slice(0, 5);
 
   return (
-    <Card className="border-white/10 bg-white/5 backdrop-blur-md shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-semibold text-white">Upcoming Shoots</CardTitle>
+    <div className="flex flex-col h-full">
+      <div className="flex flex-row items-center justify-between p-6 pb-2">
+        <h3 className="text-lg font-semibold text-white">Upcoming Shoots</h3>
         <Link href="/shoots?view=calendar" className="text-sm text-zinc-400 hover:text-white transition-colors">View Calendar</Link>
-      </CardHeader>
-      <CardContent className="space-y-3 pt-2">
+      </div>
+      <div className="space-y-3 p-6 pt-2 flex-1 overflow-y-auto custom-scrollbar">
         {validShoots.length === 0 ? (
           <div className="text-center py-4 text-zinc-500 text-sm">
             No upcoming shoots scheduled.
@@ -49,7 +48,7 @@ export default async function UpcomingShoots() {
             </Link>
           ))
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

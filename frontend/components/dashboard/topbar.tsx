@@ -16,7 +16,7 @@ export default function Topbar({ title }: { title: string }) {
         </div>
         <div className="ml-2 flex items-center gap-3 border-l border-white/10 pl-4">
           <Avatar className="h-8 w-8 ring-1 ring-white/10 cursor-pointer transition-transform hover:scale-105">
-            <AvatarImage src="/placeholder-user.jpg" alt="User" />
+            <AvatarImage src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="User" />
             <AvatarFallback className="bg-zinc-800 text-xs text-zinc-400">JD</AvatarFallback>
           </Avatar>
         </div>

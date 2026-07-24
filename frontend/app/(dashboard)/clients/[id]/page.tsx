@@ -1,5 +1,5 @@
 import React from "react";
-import Topbar from "@/components/dashboard/topbar";
+import { PageHeader } from "@/components/layout/page-header";
 import { getClient } from "@/app/actions/client";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,27 +45,28 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
     .join(", ");
 
   return (
-    <>
-      <Topbar title="Client Details" />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#050505]">
-        <div className="mb-6 flex flex-col gap-4">
-          <Link href="/clients">
-            <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Clients
-            </Button>
-          </Link>
-          
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <h2 className="text-3xl font-bold text-white tracking-tight">{client.businessName}</h2>
-                <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono">
-                  {client.clientCode}
-                </Badge>
-              </div>
-              {client.contactPerson && <p className="text-lg text-zinc-400 mt-1">{client.contactPerson}</p>}
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
+        <Link href="/clients">
+          <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Clients
+          </Button>
+        </Link>
+        
+        <PageHeader 
+          title={
+            <div className="flex items-center gap-3">
+              <span>{client.businessName}</span>
+              <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono">
+                {client.clientCode}
+              </Badge>
             </div>
+          }
+          subtitle={
+            client.contactPerson && <span className="text-lg">{client.contactPerson}</span>
+          }
+          action={
             <div className="flex items-center gap-3">
               <WhatsAppButton 
                 variant="outline" 
@@ -88,8 +89,9 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                 {client.businessType.replace(/_/g, " ").toLowerCase()}
               </Badge>
             </div>
-          </div>
-        </div>
+          }
+        />
+      </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Info & Timeline */}
@@ -300,8 +302,7 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
-    </>
+      </div>
+    </div>
   );
 }

@@ -92,6 +92,19 @@ export async function getFinanceDashboardStats() {
       orderBy: { date: "desc" }
     });
 
+    const formattedRecentInvoices = recentInvoices.map(inv => ({
+      ...inv,
+      subtotal: Number(inv.subtotal),
+      tax: inv.tax ? Number(inv.tax) : null,
+      discount: inv.discount ? Number(inv.discount) : null,
+      total: Number(inv.total)
+    }));
+
+    const formattedRecentExpenses = recentExpenses.map(exp => ({
+      ...exp,
+      amount: Number(exp.amount)
+    }));
+
     return {
       totalRevenue: Number(allPayments._sum.amount || 0),
       totalExpenses: Number(allExpenses._sum.amount || 0),
@@ -103,8 +116,8 @@ export async function getFinanceDashboardStats() {
       pendingInvoicesCount: pendingInvoices.length,
       overdueInvoicesCount: overdueCount,
       chartData,
-      recentInvoices,
-      recentExpenses
+      recentInvoices: formattedRecentInvoices,
+      recentExpenses: formattedRecentExpenses
     };
   } catch (error) {
     console.error("Error fetching finance stats:", error);

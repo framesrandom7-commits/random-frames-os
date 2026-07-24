@@ -1,5 +1,5 @@
 import React from "react";
-import Topbar from "@/components/dashboard/topbar";
+import { PageHeader } from "@/components/layout/page-header";
 import { getShoot } from "@/app/actions/shoot";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import EquipmentChecklist from "@/components/shoots/equipment-checklist";
 import ShotListManager from "@/components/shoots/shot-list-manager";
+import DeliverablesManager from "@/components/shoots/deliverables-manager";
 
 export const dynamic = "force-dynamic";
 
@@ -33,47 +34,47 @@ export default async function ShootDetailsPage({ params }: { params: Promise<{ i
   };
 
   return (
-    <>
-      <Topbar title="Shoot Details" />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#050505]">
-        <div className="mb-6 flex flex-col gap-4">
-          <Link href="/shoots">
-            <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Shoots
-            </Button>
-          </Link>
-          
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-xs">
-                  {shoot.shootCode}
-                </Badge>
-                <Badge variant="outline" className={`border ${getStatusColor(shoot.status)} text-xs`}>
-                  {shoot.status.replace(/_/g, " ")}
-                </Badge>
-                <Badge variant="outline" className="border-white/10 text-zinc-300 text-xs uppercase tracking-wider">
-                  {shoot.shootType.replace(/_/g, " ")}
-                </Badge>
-              </div>
-              <h2 className="text-3xl font-bold text-white tracking-tight">{shoot.title}</h2>
-              <div className="flex flex-wrap items-center text-sm text-zinc-400 mt-3 gap-x-6 gap-y-2">
-                <Link href={`/clients/${shoot.clientId}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
-                  <Building className="w-4 h-4 text-zinc-500" />
-                  {shoot.client.businessName}
-                </Link>
-                <div className="w-1 h-1 rounded-full bg-zinc-700 hidden sm:block"></div>
-                <Link href={`/projects/${shoot.projectId}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
-                  <Camera className="w-4 h-4 text-zinc-500" />
-                  {shoot.project.title}
-                </Link>
-              </div>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
+        <Link href="/shoots">
+          <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Shoots
+          </Button>
+        </Link>
+        
+        <PageHeader 
+          title={
+            <div className="flex items-center gap-3 mb-2">
+              <span>{shoot.title}</span>
+              <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-xs">
+                {shoot.shootCode}
+              </Badge>
+              <Badge variant="outline" className={`border ${getStatusColor(shoot.status)} text-xs`}>
+                {shoot.status.replace(/_/g, " ")}
+              </Badge>
+              <Badge variant="outline" className="border-white/10 text-zinc-300 text-xs uppercase tracking-wider">
+                {shoot.shootType.replace(/_/g, " ")}
+              </Badge>
             </div>
-          </div>
-        </div>
+          }
+          subtitle={
+            <div className="flex flex-wrap items-center text-sm text-zinc-400 gap-x-6 gap-y-2">
+              <Link href={`/clients/${shoot.clientId}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
+                <Building className="w-4 h-4 text-zinc-500" />
+                {shoot.client.businessName}
+              </Link>
+              <div className="w-1 h-1 rounded-full bg-zinc-700 hidden sm:block"></div>
+              <Link href={`/projects/${shoot.projectId}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
+                <Camera className="w-4 h-4 text-zinc-500" />
+                {shoot.project.title}
+              </Link>
+            </div>
+          }
+        />
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {/* Left/Main Column */}
           <div className="lg:col-span-2 xl:col-span-3 space-y-6">
             
@@ -196,6 +197,19 @@ export default async function ShootDetailsPage({ params }: { params: Promise<{ i
                 <ShotListManager shootId={shoot.id} shots={shoot.shots} />
               </CardContent>
             </Card>
+
+            {/* Deliverables Manager */}
+            <Card className="border-white/10 bg-white/5 backdrop-blur-md overflow-hidden mt-6">
+              <div className="h-1 bg-gradient-to-r from-purple-500/20 to-purple-500/50 w-full" />
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-purple-400" /> Deliverables
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DeliverablesManager shootId={shoot.id} />
+              </CardContent>
+            </Card>
             
           </div>
 
@@ -226,8 +240,7 @@ export default async function ShootDetailsPage({ params }: { params: Promise<{ i
             </Card>
             
           </div>
-        </div>
-      </main>
-    </>
+      </div>
+    </div>
   );
 }

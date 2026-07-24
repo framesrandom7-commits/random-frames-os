@@ -18,8 +18,13 @@ interface FinanceStats {
   pendingInvoicesCount: number;
   overdueInvoicesCount: number;
   chartData: any[];
-  recentInvoices: Prisma.InvoiceGetPayload<{ include: { client: { select: { businessName: true } } } }>[];
-  recentExpenses: Prisma.ExpenseGetPayload<{}>[];
+  recentInvoices: (Omit<Prisma.InvoiceGetPayload<{ include: { client: { select: { businessName: true } } } }>, 'subtotal' | 'discount' | 'tax' | 'total'> & {
+    subtotal: number;
+    discount: number | null;
+    tax: number | null;
+    total: number;
+  })[];
+  recentExpenses: (Omit<Prisma.ExpenseGetPayload<{}>, 'amount'> & { amount: number })[];
 }
 
 export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {

@@ -1,5 +1,5 @@
 import React from "react";
-import Topbar from "@/components/dashboard/topbar";
+import { PageHeader } from "@/components/layout/page-header";
 import { getProject } from "@/app/actions/project";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import ShootTable from "@/components/shoots/shoot-table";
 import { Prisma, Invoice } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import ProjectDriveButton from "@/components/projects/project-drive-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ProjectStorageTab from "@/components/projects/project-storage-tab";
 import { ActivityTimeline } from "@/components/shared/activity-timeline";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
@@ -59,43 +61,39 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   };
 
   return (
-    <>
-      <Topbar title="Project Details" />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#050505]">
-        <div className="mb-6 flex flex-col gap-4">
-          <Link href="/projects">
-            <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Projects
-            </Button>
-          </Link>
-          
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-xs">
-                  {project.projectCode}
-                </Badge>
-                <Badge variant="outline" className={`border-0 ${getStatusColor(project.status)} text-xs`}>
-                  {project.status.replace(/_/g, " ")}
-                </Badge>
-                <Badge variant="outline" className="border-white/10 text-zinc-300 text-xs">
-                  {project.category.replace(/_/g, " ").toLowerCase()}
-                </Badge>
-              </div>
-              <h2 className="text-3xl font-bold text-white tracking-tight">{project.title}</h2>
-              <div className="flex items-center text-zinc-400 mt-2 hover:text-white transition-colors w-fit">
-                <Link href={`/clients/${project.clientId}`} className="flex items-center gap-1.5">
-                  <Building className="w-4 h-4" />
-                  {project.client.businessName}
-                </Link>
-              </div>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
+        <Link href="/projects">
+          <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Projects
+          </Button>
+        </Link>
+        
+        <PageHeader 
+          title={
+            <div className="flex items-center gap-3 mb-1">
+              <span>{project.title}</span>
+              <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-xs">
+                {project.projectCode}
+              </Badge>
+              <Badge variant="outline" className={`border-0 ${getStatusColor(project.status)} text-xs`}>
+                {project.status.replace(/_/g, " ")}
+              </Badge>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+          }
+          subtitle={
+            <div className="flex items-center gap-2 text-zinc-400">
+              <Building className="w-4 h-4" />
+              <span>{project.client.businessName}</span>
+            </div>
+          }
+          action={
+            <div className="flex items-center gap-3">
               <ProjectDriveButton 
                 projectId={project.id} 
-                googleDriveFolderId={project.googleDriveFolderId} 
-                googleDriveLink={project.googleDriveLink} 
+                driveRootFolderId={project.driveRootFolderId} 
+                driveRootFolderUrl={project.driveRootFolderUrl} 
               />
               
               <WhatsAppButton 
@@ -121,10 +119,18 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                 </Badge>
               </div>
             </div>
-          </div>
-        </div>
+          }
+        />
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Tabs defaultValue="overview" className="flex flex-col gap-6">
+        <TabsList className="bg-white/5 border border-white/10 p-1 w-fit">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Overview</TabsTrigger>
+          <TabsTrigger value="storage" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Storage & Files</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="m-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Info & Timeline */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="border-white/10 bg-white/5 backdrop-blur-md">
@@ -294,8 +300,13 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
-    </>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="storage" className="m-0">
+          <ProjectStorageTab project={project as any} />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

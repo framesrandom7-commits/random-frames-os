@@ -38,6 +38,9 @@ export type CreateClientData = {
   notes?: string | null;
 };
 
+import { verifySession as getSession } from '@/lib/auth';
+
+
 export async function createClient(data: CreateClientData) {
   try {
     const clientCode = await generateClientCode();
@@ -54,6 +57,14 @@ export async function createClient(data: CreateClientData) {
       type: "SYSTEM",
       description: `Client profile created`,
       clientId: client.id,
+    });
+    
+    const session = await getSession();
+    const { EventBus } = await import('@/lib/workflow/event-bus');
+    const { WorkflowEvent } = await import('@/lib/workflow/events');
+    EventBus.publish(WorkflowEvent.CLIENT_CREATED, {
+      clientId: client.id,
+      userId: session?.userId,
     });
     
     revalidatePath("/clients");

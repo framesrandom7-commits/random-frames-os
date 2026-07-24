@@ -10,6 +10,12 @@ It enables administrators to customize the system without modifying application 
 
 ---
 
+# Architecture Note
+
+Settings is accessed exclusively via the **Profile Menu** in the top navigation. It is intentionally separated from the Sidebar (which is reserved strictly for Workspace Navigation).
+
+---
+
 # Objectives
 
 - Centralize system configuration.

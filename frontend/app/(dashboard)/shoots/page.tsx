@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import Topbar from "@/components/dashboard/topbar";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Camera, Calendar, Clock, CheckCircle2, AlertCircle, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,11 +44,13 @@ export default async function ShootsPage({
   ]);
 
   return (
-    <>
-      <Topbar title="Shoots" />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#050505]">
-        
-        {/* Dashboard Stats */}
+    <div className="flex flex-col gap-6">
+      <PageHeader 
+        title="Shoots"
+        subtitle="Schedule and organize production days"
+      />
+      
+      {/* Dashboard Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
           <Card className="border-white/10 bg-white/5 backdrop-blur-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -149,7 +151,6 @@ export default async function ShootsPage({
             />
           )}
         </Suspense>
-      </main>
-    </>
+    </div>
   );
 }

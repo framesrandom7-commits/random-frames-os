@@ -39,8 +39,8 @@ export async function createProjectDriveFolder(projectId: string) {
     await prisma.project.update({
       where: { id: projectId },
       data: {
-        googleDriveFolderId: mockFolderId,
-        googleDriveLink: mockLink
+        driveRootFolderId: mockFolderId,
+        driveRootFolderUrl: mockLink
       }
     });
 

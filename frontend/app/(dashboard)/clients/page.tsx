@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import Topbar from "@/components/dashboard/topbar";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Plus, Users, Building, AlertCircle, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,11 +30,13 @@ export default async function ClientsPage({
   ]);
 
   return (
-    <>
-      <Topbar title="Clients" />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#050505]">
-        
-        {/* Dashboard Stats */}
+    <div className="flex flex-col gap-6">
+      <PageHeader 
+        title="Clients"
+        subtitle="Manage your client relationships"
+      />
+      
+      {/* Dashboard Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card className="border-white/10 bg-white/5 backdrop-blur-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -101,7 +103,6 @@ export default async function ClientsPage({
             total={clientData.total} 
           />
         </Suspense>
-      </main>
-    </>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { getCalendarEvents } from "@/app/actions/calendar";
 import { getClients } from "@/app/actions/client";
 import { getProjects } from "@/app/actions/project";
@@ -78,10 +79,11 @@ export default async function CalendarPage({
   });
 
   return (
-    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight text-white">Calendar</h1>
-      </div>
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] gap-6">
+      <PageHeader 
+        title="Calendar"
+        subtitle="Your upcoming schedule"
+      />
       
       <div className="flex flex-col md:flex-row gap-4 h-full overflow-hidden">
         <div className="w-full md:w-64 flex-shrink-0 overflow-y-auto custom-scrollbar pb-4 pr-1">

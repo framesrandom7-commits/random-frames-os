@@ -8,11 +8,11 @@ import { toast } from "sonner";
 
 interface ProjectDriveButtonProps {
   projectId: string;
-  googleDriveFolderId?: string | null;
-  googleDriveLink?: string | null;
+  driveRootFolderId?: string | null;
+  driveRootFolderUrl?: string | null;
 }
 
-export default function ProjectDriveButton({ projectId, googleDriveFolderId, googleDriveLink }: ProjectDriveButtonProps) {
+export default function ProjectDriveButton({ projectId, driveRootFolderId, driveRootFolderUrl }: ProjectDriveButtonProps) {
   const [loading, setLoading] = useState(false);
 
   const handleCreateFolder = async () => {
@@ -27,9 +27,9 @@ export default function ProjectDriveButton({ projectId, googleDriveFolderId, goo
     }
   };
 
-  if (googleDriveLink) {
+  if (driveRootFolderUrl) {
     return (
-      <a href={googleDriveLink} target="_blank" rel="noopener noreferrer">
+      <a href={driveRootFolderUrl} target="_blank" rel="noopener noreferrer">
         <Button variant="outline" className="border-white/10 text-white bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 gap-2">
           <HardDrive className="w-4 h-4" />
           Open Drive Folder
