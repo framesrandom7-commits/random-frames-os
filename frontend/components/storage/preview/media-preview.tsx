@@ -3,7 +3,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { X, ExternalLink, Image as ImageIcon, Film, Music, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 interface MediaPreviewProps {
   file: any | null;
@@ -38,11 +38,9 @@ export function MediaPreview({ file, isOpen, onClose }: MediaPreviewProps) {
             <span className="text-sm font-medium text-white truncate max-w-md">{file.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="h-8 text-zinc-400 hover:text-white bg-white/5">
-              <a href={file.webViewLink} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4 mr-2" /> Open in Drive
-              </a>
-            </Button>
+            <a href={file.webContentLink} download={file.name} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "ghost", size: "sm" }) + " h-8 text-zinc-400 hover:text-white bg-white/5"}>
+              <Download className="h-4 w-4 mr-1.5" /> Download
+            </a>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full text-zinc-400 hover:text-white hover:bg-white/10" onClick={onClose}>
               <X className="h-5 w-5" />
             </Button>

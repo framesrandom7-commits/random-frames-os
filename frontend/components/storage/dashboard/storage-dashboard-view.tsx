@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { HardDrive, Cloud, AlertCircle, CheckCircle2, Activity, Folder, UploadCloud, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 export default function StorageDashboardView({ settings, quota }: { settings: any, quota: any }) {
@@ -111,13 +111,13 @@ export default function StorageDashboardView({ settings, quota }: { settings: an
             </CardHeader>
             <CardContent className="pt-6 flex flex-col gap-3">
               {!isConnected ? (
-                <Button asChild className="w-full bg-[#4285F4] hover:bg-[#3367D6] text-white">
-                  <a href="/api/auth/google">
+                <div className="flex flex-col gap-3">
+                  <a href="/api/auth/google/login" className={buttonVariants({ className: "w-full bg-[#4285F4] hover:bg-[#3367D6] text-white" })}>
                     <Cloud className="mr-2 h-4 w-4" /> Connect Google Drive
                   </a>
-                </Button>
+                </div>
               ) : (
-                <>
+                <div className="flex flex-col gap-3">
                   <Button 
                     onClick={handleSync} 
                     disabled={isSyncing}
@@ -127,12 +127,10 @@ export default function StorageDashboardView({ settings, quota }: { settings: an
                     <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} /> 
                     {isSyncing ? 'Syncing...' : 'Force Sync State'}
                   </Button>
-                  <Button asChild variant="outline" className="w-full border-[#4285F4]/30 bg-[#4285F4]/10 hover:bg-[#4285F4]/20 text-[#4285F4]">
-                    <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer">
-                      Open in Drive
-                    </a>
-                  </Button>
-                </>
+                  <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", className: "w-full border-[#4285F4]/30 bg-[#4285F4]/10 hover:bg-[#4285F4]/20 text-[#4285F4]" })}>
+                    Open in Drive
+                  </a>
+                </div>
               )}
             </CardContent>
           </Card>

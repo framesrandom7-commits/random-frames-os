@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Folder, HardDrive, Link as LinkIcon, UploadCloud, RefreshCw, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { getDriveFolderContents } from "@/app/actions/drive";
 import { useUpload } from "@/components/storage/uploads/upload-provider";
 
@@ -82,11 +82,9 @@ export default function ProjectStorageTab({ project }: { project: any }) {
         <CardHeader className="border-b border-white/5 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Project Folders</CardTitle>
           {project.driveRootFolderUrl && (
-            <Button asChild variant="outline" size="sm" className="h-8 border-white/10 text-white">
-              <a href={project.driveRootFolderUrl} target="_blank" rel="noopener noreferrer">
-                <LinkIcon className="h-4 w-4 mr-2" /> Open in Drive
-              </a>
-            </Button>
+            <a href={project.driveRootFolderUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", size: "sm", className: "h-8 border-white/10 text-white" })}>
+              <LinkIcon className="h-4 w-4 mr-2" /> Open in Drive
+            </a>
           )}
         </CardHeader>
         <CardContent className="p-0">
