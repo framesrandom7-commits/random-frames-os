@@ -16,37 +16,82 @@ export interface CreateNotificationDto {
   userId?: string;
   
   actionUrl?: string;
+  
+  // Channels to dispatch on
+  channels?: NotificationChannel[];
+}
+
+export enum NotificationChannel {
+  IN_APP = "IN_APP",
+  EMAIL = "EMAIL",
+  WHATSAPP = "WHATSAPP",
+}
+
+export interface NotificationProvider {
+  dispatch(data: CreateNotificationDto, inAppNotificationId?: string): Promise<void>;
+}
+
+export class InAppNotificationProvider implements NotificationProvider {
+  async dispatch(data: CreateNotificationDto): Promise<void> {
+    await prisma.notification.create({
+      data: {
+        title: data.title,
+        message: data.message,
+        type: data.type || 'SYSTEM',
+        status: 'PENDING',
+        priority: data.priority || 'MEDIUM',
+        isRead: false,
+        leadId: data.leadId,
+        clientId: data.clientId,
+        projectId: data.projectId,
+        shootId: data.shootId,
+        invoiceId: data.invoiceId,
+        userId: data.userId,
+        actionUrl: data.actionUrl,
+      }
+    });
+  }
+}
+
+export class EmailNotificationProvider implements NotificationProvider {
+  async dispatch(data: CreateNotificationDto): Promise<void> {
+    // In a real implementation, we would use EmailService here
+    Logger.info(`[EmailNotificationProvider] Sending email: ${data.title}`);
+  }
+}
+
+export class WhatsAppNotificationProvider implements NotificationProvider {
+  async dispatch(data: CreateNotificationDto): Promise<void> {
+    // In a real implementation, we would use WhatsAppService / WhatsAppShareLinkProvider here
+    Logger.info(`[WhatsAppNotificationProvider] Generating WhatsApp template: ${data.title}`);
+  }
 }
 
 export class NotificationEngineService {
+  private providers: Map<NotificationChannel, NotificationProvider>;
+
+  constructor() {
+    this.providers = new Map();
+    this.providers.set(NotificationChannel.IN_APP, new InAppNotificationProvider());
+    this.providers.set(NotificationChannel.EMAIL, new EmailNotificationProvider());
+    this.providers.set(NotificationChannel.WHATSAPP, new WhatsAppNotificationProvider());
+  }
+
   /**
-   * Dispatch an in-app notification and optionally an email/push.
+   * Dispatch a notification across specified channels.
    */
   public async dispatch(data: CreateNotificationDto) {
     try {
-      const notification = await prisma.notification.create({
-        data: {
-          title: data.title,
-          message: data.message,
-          type: data.type || 'SYSTEM',
-          status: 'PENDING',
-          priority: data.priority || 'MEDIUM',
-          isRead: false,
-          
-          leadId: data.leadId,
-          clientId: data.clientId,
-          projectId: data.projectId,
-          shootId: data.shootId,
-          invoiceId: data.invoiceId,
-          userId: data.userId,
-          
-          actionUrl: data.actionUrl,
+      const channels = data.channels || [NotificationChannel.IN_APP];
+
+      for (const channel of channels) {
+        const provider = this.providers.get(channel);
+        if (provider) {
+          await provider.dispatch(data);
         }
-      });
-      Logger.info(`[NotificationEngine] Dispatched notification: ${data.title}`);
-      
-      // If priority is HIGH or URGENT, we could hook into email.ts here to send real emails
-      return notification;
+      }
+
+      Logger.info(`[NotificationEngine] Dispatched notification: ${data.title} via ${channels.join(', ')}`);
     } catch (error) {
       Logger.error(`[NotificationEngine] Failed to dispatch notification: ${data.title}`, error);
       throw error;
@@ -54,7 +99,7 @@ export class NotificationEngineService {
   }
 
   /**
-   * Mark a notification as read.
+   * Mark an in-app notification as read.
    */
   public async markAsRead(id: string) {
     await prisma.notification.update({

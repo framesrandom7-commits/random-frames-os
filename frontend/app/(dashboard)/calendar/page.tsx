@@ -4,7 +4,7 @@ import { getCalendarEvents } from "@/app/actions/calendar";
 import { getClients } from "@/app/actions/client";
 import { getProjects } from "@/app/actions/project";
 import CalendarSidebar from "@/components/calendar/calendar-sidebar";
-import CalendarViewSwitcher from "@/components/calendar/calendar-view-switcher";
+import FullCalendarWrapper from "@/components/calendar/full-calendar-wrapper";
 import { CalendarEventType, CalendarEventStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,6 @@ export default async function CalendarPage({
   searchParams,
 }: {
   searchParams: {
-    view?: string;
     date?: string;
     clientId?: string;
     projectId?: string;
@@ -21,25 +20,13 @@ export default async function CalendarPage({
     status?: CalendarEventStatus;
   };
 }) {
-  const currentView = searchParams.view || "month";
   const currentDate = searchParams.date || new Date().toISOString();
 
-  // Determine date range based on view
+  // FullCalendar will load events lazily if configured that way, 
+  // but for now, we load a generous window of events for the initial render.
   const d = new Date(currentDate);
-  let dateStart = new Date(d.getFullYear(), d.getMonth(), 1);
-  let dateEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
-
-  if (currentView === "week") {
-    dateStart = new Date(d);
-    dateStart.setDate(d.getDate() - d.getDay());
-    dateStart.setHours(0, 0, 0, 0);
-    dateEnd = new Date(dateStart);
-    dateEnd.setDate(dateStart.getDate() + 6);
-    dateEnd.setHours(23, 59, 59, 999);
-  } else if (currentView === "day" || currentView === "agenda") {
-    dateStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    dateEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
-  }
+  const dateStart = new Date(d.getFullYear(), d.getMonth() - 2, 1);
+  const dateEnd = new Date(d.getFullYear(), d.getMonth() + 2, 0, 23, 59, 59);
 
   const [events, clientsResponse, projectsResponse] = await Promise.all([
     getCalendarEvents({
@@ -95,13 +82,12 @@ export default async function CalendarPage({
           />
         </div>
         
-        <div className="flex-1 overflow-hidden flex flex-col bg-white/5 border border-white/10 rounded-xl backdrop-blur-md">
-          <CalendarViewSwitcher 
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <FullCalendarWrapper 
             events={events} 
             clients={clients} 
-            projects={projects} 
-            currentView={currentView}
-            currentDate={d}
+            projects={projects}
+            currentDate={new Date(currentDate)}
           />
         </div>
       </div>

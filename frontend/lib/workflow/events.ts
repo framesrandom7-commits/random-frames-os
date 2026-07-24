@@ -38,6 +38,21 @@ export enum WorkflowEvent {
   PAYMENT_OVERDUE = 'payment.overdue',
   EXPENSE_LOGGED = 'expense.logged',
 
+  // Calendar & Scheduling Events
+  EVENT_CREATED = 'event.created',
+  EVENT_UPDATED = 'event.updated',
+  EVENT_CANCELLED = 'event.cancelled',
+  REMINDER_TRIGGERED = 'reminder.triggered',
+  
+  // Communication & Delivery Events
+  MESSAGE_SENT = 'communication.message.sent',
+  EMAIL_SENT = 'communication.email.sent',
+  WHATSAPP_SHARED = 'communication.whatsapp.shared',
+  FOLLOWUP_CREATED = 'communication.followup.created',
+  DELIVERY_SENT = 'delivery.sent',
+  DELIVERY_CONFIRMED = 'delivery.confirmed',
+  DELIVERY_COMPLETED = 'delivery.completed',
+
   // System Events
   TASK_CREATED = 'task.created',
   TASK_COMPLETED = 'task.completed',
@@ -83,6 +98,20 @@ export interface WorkflowEventPayloads {
 
   [WorkflowEvent.TASK_CREATED]: { taskId: string; userId?: string };
   [WorkflowEvent.TASK_COMPLETED]: { taskId: string; userId?: string };
+  
+  [WorkflowEvent.EVENT_CREATED]: { eventId: string; userId?: string };
+  [WorkflowEvent.EVENT_UPDATED]: { eventId: string; updates: any; userId?: string };
+  [WorkflowEvent.EVENT_CANCELLED]: { eventId: string; userId?: string };
+  [WorkflowEvent.REMINDER_TRIGGERED]: { reminderId: string; type: string };
+  
+  [WorkflowEvent.MESSAGE_SENT]: { communicationId: string; projectId?: string; clientId?: string; userId?: string };
+  [WorkflowEvent.EMAIL_SENT]: { communicationId: string; projectId?: string; clientId?: string; userId?: string };
+  [WorkflowEvent.WHATSAPP_SHARED]: { communicationId: string; projectId?: string; clientId?: string; userId?: string };
+  [WorkflowEvent.FOLLOWUP_CREATED]: { followUpId: string; projectId?: string; clientId?: string; userId?: string };
+  
+  [WorkflowEvent.DELIVERY_SENT]: { deliveryId: string; projectId?: string; userId?: string };
+  [WorkflowEvent.DELIVERY_CONFIRMED]: { deliveryId: string; projectId?: string; userId?: string };
+  [WorkflowEvent.DELIVERY_COMPLETED]: { deliverableId: string; projectId?: string; userId?: string };
   
   [WorkflowEvent.USER_LOGGED_IN]: { userId: string };
   [WorkflowEvent.OAUTH_CONNECTED]: { provider: string; userId?: string };
