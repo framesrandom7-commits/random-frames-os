@@ -50,4 +50,65 @@ export function registerTimelineHandlers() {
       metadata: payload
     });
   });
+
+  // --- Finance Events ---
+  EventBus.subscribe(WorkflowEvent.QUOTATION_CREATED, 'Timeline_QuotationCreated', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Quotation was created`,
+      projectId: payload.projectId,
+      clientId: payload.clientId,
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.QUOTATION_APPROVED, 'Timeline_QuotationApproved', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Quotation was approved`,
+      projectId: payload.projectId,
+      clientId: payload.clientId,
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.INVOICE_CREATED, 'Timeline_InvoiceCreated', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Invoice was created`,
+      projectId: payload.projectId,
+      clientId: payload.clientId,
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.INVOICE_SENT, 'Timeline_InvoiceSent', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Invoice was sent to client`,
+      projectId: payload.projectId,
+      clientId: payload.clientId,
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.PAYMENT_RECEIVED, 'Timeline_PaymentReceived', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Payment of ${payload.amount} was received`,
+      projectId: payload.projectId,
+      clientId: payload.clientId,
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.EXPENSE_LOGGED, 'Timeline_ExpenseLogged', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Expense of ${payload.amount} was logged`,
+      projectId: payload.projectId,
+      clientId: payload.clientId,
+      metadata: payload
+    });
+  });
 }

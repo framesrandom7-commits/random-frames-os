@@ -200,3 +200,26 @@ export async function getTopLists(range?: DateRangeFilter) {
     overdueInvoices: overdueMapped
   };
 }
+
+import { ReportService } from "@/lib/finance/report.service";
+
+export async function generatePnLReportAction(startDate: Date, endDate: Date) {
+  try {
+    return await ReportService.generatePnLReport(startDate, endDate);
+  } catch (error) {
+    console.error("Error generating PnL:", error);
+    throw new Error("Failed to generate PnL report");
+  }
+}
+
+export async function getFinancialReports() {
+  try {
+    return await prisma.financialReport.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 10
+    });
+  } catch (error) {
+    console.error("Error fetching financial reports:", error);
+    return [];
+  }
+}

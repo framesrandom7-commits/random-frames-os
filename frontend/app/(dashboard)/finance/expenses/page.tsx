@@ -1,35 +1,39 @@
 import React from "react";
 import { getExpenses } from "@/app/actions/expense";
+import { prisma } from "@/lib/prisma";
 import ExpensesTable from "@/components/finance/expenses-table";
-import { ExpenseCategory } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
 export default async function ExpensesPage({
   searchParams,
 }: {
-  searchParams: {
-    category?: ExpenseCategory;
+  searchParams: Promise<{
+    categoryId?: string;
     month?: string;
     year?: string;
     page?: string;
-  };
+  }>;
 }) {
-  const page = searchParams.page ? parseInt(searchParams.page) : 1;
-  const month = searchParams.month ? parseInt(searchParams.month) : undefined;
-  const year = searchParams.year ? parseInt(searchParams.year) : undefined;
+  const resolvedParams = await searchParams;
+  const page = resolvedParams.page ? parseInt(resolvedParams.page) : 1;
+  const month = resolvedParams.month ? parseInt(resolvedParams.month) : undefined;
+  const year = resolvedParams.year ? parseInt(resolvedParams.year) : undefined;
   
-  const expensesResponse = await getExpenses({
-    category: searchParams.category,
-    month,
-    year,
-    page,
-    limit: 50
-  });
+  const [expensesResponse, categories] = await Promise.all([
+    getExpenses({
+      categoryId: resolvedParams.categoryId,
+      month,
+      year,
+      page,
+      limit: 50
+    }),
+    prisma.expenseCategory.findMany({ orderBy: { name: 'asc' } })
+  ]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <ExpensesTable data={expensesResponse} />
+      <ExpensesTable data={expensesResponse} categories={categories} />
     </div>
   );
 }

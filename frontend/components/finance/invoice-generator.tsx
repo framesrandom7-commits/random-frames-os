@@ -7,12 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Prisma, InvoiceStatus, PaymentMethod } from "@prisma/client";
-import { updateInvoice } from "@/app/actions/invoice";
+import { updateInvoice, InvoiceItemData } from "@/app/actions/invoice";
 import { createPayment } from "@/app/actions/payment";
 import { Printer, Download, Plus, Trash2, ArrowLeft, Building, MapPin, Phone, Mail, Calendar as CalendarIcon, Hash, CheckCircle, Upload, MessageCircle, Send, Save } from "lucide-react";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
 import { updateClientPhone } from "@/app/actions/client";
+import { FinanceService } from "@/lib/finance/finance.service";
+import { CurrencyService } from "@/lib/finance/currency.service";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +25,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
 type InvoiceWithRelations = Prisma.InvoiceGetPayload<{
-  include: { client: true; project: true; payments: true }
+  include: { client: true; project: true; payments: true; items: true }
 }>;
 
 interface InvoiceGeneratorProps {
@@ -41,24 +43,36 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
     invoiceNumber: invoice.invoiceNumber,
     issueDate: new Date(invoice.issueDate).toISOString().split('T')[0],
     dueDate: new Date(invoice.dueDate).toISOString().split('T')[0],
-    subtotal: Number(invoice.subtotal),
-    discount: Number(invoice.discount || 0),
-    tax: Number(invoice.tax || 0),
-    total: Number(invoice.total),
     status: invoice.status,
     notes: invoice.notes || "",
     clientId: invoice.clientId,
     projectId: invoice.projectId || "none",
+    discount: Number(invoice.discount || 0),
   });
 
+  const [items, setItems] = useState<InvoiceItemData[]>(
+    invoice.items?.map(i => ({
+      description: i.description,
+      quantity: i.quantity,
+      unitPrice: Number(i.unitPrice),
+      total: Number(i.total)
+    })) || []
+  );
+
+  const { subtotal, discount, tax, total } = FinanceService.calculateTotals(
+    items,
+    formData.discount,
+    false
+  );
+
   const [paymentData, setPaymentData] = useState({
-    amount: Number(invoice.total) - invoice.payments.reduce((s, p) => s + Number(p.amount), 0),
+    amount: total - invoice.payments.reduce((s, p) => s + Number(p.amount), 0),
     paymentMethod: "BANK_TRANSFER" as PaymentMethod,
     referenceNumber: "",
   });
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return CurrencyService.format(amount);
   };
 
   const handleSave = () => {
@@ -67,7 +81,12 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
         ...formData,
         issueDate: new Date(formData.issueDate),
         dueDate: new Date(formData.dueDate),
-        projectId: formData.projectId,
+        projectId: formData.projectId === "none" ? "" : formData.projectId,
+        subtotal,
+        tax,
+        discount,
+        total,
+        items
       });
       alert("Invoice updated successfully!");
     });
@@ -104,17 +123,37 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
     window.print();
   };
 
-  // Recalculate total when subtotal/tax/discount change
-  const handleAmountChange = (field: string, value: number) => {
-    const newData = { ...formData, [field]: value };
-    const newTotal = newData.subtotal - newData.discount + newData.tax;
-    setFormData({ ...newData, total: newTotal });
+  const handleAddItem = () => {
+    setItems([...items, { description: "", quantity: 1, unitPrice: 0, total: 0 }]);
+  };
+
+  const handleRemoveItem = (index: number) => {
+    const newItems = [...items];
+    newItems.splice(index, 1);
+    setItems(newItems);
+  };
+
+  const handleItemChange = (index: number, field: keyof InvoiceItemData, value: string | number) => {
+    const newItems = [...items];
+    const item = newItems[index];
+    
+    if (field === 'description') {
+      item.description = value as string;
+    } else if (field === 'quantity') {
+      item.quantity = Number(value) || 0;
+      item.total = item.quantity * item.unitPrice;
+    } else if (field === 'unitPrice') {
+      item.unitPrice = Number(value) || 0;
+      item.total = item.quantity * item.unitPrice;
+    }
+    
+    setItems(newItems);
   };
 
   const activeClient = clients.find(c => c.id === formData.clientId);
   const activeProject = projects.find(p => p.id === formData.projectId);
 
-  const balanceDue = formData.total - invoice.payments.reduce((s, p) => s + Number(p.amount), 0);
+  const balanceDue = total - invoice.payments.reduce((s, p) => s + Number(p.amount), 0);
 
   return (
     <div className="flex flex-col lg:flex-row h-full overflow-hidden gap-6 print:block print:h-auto print:overflow-visible">
@@ -218,39 +257,69 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
           </div>
 
           <div className="space-y-4 pt-4 border-t border-white/10">
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Amounts</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white uppercase tracking-wider">Line Items</h3>
+              <Button onClick={handleAddItem} size="sm" variant="outline" className="text-xs h-7 bg-white/5 border-white/10">
+                <Plus className="h-3 w-3 mr-1" /> Add
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              {items.map((item, idx) => (
+                <div key={idx} className="p-3 bg-black/20 rounded-md border border-white/5 space-y-3 relative group">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleRemoveItem(idx)}
+                    className="absolute top-1 right-1 h-6 w-6 text-zinc-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Description</Label>
+                    <Input 
+                      value={item.description} 
+                      onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
+                      className="bg-black/40 border-white/10 h-8"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Quantity</Label>
+                      <Input 
+                        type="number"
+                        value={item.quantity} 
+                        onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
+                        className="bg-black/40 border-white/10 h-8"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Unit Price</Label>
+                      <Input 
+                        type="number"
+                        value={item.unitPrice} 
+                        onChange={(e) => handleItemChange(idx, 'unitPrice', e.target.value)}
+                        className="bg-black/40 border-white/10 h-8"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mt-6">Totals</h3>
             <div className="space-y-2">
-              <Label>Subtotal</Label>
+              <Label>Discount</Label>
               <Input 
                 type="number"
-                value={formData.subtotal} 
-                onChange={e => handleAmountChange('subtotal', parseFloat(e.target.value) || 0)}
+                value={formData.discount} 
+                onChange={e => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0})}
                 className="bg-black/40 border-white/10"
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-2">
-                <Label>Tax</Label>
-                <Input 
-                  type="number"
-                  value={formData.tax} 
-                  onChange={e => handleAmountChange('tax', parseFloat(e.target.value) || 0)}
-                  className="bg-black/40 border-white/10"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Discount</Label>
-                <Input 
-                  type="number"
-                  value={formData.discount} 
-                  onChange={e => handleAmountChange('discount', parseFloat(e.target.value) || 0)}
-                  className="bg-black/40 border-white/10"
-                />
-              </div>
-            </div>
             <div className="p-3 bg-white/5 rounded-md border border-white/10 flex justify-between items-center">
               <span className="text-sm font-medium text-zinc-300">Total</span>
-              <span className="text-lg font-bold text-white">{formatCurrency(formData.total)}</span>
+              <span className="text-lg font-bold text-white">{formatCurrency(total)}</span>
             </div>
             <div className="space-y-2">
               <Label>Notes (Terms, Instructions)</Label>
@@ -338,7 +407,7 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
                   phone,
                   activeClient.businessName,
                   formData.invoiceNumber,
-                  formData.total,
+                  total,
                   `${window.location.origin}/api/pdf/invoice/${invoice.id}`
                 )}
               >
@@ -411,24 +480,38 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
               )}
             </div>
 
-            {/* Items Table (We are using a single line item for simplicity based on schema) */}
+            {/* Items Table */}
             <table className="w-full mb-8">
               <thead>
                 <tr className="border-b-2 border-zinc-800 text-left">
-                  <th className="py-3 text-sm font-semibold text-zinc-800 w-2/3">Description</th>
-                  <th className="py-3 text-sm font-semibold text-zinc-800 text-right">Amount</th>
+                  <th className="py-3 text-sm font-semibold text-zinc-800">Description</th>
+                  <th className="py-3 text-sm font-semibold text-zinc-800 text-right w-20">Qty</th>
+                  <th className="py-3 text-sm font-semibold text-zinc-800 text-right w-32">Unit Price</th>
+                  <th className="py-3 text-sm font-semibold text-zinc-800 text-right w-32">Total</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr className="border-b border-zinc-200">
-                  <td className="py-4 text-sm text-zinc-700">
-                    <p className="font-medium text-zinc-900">{activeProject?.title || "Professional Services"}</p>
-                    {formData.notes && <p className="text-zinc-500 mt-1 whitespace-pre-wrap">{formData.notes}</p>}
-                  </td>
-                  <td className="py-4 text-sm text-zinc-900 text-right font-medium">
-                    {formatCurrency(formData.subtotal)}
-                  </td>
-                </tr>
+              <tbody className="divide-y divide-zinc-200">
+                {items.map((item, idx) => (
+                  <tr key={idx}>
+                    <td className="py-4 text-sm text-zinc-700 font-medium">
+                      {item.description}
+                    </td>
+                    <td className="py-4 text-sm text-zinc-700 text-right">
+                      {item.quantity}
+                    </td>
+                    <td className="py-4 text-sm text-zinc-700 text-right">
+                      {formatCurrency(item.unitPrice)}
+                    </td>
+                    <td className="py-4 text-sm text-zinc-900 text-right font-medium">
+                      {formatCurrency(item.total)}
+                    </td>
+                  </tr>
+                ))}
+                {items.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-4 text-sm text-zinc-500 italic text-center">No items</td>
+                  </tr>
+                )}
               </tbody>
             </table>
 
@@ -437,27 +520,27 @@ export default function InvoiceGenerator({ invoice, clients, projects }: Invoice
               <div className="w-1/2 md:w-1/3">
                 <div className="flex justify-between py-2 text-sm text-zinc-600">
                   <span>Subtotal</span>
-                  <span>{formatCurrency(formData.subtotal)}</span>
+                  <span>{formatCurrency(subtotal)}</span>
                 </div>
-                {formData.discount > 0 && (
+                {discount > 0 && (
                   <div className="flex justify-between py-2 text-sm text-red-500">
                     <span>Discount</span>
-                    <span>-{formatCurrency(formData.discount)}</span>
+                    <span>-{formatCurrency(discount)}</span>
                   </div>
                 )}
-                {formData.tax > 0 && (
+                {tax > 0 && (
                   <div className="flex justify-between py-2 text-sm text-zinc-600">
-                    <span>Tax</span>
-                    <span>{formatCurrency(formData.tax)}</span>
+                    <span>Tax (18%)</span>
+                    <span>{formatCurrency(tax)}</span>
                   </div>
                 )}
                 <div className="flex justify-between py-4 mt-2 border-t-2 border-zinc-800">
                   <span className="text-lg font-bold text-zinc-900">Total</span>
-                  <span className="text-lg font-bold text-zinc-900">{formatCurrency(formData.total)}</span>
+                  <span className="text-lg font-bold text-zinc-900">{formatCurrency(total)}</span>
                 </div>
                 <div className="flex justify-between py-2 text-sm text-emerald-600">
                   <span>Amount Paid</span>
-                  <span>-{formatCurrency(formData.total - balanceDue)}</span>
+                  <span>-{formatCurrency(total - balanceDue)}</span>
                 </div>
                 <div className="flex justify-between py-3 mt-2 bg-zinc-100 px-4 rounded-md">
                   <span className="font-bold text-[#C1121F]">Balance Due</span>

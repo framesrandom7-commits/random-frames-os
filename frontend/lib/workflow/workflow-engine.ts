@@ -1,5 +1,6 @@
 import { registerStorageHandlers } from "./handlers/storage-handler";
 import { registerTimelineHandlers } from "./handlers/timeline-handler";
+import { registerFinanceHandlers } from "./handlers/finance-handler";
 import { Logger } from "@/lib/logger";
 
 class WorkflowEngineService {
@@ -17,10 +18,10 @@ class WorkflowEngineService {
     // Register all domain handlers
     registerStorageHandlers();
     registerTimelineHandlers();
+    registerFinanceHandlers();
     
     // Future handlers
     // registerCRMHandlers();
-    // registerFinanceHandlers();
     
     this.isInitialized = true;
     Logger.info("[WorkflowEngine] Initialization complete. Listening for events.");

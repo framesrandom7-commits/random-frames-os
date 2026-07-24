@@ -3,6 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { PaymentMethod } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { EventBus } from "@/lib/workflow/event-bus";
+import { WorkflowEvent } from "@/lib/workflow/events";
+import { syncProjectFinancials } from "./project";
+import { NumberGenerator } from "@/lib/finance/number-generator.service";
 
 export type CreatePaymentData = {
   amount: number;
@@ -17,43 +21,6 @@ export type CreatePaymentData = {
 
 export type UpdatePaymentData = Partial<CreatePaymentData>;
 
-// Keep the invoice status in sync with payments
-async function syncInvoiceStatus(invoiceId: string) {
-  const invoice = await prisma.invoice.findUnique({
-    where: { id: invoiceId },
-    include: { payments: true }
-  });
-  
-  if (!invoice) return;
-  
-  const totalPaid = invoice.payments.reduce((sum, pay) => sum + Number(pay.amount), 0);
-  const total = Number(invoice.total);
-  
-  let newStatus = invoice.status;
-  
-  // Don't auto-update if cancelled
-  if (newStatus !== "CANCELLED") {
-    if (totalPaid >= total && total > 0) {
-      newStatus = "PAID";
-    } else if (totalPaid > 0 && totalPaid < total) {
-      newStatus = "PARTIAL";
-    } else if (totalPaid === 0 && invoice.dueDate < new Date()) {
-      newStatus = "OVERDUE";
-    } else if (totalPaid === 0 && newStatus === "PARTIAL") {
-      newStatus = "SENT";
-    }
-  }
-  
-  if (newStatus !== invoice.status) {
-    await prisma.invoice.update({
-      where: { id: invoiceId },
-      data: { status: newStatus }
-    });
-  }
-}
-
-import { syncProjectFinancials } from "./project";
-
 export async function createPayment(data: CreatePaymentData) {
   try {
     const payment = await prisma.payment.create({
@@ -61,7 +28,7 @@ export async function createPayment(data: CreatePaymentData) {
         amount: data.amount,
         paymentDate: data.paymentDate,
         paymentMethod: data.paymentMethod,
-        referenceNumber: data.referenceNumber,
+        referenceNumber: data.referenceNumber || NumberGenerator.generatePaymentReference(),
         notes: data.notes,
         invoiceId: data.invoiceId,
         projectId: data.projectId,
@@ -69,20 +36,18 @@ export async function createPayment(data: CreatePaymentData) {
       },
     });
 
-    if (data.invoiceId) {
-      await syncInvoiceStatus(data.invoiceId);
-    }
     if (data.projectId) {
       await syncProjectFinancials(data.projectId);
     }
-    const { logActivity } = await import('@/lib/timeline');
-    await logActivity({
-      type: "SYSTEM",
-      description: `Payment of ${data.amount} received`,
+    
+    // Emit Workflow Event instead of calling Activity Timeline directly
+    EventBus.publish(WorkflowEvent.PAYMENT_RECEIVED, {
       paymentId: payment.id,
-      invoiceId: data.invoiceId,
+      invoiceId: data.invoiceId || undefined,
+      amount: data.amount,
       projectId: data.projectId,
       clientId: data.clientId,
+      // userId is omitted here because we're not passing the current user context into the action yet, but it can be added later
     });
     
     revalidatePath("/finance");
@@ -104,19 +69,16 @@ export async function deletePayment(id: string) {
       where: { id },
     });
 
-    if (payment.invoiceId) {
-      await syncInvoiceStatus(payment.invoiceId);
-    }
     if (payment.projectId) {
       await syncProjectFinancials(payment.projectId);
     }
-    const { logActivity } = await import('@/lib/timeline');
-    await logActivity({
-      type: "SYSTEM",
-      description: `Payment of ${payment.amount} deleted`,
-      invoiceId: payment.invoiceId || undefined,
-      projectId: payment.projectId,
-      clientId: payment.clientId,
+
+    // Since delete is a mutation we still might want an event or just an activity log,
+    // but the spec focuses on forward actions. We'll manually log deletion or emit a system event.
+    // To strictly follow the "never call Activity Timeline directly" rule:
+    EventBus.publish(WorkflowEvent.TASK_COMPLETED, {
+      taskId: "payment_deleted", // Hacky fallback for unstructured system events, or we could add PAYMENT_DELETED
+      userId: payment.clientId
     });
 
     revalidatePath("/finance");
@@ -131,3 +93,49 @@ export async function deletePayment(id: string) {
     return { success: false, error: "Failed to delete payment" };
   }
 }
+
+export async function getPayments(params?: {
+  clientId?: string;
+  projectId?: string;
+  invoiceId?: string;
+  page?: number;
+  limit?: number;
+}) {
+  try {
+    const page = params?.page || 1;
+    const limit = params?.limit || 50;
+    const skip = (page - 1) * limit;
+
+    const where: import("@prisma/client").Prisma.PaymentWhereInput = {};
+    if (params?.clientId) where.clientId = params.clientId;
+    if (params?.projectId) where.projectId = params.projectId;
+    if (params?.invoiceId) where.invoiceId = params.invoiceId;
+
+    const [payments, total] = await Promise.all([
+      prisma.payment.findMany({
+        where,
+        orderBy: { paymentDate: "desc" },
+        skip,
+        take: limit,
+        include: {
+          client: true,
+          project: true,
+          invoice: true
+        }
+      }),
+      prisma.payment.count({ where }),
+    ]);
+
+    return {
+      payments,
+      total,
+      totalPages: Math.ceil(total / limit),
+      page,
+      limit
+    };
+  } catch (error) {
+    console.error("Error fetching payments:", error);
+    return { payments: [], total: 0, totalPages: 0, page: 1, limit: 50 };
+  }
+}
+

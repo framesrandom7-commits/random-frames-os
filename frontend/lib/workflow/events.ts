@@ -28,9 +28,15 @@ export enum WorkflowEvent {
   DELIVERABLE_CREATED = 'deliverable.created',
 
   // Finance Events
+  QUOTATION_CREATED = 'quotation.created',
+  QUOTATION_APPROVED = 'quotation.approved',
+  QUOTATION_REJECTED = 'quotation.rejected',
   INVOICE_CREATED = 'invoice.created',
+  INVOICE_SENT = 'invoice.sent',
   INVOICE_PAID = 'invoice.paid',
+  PAYMENT_RECEIVED = 'payment.received',
   PAYMENT_OVERDUE = 'payment.overdue',
+  EXPENSE_LOGGED = 'expense.logged',
 
   // System Events
   TASK_CREATED = 'task.created',
@@ -65,9 +71,15 @@ export interface WorkflowEventPayloads {
   
   [WorkflowEvent.DELIVERABLE_CREATED]: { deliverableId: string; shootId: string; userId?: string };
 
+  [WorkflowEvent.QUOTATION_CREATED]: { quotationId: string; projectId: string; clientId: string; userId?: string };
+  [WorkflowEvent.QUOTATION_APPROVED]: { quotationId: string; projectId: string; clientId: string; userId?: string };
+  [WorkflowEvent.QUOTATION_REJECTED]: { quotationId: string; projectId: string; clientId: string; userId?: string };
   [WorkflowEvent.INVOICE_CREATED]: { invoiceId: string; projectId: string; clientId: string; userId?: string };
+  [WorkflowEvent.INVOICE_SENT]: { invoiceId: string; projectId: string; clientId: string; userId?: string };
   [WorkflowEvent.INVOICE_PAID]: { invoiceId: string; amount: number; userId?: string };
+  [WorkflowEvent.PAYMENT_RECEIVED]: { paymentId: string; invoiceId?: string; amount: number; projectId: string; clientId: string; userId?: string };
   [WorkflowEvent.PAYMENT_OVERDUE]: { invoiceId: string; userId?: string };
+  [WorkflowEvent.EXPENSE_LOGGED]: { expenseId: string; amount: number; projectId: string; clientId?: string; userId?: string };
 
   [WorkflowEvent.TASK_CREATED]: { taskId: string; userId?: string };
   [WorkflowEvent.TASK_COMPLETED]: { taskId: string; userId?: string };

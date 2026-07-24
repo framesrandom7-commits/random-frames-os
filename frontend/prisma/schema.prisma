@@ -107,14 +107,20 @@ enum PaymentMethod {
   OTHER
 }
 
-enum ExpenseCategory {
-  CLIENT_EXPENSE
-  TRAVEL
-  FUEL
-  FOOD
-  EQUIPMENT_RENTAL
-  ASSISTANT
-  MISCELLANEOUS
+enum QuotationStatus {
+  DRAFT
+  SENT
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum FinancialReportType {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  PNL
+  CUSTOM
 }
 
 enum EquipmentStatus {
@@ -195,6 +201,7 @@ model User {
   leadsUpdated  Lead[]    @relation("LeadUpdatedBy")
   notifications Notification[]
   integrationSettings IntegrationSettings[]
+  financialReports FinancialReport[]
 }
 
 model PasswordResetToken {
@@ -459,6 +466,7 @@ model Client {
   projects          Project[]
   shoots            Shoot[]
   calendarEvents    CalendarEvent[]
+  quotations        Quotation[]
   invoices          Invoice[]
   payments          Payment[]
   expenses          Expense[]
@@ -523,6 +531,7 @@ model Project {
   
   shoots          Shoot[]
   calendarEvents  CalendarEvent[]
+  quotations      Quotation[]
   invoices        Invoice[]
   payments        Payment[]
   expenses        Expense[]
@@ -750,6 +759,7 @@ model Invoice {
   clientId        String
   client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   
+  items           InvoiceItem[]
   payments        Payment[]
   notifications   Notification[]
   activities      Activity[]
@@ -782,10 +792,16 @@ model Payment {
 model Expense {
   id              String          @id @default(cuid())
   title           String
-  category        ExpenseCategory @default(MISCELLANEOUS)
+  
+  categoryId      String
+  category        ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  
   amount          Decimal         @db.Decimal(10, 2)
   date            DateTime
   paymentMethod   PaymentMethod   @default(OTHER)
+  
+  vendor          String?
+  receiptUrl      String?
   notes           String?
   
   clientId        String?
@@ -796,6 +812,90 @@ model Expense {
   
   createdAt       DateTime        @default(now())
   activities      Activity[]
+}
+
+model ExpenseCategory {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  color       String?   @default("#888888")
+  
+  expenses    Expense[]
+  
+  isDefault   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Quotation {
+  id                String          @id @default(cuid())
+  quotationNumber   String          @unique
+  
+  issueDate         DateTime
+  validUntil        DateTime
+  
+  subtotal          Decimal         @db.Decimal(10, 2)
+  discount          Decimal?        @db.Decimal(10, 2)
+  tax               Decimal?        @db.Decimal(10, 2)
+  total             Decimal         @db.Decimal(10, 2)
+  
+  status            QuotationStatus @default(DRAFT)
+  notes             String?
+  termsAndConditions String?
+  
+  version           Int             @default(1)
+  parentQuotationId String?
+  parentQuotation   Quotation?      @relation("QuotationVersions", fields: [parentQuotationId], references: [id], onDelete: SetNull)
+  childQuotations   Quotation[]     @relation("QuotationVersions")
+  
+  projectId         String
+  project           Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  clientId          String
+  client            Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  items             QuotationItem[]
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model QuotationItem {
+  id          String    @id @default(cuid())
+  description String
+  quantity    Int       @default(1)
+  unitPrice   Decimal   @db.Decimal(10, 2)
+  total       Decimal   @db.Decimal(10, 2)
+  
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+}
+
+model InvoiceItem {
+  id          String    @id @default(cuid())
+  description String
+  quantity    Int       @default(1)
+  unitPrice   Decimal   @db.Decimal(10, 2)
+  total       Decimal   @db.Decimal(10, 2)
+  
+  invoiceId   String
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model FinancialReport {
+  id          String              @id @default(cuid())
+  title       String
+  type        FinancialReportType
+  periodStart DateTime
+  periodEnd   DateTime
+  
+  data        Json                // Pre-calculated metrics and aggregated data
+  fileUrl     String?             // PDF link
+  
+  generatedBy String?
+  user        User?               @relation(fields: [generatedBy], references: [id], onDelete: SetNull)
+  
+  createdAt   DateTime            @default(now())
 }
 
 model Setting {

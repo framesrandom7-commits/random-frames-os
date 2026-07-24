@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
-import { Prisma, ExpenseCategory, PaymentMethod } from "@prisma/client";
+import { Prisma, PaymentMethod } from "@prisma/client";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { deleteExpense, createExpense } from "@/app/actions/expense";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -16,14 +16,15 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface ExpensesTableProps {
   data: {
-    expenses: Prisma.ExpenseGetPayload<{}>[];
+    expenses: Prisma.ExpenseGetPayload<{ include: { category: true, client: true } }>[];
     total: number;
     totalPages: number;
     page: number;
   };
+  categories: { id: string; name: string; color: string | null }[];
 }
 
-export default function ExpensesTable({ data }: ExpensesTableProps) {
+export default function ExpensesTable({ data, categories }: ExpensesTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -33,12 +34,13 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
 
   const [formData, setFormData] = useState({
     title: "",
-    category: "OTHER" as ExpenseCategory,
+    categoryId: categories.length > 0 ? categories[0].id : "",
     amount: "",
     date: new Date().toISOString().split('T')[0],
     paymentMethod: "CARD" as PaymentMethod,
     clientId: "",
     projectId: "",
+    vendor: "",
     notes: ""
   });
 
@@ -54,7 +56,7 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const currentCategory = searchParams.get("category");
+  const currentCategoryId = searchParams.get("categoryId");
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this expense?")) {
@@ -69,23 +71,25 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
     startTransition(async () => {
       await createExpense({
         title: formData.title,
-        category: formData.category,
+        categoryId: formData.categoryId,
         amount: parseFloat(formData.amount),
         date: new Date(formData.date),
         paymentMethod: formData.paymentMethod,
         clientId: formData.clientId || undefined,
         projectId: formData.projectId,
+        vendor: formData.vendor || undefined,
         notes: formData.notes || undefined,
       });
       setIsAddOpen(false);
       setFormData({
         title: "",
-        category: "MISCELLANEOUS",
+        categoryId: categories.length > 0 ? categories[0].id : "",
         amount: "",
         date: new Date().toISOString().split('T')[0],
         paymentMethod: "CARD",
         clientId: "",
         projectId: "",
+        vendor: "",
         notes: ""
       });
     });
@@ -98,19 +102,19 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
         <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 sm:pb-0 w-full sm:w-auto">
           <Badge 
             variant="outline" 
-            className={`cursor-pointer whitespace-nowrap ${!currentCategory ? 'bg-white/10 text-white border-white/20' : 'bg-transparent text-zinc-400 border-white/10'}`}
-            onClick={() => setFilter("category", null)}
+            className={`cursor-pointer whitespace-nowrap ${!currentCategoryId ? 'bg-white/10 text-white border-white/20' : 'bg-transparent text-zinc-400 border-white/10'}`}
+            onClick={() => setFilter("categoryId", null)}
           >
             All Categories
           </Badge>
-          {Object.values(ExpenseCategory).map(cat => (
+          {categories.map(cat => (
             <Badge 
-              key={cat}
+              key={cat.id}
               variant="outline" 
-              className={`cursor-pointer whitespace-nowrap ${currentCategory === cat ? 'bg-white/10 text-white border-white/20' : 'bg-transparent text-zinc-400 border-white/10'}`}
-              onClick={() => setFilter("category", cat)}
+              className={`cursor-pointer whitespace-nowrap ${currentCategoryId === cat.id ? 'bg-white/10 text-white border-white/20' : 'bg-transparent text-zinc-400 border-white/10'}`}
+              onClick={() => setFilter("categoryId", cat.id)}
             >
-              {cat.replace("_", " ")}
+              {cat.name}
             </Badge>
           ))}
         </div>
@@ -141,10 +145,10 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Category</Label>
-                  <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: (v || "MISCELLANEOUS") as ExpenseCategory})}>
+                  <Select value={formData.categoryId} onValueChange={(v) => setFormData({...formData, categoryId: v})}>
                     <SelectTrigger className="bg-white/5 border-white/10"><SelectValue /></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                      {Object.values(ExpenseCategory).map(c => <SelectItem key={c} value={c}>{c.replace("_", " ")}</SelectItem>)}
+                      {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -159,12 +163,16 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
                 </div>
               </div>
               <div className="space-y-2">
+                <Label>Vendor</Label>
+                <Input value={formData.vendor} onChange={e => setFormData({...formData, vendor: e.target.value})} className="bg-white/5 border-white/10" placeholder="e.g. Adobe Inc" />
+              </div>
+              <div className="space-y-2">
                 <Label>Client ID (Optional)</Label>
                 <Input value={formData.clientId} onChange={e => setFormData({...formData, clientId: e.target.value})} className="bg-white/5 border-white/10" placeholder="Client ID" />
               </div>
               <div className="space-y-2">
-                <Label>Project ID (Optional)</Label>
-                <Input value={formData.projectId} onChange={e => setFormData({...formData, projectId: e.target.value})} className="bg-white/5 border-white/10" placeholder="Project ID" />
+                <Label>Project ID (Required for now)</Label>
+                <Input required value={formData.projectId} onChange={e => setFormData({...formData, projectId: e.target.value})} className="bg-white/5 border-white/10" placeholder="Project ID" />
               </div>
               <div className="space-y-2">
                 <Label>Notes</Label>
@@ -208,13 +216,14 @@ export default function ExpensesTable({ data }: ExpensesTableProps) {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium text-white">{expense.title}</div>
+                      {expense.vendor && <div className="text-xs text-zinc-500">{expense.vendor}</div>}
                     </TableCell>
                     <TableCell>
                       <p className="text-sm font-medium text-white truncate">{(expense as any).client?.businessName || "No Client"}</p>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="bg-zinc-800 text-zinc-300 border-zinc-700">
-                        {expense.category.replace("_", " ")}
+                        {expense.category?.name || "Unknown"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-zinc-400 text-sm">

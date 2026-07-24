@@ -7,12 +7,14 @@ import { syncProjectFinancials } from "./project";
 
 export type CreateExpenseData = {
   title: string;
-  category: ExpenseCategory;
+  categoryId: string;
   amount: number;
   date: Date;
   paymentMethod: PaymentMethod;
   clientId?: string;
   projectId: string;
+  vendor?: string;
+  receiptUrl?: string;
   notes?: string;
 };
 
@@ -21,12 +23,14 @@ export async function createExpense(data: CreateExpenseData) {
     const expense = await prisma.expense.create({
       data: {
         title: data.title,
-        category: data.category,
+        categoryId: data.categoryId,
         amount: data.amount,
         date: data.date,
         paymentMethod: data.paymentMethod,
         clientId: data.clientId,
         projectId: data.projectId,
+        vendor: data.vendor,
+        receiptUrl: data.receiptUrl,
         notes: data.notes,
       },
     });
@@ -81,7 +85,7 @@ export async function deleteExpense(id: string) {
 }
 
 export async function getExpenses(params?: {
-  category?: ExpenseCategory;
+  categoryId?: string;
   month?: number;
   year?: number;
   page?: number;
@@ -94,23 +98,27 @@ export async function getExpenses(params?: {
 
     const where: Prisma.ExpenseWhereInput = {};
     
-    if (params?.category) {
-      where.category = params.category;
+    if (params?.categoryId) {
+      where.categoryId = params.categoryId;
     }
     
     if (params?.month && params?.year) {
       const startDate = new Date(params.year, params.month - 1, 1);
-      const endDate = new Date(params.year, params.month, 0, 23, 59, 59);
+      const endDate = new Date(params.year, params.month, 0, 23, 59, 59, 999);
       where.date = {
         gte: startDate,
-        lte: endDate
+        lte: endDate,
       };
     }
 
     const [expenses, total] = await Promise.all([
       prisma.expense.findMany({
         where,
-        include: { client: { select: { businessName: true } }, project: { select: { title: true } } },
+        include: {
+          client: true,
+          project: true,
+          category: true,
+        },
         orderBy: { date: "desc" },
         skip,
         take: limit,

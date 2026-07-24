@@ -12,6 +12,7 @@ interface RegisteredHandler<T extends WorkflowEvent> {
 class EventBusService {
   private handlers: Map<WorkflowEvent, RegisteredHandler<any>[]> = new Map();
   private static instance: EventBusService;
+  private initialized = false;
 
   private constructor() {}
 
@@ -20,6 +21,15 @@ class EventBusService {
       EventBusService.instance = new EventBusService();
     }
     return EventBusService.instance;
+  }
+
+  private ensureInitialized() {
+    if (!this.initialized) {
+      this.initialized = true;
+      // Lazy load to prevent circular dependencies at boot
+      const { WorkflowEngine } = require('./workflow-engine');
+      WorkflowEngine.initialize();
+    }
   }
 
   /**
@@ -37,6 +47,8 @@ class EventBusService {
    * This is non-blocking (fire and forget).
    */
   public publish<T extends WorkflowEvent>(event: T, payload: WorkflowEventPayloads[T]) {
+    this.ensureInitialized();
+    
     // 1. Immediately log to audit if there's a user
     const userId = (payload as any).userId;
     auditLogEvent(event, payload, userId).catch(err => Logger.error(`[EventBus] Audit log failed for ${event}`, err));
@@ -67,4 +79,3 @@ class EventBusService {
 }
 
 export const EventBus = EventBusService.getInstance();
-import './workflow-engine';

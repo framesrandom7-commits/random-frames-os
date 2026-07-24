@@ -267,8 +267,8 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
             </View>
           </View>
           
-          {/* We assume a single line item for the project total, or multiple if lineItems exist */}
-          {invoice.lineItems ? invoice.lineItems.map((item: any, i: number) => (
+          {/* We map over items */}
+          {invoice.items && invoice.items.length > 0 ? invoice.items.map((item: any, i: number) => (
             <View style={styles.tableRow} key={i}>
               <View style={styles.tableColDesc}>
                 <Text style={styles.tableCell}>{item.description}</Text>
@@ -277,7 +277,7 @@ export function InvoicePDF({ invoice }: InvoicePDFProps) {
                 <Text style={styles.tableCell}>{item.quantity || 1}</Text>
               </View>
               <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{Number(item.amount).toLocaleString('en-IN')}</Text>
+                <Text style={styles.tableCell}>{Number(item.total).toLocaleString('en-IN')}</Text>
               </View>
             </View>
           )) : (

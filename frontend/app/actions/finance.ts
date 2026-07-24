@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { FinanceService } from "@/lib/finance/finance.service";
 
 export async function getFinanceDashboardStats() {
   try {
@@ -51,8 +52,7 @@ export async function getFinanceDashboardStats() {
     
     let totalPendingAmount = 0;
     pendingInvoices.forEach(inv => {
-      const paid = inv.payments.reduce((s, p) => s + Number(p.amount), 0);
-      totalPendingAmount += (Number(inv.total) - paid);
+      totalPendingAmount += FinanceService.calculateInvoiceBalance(inv.total, inv.payments);
     });
 
     const overdueCount = pendingInvoices.filter(i => i.status === "OVERDUE").length;
@@ -61,7 +61,7 @@ export async function getFinanceDashboardStats() {
     const chartData = [];
     for (let i = 5; i >= 0; i--) {
       const monthStart = new Date(currentYear, currentMonth - i, 1);
-      const monthEnd = new Date(currentYear, currentMonth - i + 1, 0, 23, 59, 59);
+      const monthEnd = new Date(currentYear, currentMonth - i + 1, 0, 23, 59, 59, 999);
       
       const rev = await prisma.payment.aggregate({
         where: { paymentDate: { gte: monthStart, lte: monthEnd } },
@@ -73,11 +73,14 @@ export async function getFinanceDashboardStats() {
         _sum: { amount: true }
       });
       
+      const revTotal = Number(rev._sum.amount || 0);
+      const expTotal = Number(exp._sum.amount || 0);
+      
       chartData.push({
         name: monthStart.toLocaleString('default', { month: 'short' }),
-        revenue: Number(rev._sum.amount || 0),
-        expenses: Number(exp._sum.amount || 0),
-        profit: Number(rev._sum.amount || 0) - Number(exp._sum.amount || 0)
+        revenue: revTotal,
+        expenses: expTotal,
+        profit: FinanceService.calculateNetProfit(revTotal, [{ amount: expTotal }])
       });
     }
 
@@ -87,9 +90,16 @@ export async function getFinanceDashboardStats() {
       include: { client: { select: { businessName: true } } }
     });
     
+    const recentQuotations = await prisma.quotation.findMany({
+      take: 5,
+      orderBy: { issueDate: "desc" },
+      include: { client: { select: { businessName: true } } }
+    });
+    
     const recentExpenses = await prisma.expense.findMany({
       take: 5,
-      orderBy: { date: "desc" }
+      orderBy: { date: "desc" },
+      include: { category: true }
     });
 
     const formattedRecentInvoices = recentInvoices.map(inv => ({
@@ -100,23 +110,37 @@ export async function getFinanceDashboardStats() {
       total: Number(inv.total)
     }));
 
+    const formattedRecentQuotations = recentQuotations.map(quo => ({
+      ...quo,
+      subtotal: Number(quo.subtotal),
+      tax: quo.tax ? Number(quo.tax) : null,
+      discount: quo.discount ? Number(quo.discount) : null,
+      total: Number(quo.total)
+    }));
+
     const formattedRecentExpenses = recentExpenses.map(exp => ({
       ...exp,
       amount: Number(exp.amount)
     }));
 
+    const totalRevenue = Number(allPayments._sum.amount || 0);
+    const totalExp = Number(allExpenses._sum.amount || 0);
+    const monthRev = Number(monthlyPayments._sum.amount || 0);
+    const monthExp = Number(monthlyExpenses._sum.amount || 0);
+
     return {
-      totalRevenue: Number(allPayments._sum.amount || 0),
-      totalExpenses: Number(allExpenses._sum.amount || 0),
-      netProfit: Number(allPayments._sum.amount || 0) - Number(allExpenses._sum.amount || 0),
-      monthlyRevenue: Number(monthlyPayments._sum.amount || 0),
-      monthlyExpenses: Number(monthlyExpenses._sum.amount || 0),
-      monthlyNetProfit: Number(monthlyPayments._sum.amount || 0) - Number(monthlyExpenses._sum.amount || 0),
+      totalRevenue,
+      totalExpenses: totalExp,
+      netProfit: FinanceService.calculateNetProfit(totalRevenue, [{ amount: totalExp }]),
+      monthlyRevenue: monthRev,
+      monthlyExpenses: monthExp,
+      monthlyNetProfit: FinanceService.calculateNetProfit(monthRev, [{ amount: monthExp }]),
       totalPendingAmount,
       pendingInvoicesCount: pendingInvoices.length,
       overdueInvoicesCount: overdueCount,
       chartData,
       recentInvoices: formattedRecentInvoices,
+      recentQuotations: formattedRecentQuotations,
       recentExpenses: formattedRecentExpenses
     };
   } catch (error) {
@@ -124,3 +148,4 @@ export async function getFinanceDashboardStats() {
     return null;
   }
 }
+

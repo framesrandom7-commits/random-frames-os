@@ -24,6 +24,12 @@ interface FinanceStats {
     tax: number | null;
     total: number;
   })[];
+  recentQuotations: (Omit<Prisma.QuotationGetPayload<{ include: { client: { select: { businessName: true } } } }>, 'subtotal' | 'discount' | 'tax' | 'total'> & {
+    subtotal: number;
+    discount: number | null;
+    tax: number | null;
+    total: number;
+  })[];
   recentExpenses: (Omit<Prisma.ExpenseGetPayload<{}>, 'amount'> & { amount: number })[];
 }
 
@@ -149,28 +155,80 @@ export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
               {stats.recentInvoices.length === 0 ? (
                 <div className="text-sm text-zinc-500 italic text-center py-4">No recent invoices</div>
               ) : (
-                stats.recentInvoices.map(invoice => (
-                  <Link key={invoice.id} href={`/finance/invoices/${invoice.id}`} className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors border border-transparent hover:border-white/10">
-                    <div>
-                      <div className="font-medium text-white text-sm">{invoice.invoiceNumber}</div>
-                      <div className="text-xs text-zinc-400">{invoice.client.businessName}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-semibold text-white text-sm">{formatCurrency(Number(invoice.total))}</div>
-                      <div className={`text-[10px] uppercase font-bold tracking-wider ${
-                        invoice.status === 'PAID' ? 'text-emerald-400' :
-                        invoice.status === 'OVERDUE' ? 'text-red-400' :
-                        invoice.status === 'PARTIAL' ? 'text-amber-400' : 'text-zinc-400'
+                stats.recentInvoices.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-black/20 hover:bg-black/40 transition-colors border border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                        inv.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-500' :
+                        inv.status === 'OVERDUE' ? 'bg-red-500/10 text-red-500' :
+                        'bg-blue-500/10 text-blue-500'
                       }`}>
-                        {invoice.status}
+                        {inv.client?.businessName.charAt(0) || '?'}
+                      </div>
+                      <div>
+                        <Link href={`/finance/invoices/${inv.id}`} className="text-sm font-medium text-white hover:text-[#C1121F] transition-colors line-clamp-1">
+                          {inv.invoiceNumber} - {inv.client?.businessName || 'Unknown Client'}
+                        </Link>
+                        <p className="text-xs text-zinc-500">{new Date(inv.issueDate).toLocaleDateString()}</p>
                       </div>
                     </div>
-                  </Link>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-white">{formatCurrency(inv.total)}</div>
+                      <div className={`text-[10px] uppercase font-bold tracking-wider ${
+                        inv.status === 'PAID' ? 'text-emerald-500' :
+                        inv.status === 'OVERDUE' ? 'text-red-500' :
+                        'text-zinc-500'
+                      }`}>{inv.status}</div>
+                    </div>
+                  </div>
                 ))
               )}
             </CardContent>
           </Card>
-          
+
+          <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+            <CardHeader className="pb-3 flex flex-row justify-between items-center">
+              <CardTitle className="text-white text-base flex items-center gap-2">
+                <FileText className="h-4 w-4 text-zinc-400" />
+                Recent Quotations
+              </CardTitle>
+              <Link href="/finance/quotations" className="text-xs text-[#C1121F] hover:text-white transition-colors">View All</Link>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {stats.recentQuotations.length === 0 ? (
+                <div className="text-sm text-zinc-500 italic text-center py-4">No recent quotations</div>
+              ) : (
+                stats.recentQuotations.map((quo) => (
+                  <div key={quo.id} className="flex items-center justify-between p-3 rounded-lg bg-black/20 hover:bg-black/40 transition-colors border border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                        quo.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-500' :
+                        quo.status === 'REJECTED' ? 'bg-red-500/10 text-red-500' :
+                        'bg-zinc-500/10 text-zinc-500'
+                      }`}>
+                        {quo.client?.businessName.charAt(0) || '?'}
+                      </div>
+                      <div>
+                        <Link href={`/finance/quotations/${quo.id}`} className="text-sm font-medium text-white hover:text-[#C1121F] transition-colors line-clamp-1">
+                          {quo.quotationNumber} - {quo.client?.businessName || 'Unknown Client'}
+                        </Link>
+                        <p className="text-xs text-zinc-500">{new Date(quo.issueDate).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-white">{formatCurrency(quo.total)}</div>
+                      <div className={`text-[10px] uppercase font-bold tracking-wider ${
+                        quo.status === 'APPROVED' ? 'text-emerald-500' :
+                        quo.status === 'REJECTED' ? 'text-red-500' :
+                        'text-zinc-500'
+                      }`}>{quo.status}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
           <Card className="bg-white/5 border-white/10 backdrop-blur-md">
             <CardHeader className="pb-3 flex flex-row justify-between items-center">
               <CardTitle className="text-white text-base flex items-center gap-2">

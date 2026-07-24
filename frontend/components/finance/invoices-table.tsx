@@ -14,7 +14,7 @@ import { deleteInvoice, generateInvoiceNumber, createInvoice } from "@/app/actio
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
 type InvoiceWithRelations = Prisma.InvoiceGetPayload<{
-  include: { client: true; project: true; payments: true }
+  include: { client: true; project: true; payments: true; items: true }
 }>;
 
 interface InvoicesTableProps {
@@ -82,6 +82,12 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
       notes: invoice.notes || undefined,
       projectId: invoice.projectId,
       clientId: invoice.clientId,
+      items: invoice.items.map(i => ({
+        description: i.description,
+        quantity: i.quantity,
+        unitPrice: Number(i.unitPrice),
+        total: Number(i.total),
+      })),
     });
     if (result.success && result.invoice) {
       router.push(`/finance/invoices/${result.invoice.id}`);
@@ -104,6 +110,12 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
       status: "DRAFT",
       clientId: clients[0].id,
       projectId: "", // Will fail if not provided, UI should handle this but for draft we provide empty string
+      items: [{
+        description: "Professional Services",
+        quantity: 1,
+        unitPrice: 0,
+        total: 0
+      }]
     });
     if (result.success && result.invoice) {
       router.push(`/finance/invoices/${result.invoice.id}`);

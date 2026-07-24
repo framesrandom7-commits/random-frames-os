@@ -10,15 +10,20 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const id = resolvedParams.id;
-    const lead = await prisma.lead.findUnique({
+    const quotation = await prisma.quotation.findUnique({
       where: { id },
+      include: {
+        client: true,
+        project: true,
+        items: true
+      }
     });
 
-    if (!lead) {
-      return new NextResponse("Lead not found", { status: 404 });
+    if (!quotation) {
+      return new NextResponse("Quotation not found", { status: 404 });
     }
 
-    const stream = await renderToStream(<QuotationPDF lead={lead} />);
+    const stream = await renderToStream(<QuotationPDF quotation={quotation as any} />);
     
     // Convert NodeJS ReadableStream to Web ReadableStream
     const readableStream = new ReadableStream({
@@ -32,7 +37,7 @@ export async function GET(
     return new NextResponse(readableStream, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="quotation-${lead.businessName || 'client'}.pdf"`,
+        "Content-Disposition": `inline; filename="quotation-${quotation.quotationNumber}.pdf"`,
       },
     });
 
