@@ -1,8 +1,10 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const secretKey = process.env.JWT_SECRET || "default_super_secret_key_change_in_production";
-const key = new TextEncoder().encode(secretKey);
+function getAuthKey() {
+  const secretKey = process.env.JWT_SECRET || "default_super_secret_key_change_in_production";
+  return new TextEncoder().encode(secretKey);
+}
 
 const SESSION_COOKIE_NAME = "rf_session";
 const SESSION_DURATION_HOURS = 24;
@@ -14,12 +16,12 @@ export async function createSession(userId: string) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DURATION_HOURS}h`)
-    .sign(key);
+    .sign(getAuthKey());
 
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production" && (process.env.APP_URL?.startsWith("https") ?? false),
+    secure: process.env.NODE_ENV === "production",
     expires,
     sameSite: "lax",
     path: "/",
@@ -35,7 +37,7 @@ export async function verifySession() {
   }
 
   try {
-    const { payload } = await jwtVerify(token, key, {
+    const { payload } = await jwtVerify(token, getAuthKey(), {
       algorithms: ["HS256"],
     });
     return payload as { userId: string };
