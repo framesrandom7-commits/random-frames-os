@@ -1,24 +1,27 @@
 import { z } from "zod";
-import { DeliverableStatus, DeliverablePriority, ReviewStatus } from "@prisma/client";
+
+const DeliverableStatusEnum = z.enum(["PENDING", "EDITING", "READY_FOR_REVIEW", "CHANGES_REQUESTED", "APPROVED", "DELIVERED"]);
+const DeliverablePriorityEnum = z.enum(["LOW", "MEDIUM", "HIGH"]);
+const ReviewStatusEnum = z.enum(["NOT_SENT", "UNDER_REVIEW", "CHANGES_REQUESTED", "APPROVED"]);
 
 export const createDeliverableSchema = z.object({
   shootId: z.string().min(1, "Shoot ID is required"),
   type: z.string().min(2, "Type must be at least 2 characters"),
   assignedEditor: z.string().nullable().optional(),
-  status: z.nativeEnum(DeliverableStatus).optional(),
-  priority: z.nativeEnum(DeliverablePriority).optional(),
+  status: DeliverableStatusEnum.optional(),
+  priority: DeliverablePriorityEnum.optional(),
   dueDate: z.coerce.date().nullable().optional(),
 });
 
 export const updateDeliverableSchema = z.object({
   type: z.string().min(2, "Type must be at least 2 characters").optional(),
   assignedEditor: z.string().nullable().optional(),
-  status: z.nativeEnum(DeliverableStatus).optional(),
-  priority: z.nativeEnum(DeliverablePriority).optional(),
+  status: DeliverableStatusEnum.optional(),
+  priority: DeliverablePriorityEnum.optional(),
   dueDate: z.coerce.date().nullable().optional(),
   completionDate: z.coerce.date().nullable().optional(),
   
-  reviewStatus: z.nativeEnum(ReviewStatus).optional(),
+  reviewStatus: ReviewStatusEnum.optional(),
   reviewDate: z.coerce.date().nullable().optional(),
   reviewerNotes: z.string().nullable().optional(),
 });

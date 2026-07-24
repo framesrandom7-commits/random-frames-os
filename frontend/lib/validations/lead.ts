@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { LeadStatus, LeadPriority, LeadSource, BusinessType, ReminderType } from "@prisma/client";
+
+const BusinessTypeEnum = z.enum(["CORPORATE", "WEDDING", "FASHION", "REAL_ESTATE", "EVENTS", "COMMERCIAL", "PORTRAIT", "OTHER"]);
+const LeadSourceEnum = z.enum(["WEBSITE", "MANUAL", "WHATSAPP", "INSTAGRAM", "FACEBOOK", "LINKEDIN", "REFERRAL", "WALK_IN"]);
+const LeadStatusEnum = z.enum(["NEW", "ATTENDED", "REQUIREMENT_DISCUSSION", "QUOTATION_SENT", "NEGOTIATION", "QUOTATION_ACCEPTED", "CLIENT_FORM_SENT", "CLIENT_FORM_RECEIVED"]);
+const LeadPriorityEnum = z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]);
+const ReminderTypeEnum = z.enum(["FOLLOW_UP", "MEETING", "CALL", "DEADLINE"]);
 
 export const leadSchema = z.object({
   businessName: z.string().min(2, "Business name is required and must be at least 2 characters").max(100),
@@ -16,10 +21,10 @@ export const leadSchema = z.object({
   country: z.string().max(100).optional().nullable(),
   postalCode: z.string().max(20).optional().nullable(),
   
-  businessType: z.nativeEnum(BusinessType).default(BusinessType.OTHER),
-  leadSource: z.nativeEnum(LeadSource).default(LeadSource.OTHER),
-  status: z.nativeEnum(LeadStatus).default(LeadStatus.NEW),
-  priority: z.nativeEnum(LeadPriority).default(LeadPriority.MEDIUM),
+  businessType: BusinessTypeEnum.default("OTHER"),
+  leadSource: LeadSourceEnum.default("OTHER"),
+  status: LeadStatusEnum.default("NEW"),
+  priority: LeadPriorityEnum.default("MEDIUM"),
   
   budget: z.coerce.number().optional().nullable(),
   currency: z.string().max(10).default("USD"),
@@ -31,7 +36,7 @@ export const leadSchema = z.object({
   
   reminderDate: z.date().optional().nullable(),
   reminderTime: z.string().optional().nullable(),
-  reminderType: z.nativeEnum(ReminderType).optional().nullable(),
+  reminderType: ReminderTypeEnum.optional().nullable(),
 });
 
 export const leadUpdateSchema = leadSchema.partial().extend({
