@@ -28,12 +28,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect to home if authenticated and trying to access login
-  if (isPublicRoute && session) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard"; // Redirect to a known protected route
-    return NextResponse.redirect(url);
-  }
 
   const response = NextResponse.next();
 

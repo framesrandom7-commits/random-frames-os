@@ -46,7 +46,7 @@ export async function login(formData: FormData) {
     return { error: "An unexpected error occurred. Please try again later." };
   }
   
-  redirect("/");
+  redirect("/home");
 }
 
 export async function logout() {
