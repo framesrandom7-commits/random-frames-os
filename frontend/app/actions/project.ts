@@ -37,16 +37,24 @@ export type CreateProjectData = {
   totalAmount?: number | null;
   balanceAmount?: number | null;
   notes?: string | null;
+  assignedUserIds?: string[];
 };
 
 export async function createProject(data: CreateProjectData) {
   try {
     const projectCode = await generateProjectCode();
     
+    const { assignedUserIds, ...projectData } = data;
+
     const project = await prisma.project.create({
       data: {
-        ...data,
+        ...projectData,
         projectCode,
+        ...(assignedUserIds && assignedUserIds.length > 0 ? {
+          assignedUsers: {
+            connect: assignedUserIds.map(id => ({ id }))
+          }
+        } : {}),
         ...(data.deliveryDate ? {
           calendarEvents: {
             create: {
@@ -135,9 +143,18 @@ export async function syncProjectFinancials(projectId: string) {
 
 export async function updateProject(id: string, data: Partial<CreateProjectData>) {
   try {
+    const { assignedUserIds, ...projectData } = data;
+
     const project = await prisma.project.update({
       where: { id },
-      data,
+      data: {
+        ...projectData,
+        ...(assignedUserIds ? {
+          assignedUsers: {
+            set: assignedUserIds.map(userId => ({ id: userId }))
+          }
+        } : {})
+      },
     });
     
     // Sync CalendarEvent
@@ -239,6 +256,7 @@ export async function getProject(id: string) {
       where: { id },
       include: {
         client: true,
+        assignedUsers: true,
         activities: {
           orderBy: { createdAt: "desc" }
         }
@@ -317,6 +335,7 @@ export type GetProjectsParams = {
   archived?: boolean;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  assignedUserId?: string;
 };
 
 export async function getProjects(params: GetProjectsParams = {}) {
@@ -331,6 +350,7 @@ export async function getProjects(params: GetProjectsParams = {}) {
     archived = false,
     sortBy = "createdAt",
     sortOrder = "desc",
+    assignedUserId,
   } = params;
 
   try {
@@ -357,6 +377,11 @@ export async function getProjects(params: GetProjectsParams = {}) {
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (paymentStatus) where.paymentStatus = paymentStatus;
+    if (assignedUserId) {
+      where.assignedUsers = {
+        some: { id: assignedUserId }
+      };
+    }
 
     const skip = (page - 1) * limit;
 
@@ -369,7 +394,8 @@ export async function getProjects(params: GetProjectsParams = {}) {
           [sortBy]: sortOrder,
         },
         include: {
-          client: true
+          client: true,
+          assignedUsers: true,
         }
       }),
       prisma.project.count({ where }),

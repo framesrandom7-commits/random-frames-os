@@ -1,36 +1,38 @@
 import React from "react";
-import { PageHeader } from "@/components/layout/page-header";
 import { getProject } from "@/app/actions/project";
 import { notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera, Info, Calendar, IndianRupee, MessageCircle } from "lucide-react";
+import { ArrowLeft, Clock, Building, Plus, FileText, CheckCircle, Folder, Camera, Info, Calendar, IndianRupee, MessageCircle, Users } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getShoots } from "@/app/actions/shoot";
 import ShootTable from "@/components/shoots/shoot-table";
-import { Prisma, Invoice } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import ProjectDriveButton from "@/components/projects/project-drive-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProjectStorageTab from "@/components/projects/project-storage-tab";
 import { ActivityTimeline } from "@/components/shared/activity-timeline";
-import { whatsappLinks } from "@/lib/integrations/whatsapp";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
 import { updateClientPhone } from "@/app/actions/client";
+import { 
+  ModuleDetailsLayout, 
+  ModuleDetailsHeader, 
+  ModuleDetailsBody, 
+  ModuleDetailsContent, 
+  ModuleDetailsSidebar,
+  ModuleDetailsSection
+} from "@/components/ui/module";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const [project, shootData, clients, projects, invoicesData, paymentsData, expensesData] = await Promise.all([
-    getProject(resolvedParams.id),
+  const project = await getProject(resolvedParams.id);
+  const [shootData, clients, projects, invoicesData] = await Promise.all([
     getShoots({ projectId: resolvedParams.id, limit: 100 }),
     prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),
     prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } }),
-    prisma.invoice.findMany({ where: { projectId: resolvedParams.id }, orderBy: { issueDate: 'desc' } }),
-    prisma.payment.findMany({ where: { projectId: resolvedParams.id }, orderBy: { paymentDate: 'desc' } }),
-    prisma.expense.findMany({ where: { projectId: resolvedParams.id }, orderBy: { date: 'desc' } })
+    prisma.invoice.findMany({ where: { projectId: resolvedParams.id }, orderBy: { issueDate: 'desc' } })
   ]);
 
   if (!project) {
@@ -61,252 +63,220 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4">
-        <Link href="/projects">
-          <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Projects
-          </Button>
-        </Link>
+    <ModuleDetailsLayout>
+      <Link href="/projects">
+        <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Projects
+        </Button>
+      </Link>
+      
+      <ModuleDetailsHeader>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-2xl font-bold text-white tracking-tight">{project.title}</span>
+            <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-xs">
+              {project.projectCode}
+            </Badge>
+            <Badge variant="outline" className={`border-0 ${getStatusColor(project.status)} text-xs`}>
+              {project.status.replace(/_/g, " ")}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2 text-lg text-zinc-400">
+            <Building className="w-4 h-4" />
+            <Link href={`/clients/${project.client.id}`} className="hover:text-white hover:underline transition-colors">
+              {project.client.businessName}
+            </Link>
+          </div>
+        </div>
         
-        <PageHeader 
-          title={
-            <div className="flex items-center gap-3 mb-1">
-              <span>{project.title}</span>
-              <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-xs">
-                {project.projectCode}
-              </Badge>
-              <Badge variant="outline" className={`border-0 ${getStatusColor(project.status)} text-xs`}>
-                {project.status.replace(/_/g, " ")}
-              </Badge>
-            </div>
-          }
-          subtitle={
-            <div className="flex items-center gap-2 text-zinc-400">
-              <Building className="w-4 h-4" />
-              <span>{project.client.businessName}</span>
-            </div>
-          }
-          action={
-            <div className="flex items-center gap-3">
-              <ProjectDriveButton 
-                projectId={project.id} 
-                driveRootFolderId={project.driveRootFolderId} 
-                driveRootFolderUrl={project.driveRootFolderUrl} 
-              />
-              
-              <WhatsAppButton 
-                variant="outline" 
-                className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 gap-2"
-                phone={project.client.phone}
-                onSavePhone={async (phone) => {
-                  "use server";
-                  return updateClientPhone(project.client.id, phone);
-                }}
-                whatsappTemplate="generalMessage"
-                whatsappArgs={[`Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`]}
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                WhatsApp Client
-              </WhatsAppButton>
+        <div className="flex items-center gap-3 mt-4 md:mt-0 flex-wrap justify-end">
+          <ProjectDriveButton 
+            projectId={project.id} 
+            driveRootFolderId={project.driveRootFolderId} 
+            driveRootFolderUrl={project.driveRootFolderUrl} 
+          />
+          
+          <WhatsAppButton 
+            variant="outline" 
+            className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-9"
+            phone={project.client.phone}
+            onSavePhone={async (phone) => {
+              "use server";
+              return updateClientPhone(project.client.id, phone);
+            }}
+            whatsappTemplate="generalMessage"
+            whatsappArgs={[`Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`]}
+          >
+            <MessageCircle className="w-4 h-4 mr-2" />
+            WhatsApp Client
+          </WhatsAppButton>
 
-              <div className={`px-4 py-2 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2 ${getPaymentColor(project.paymentStatus)}`}>
-                <IndianRupee className="w-4 h-4" />
-                <span className="font-semibold text-lg">{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>
-                <Badge variant="outline" className="ml-1 text-[10px] uppercase border-current bg-transparent">
-                  {project.paymentStatus}
-                </Badge>
-              </div>
-            </div>
-          }
-        />
-      </div>
+          <div className={`px-4 py-1.5 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2 ${getPaymentColor(project.paymentStatus)}`}>
+            <IndianRupee className="w-4 h-4" />
+            <span className="font-semibold text-lg">{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>
+            <Badge variant="outline" className="ml-1 text-[10px] uppercase border-current bg-transparent">
+              {project.paymentStatus}
+            </Badge>
+          </div>
+        </div>
+      </ModuleDetailsHeader>
 
-      <Tabs defaultValue="overview" className="flex flex-col gap-6">
-        <TabsList className="bg-white/5 border border-white/10 p-1 w-fit">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Overview</TabsTrigger>
-          <TabsTrigger value="storage" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Storage & Files</TabsTrigger>
-        </TabsList>
+      <ModuleDetailsBody>
+        <ModuleDetailsContent>
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="bg-white/5 border border-white/10 p-1 w-fit mb-4">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Overview</TabsTrigger>
+              <TabsTrigger value="storage" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Storage & Files</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="overview" className="m-0">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Info & Timeline */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <Info className="w-5 h-5 text-zinc-400" /> Project Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-medium text-zinc-500 mb-1">Description</h4>
-                  <p className="text-zinc-300 text-sm whitespace-pre-wrap">{project.description || "No description provided."}</p>
+            <TabsContent value="overview" className="flex flex-col gap-6 m-0">
+              <ModuleDetailsSection>
+                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+                  <Info className="w-5 h-5 text-zinc-400" />
+                  <span className="text-white text-lg font-medium">Project Details</span>
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10">
+                <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium text-zinc-500 mb-1 flex items-center gap-1"><Calendar className="w-3.5 h-3.5"/> Start Date</h4>
-                    <p className="text-white">{project.startDate ? new Date(project.startDate).toLocaleDateString() : "—"}</p>
+                    <h4 className="text-sm font-medium text-zinc-500 mb-1">Description</h4>
+                    <p className="text-zinc-300 text-sm whitespace-pre-wrap">{project.description || "No description provided."}</p>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-zinc-500 mb-1 flex items-center gap-1"><Calendar className="w-3.5 h-3.5"/> End Date</h4>
-                    <p className="text-white">{project.endDate ? new Date(project.endDate).toLocaleDateString() : "—"}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-zinc-500 mb-1 flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-amber-500"/> Delivery Date</h4>
-                    <p className="text-amber-500 font-medium">{project.deliveryDate ? new Date(project.deliveryDate).toLocaleDateString() : "—"}</p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10">
+                    <div>
+                      <h4 className="text-sm font-medium text-zinc-500 mb-1 flex items-center gap-1"><Calendar className="w-3.5 h-3.5"/> Start Date</h4>
+                      <p className="text-white">{project.startDate ? new Date(project.startDate).toLocaleDateString() : "—"}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-zinc-500 mb-1 flex items-center gap-1"><Calendar className="w-3.5 h-3.5"/> Due Date</h4>
+                      <p className="text-white">{project.endDate ? new Date(project.endDate).toLocaleDateString() : "—"}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-zinc-500 mb-1 flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-amber-500"/> Delivery Date</h4>
+                      <p className="text-amber-500 font-medium">{project.deliveryDate ? new Date(project.deliveryDate).toLocaleDateString() : "—"}</p>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </ModuleDetailsSection>
 
-            <div className="grid grid-cols-1 gap-6">
-              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
-                  <CardTitle className="text-white text-lg flex items-center gap-2">
+              <ModuleDetailsSection>
+                <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+                  <div className="flex items-center gap-2">
                     <Camera className="w-5 h-5 text-zinc-400" />
-                    Shoots ({shootData.total})
-                  </CardTitle>
-                  <Link href={`/shoots?new=true&projectId=${project.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 bg-[#C1121F] hover:bg-[#a00f1a] text-white">
+                    <span className="text-white text-lg font-medium">Shoots ({shootData.total})</span>
+                  </div>
+                  <Link href={`/shoots?new=true&projectId=${project.id}`} className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium bg-[#C1121F] hover:bg-[#a00f1a] text-white transition-colors">
                     <Plus className="w-4 h-4 mr-2" /> Schedule Shoot
                   </Link>
-                </CardHeader>
-                <CardContent>
+                </div>
+                <div className="-mx-4 sm:mx-0">
                   <ShootTable 
                     shoots={shootData.shoots as any} 
                     clients={clients} 
                     projects={projects}
                     total={shootData.total}
                   />
-                </CardContent>
-              </Card>
-
+                </div>
+              </ModuleDetailsSection>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-white text-lg flex items-center gap-2">
+                <ModuleDetailsSection>
+                  <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
                     <CheckCircle className="w-5 h-5 text-zinc-400" />
-                    Deliverables
-                  </CardTitle>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-zinc-400 hover:text-white">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </CardHeader>
-                <CardContent>
+                    <span className="text-white text-lg font-medium">Deliverables</span>
+                  </div>
                   <p className="text-zinc-500 text-sm">No deliverables assigned yet. (Managed via Shoots)</p>
-                </CardContent>
-              </Card>
+                </ModuleDetailsSection>
+                <ModuleDetailsSection>
+                  <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+                    <FileText className="w-5 h-5 text-zinc-400" />
+                    <span className="text-white text-lg font-medium">Internal Notes</span>
+                  </div>
+                  <p className="text-zinc-300 text-sm whitespace-pre-wrap">{project.notes || "No internal notes."}</p>
+                </ModuleDetailsSection>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="storage" className="m-0">
+              <ModuleDetailsSection>
+                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+                  <Folder className="w-5 h-5 text-zinc-400" />
+                  <span className="text-white text-lg font-medium">Project Storage</span>
+                </div>
+                <ProjectStorageTab 
+                  project={project as any} 
+                />
+              </ModuleDetailsSection>
+            </TabsContent>
+          </Tabs>
+        </ModuleDetailsContent>
+
+        <ModuleDetailsSidebar>
+          <ModuleDetailsSection>
+            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+              <Users className="w-5 h-5 text-zinc-400" />
+              <span className="text-white text-lg font-medium">Team</span>
             </div>
-          </div>
-            
-          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-zinc-400" /> Activity Timeline
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ActivityTimeline activities={project.activities || []} />
-              </CardContent>
-            </Card>
-          </div>
+            {project.assignedUsers && project.assignedUsers.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {project.assignedUsers.map(user => (
+                  <div key={user.id} className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-zinc-800 text-zinc-300 flex items-center justify-center font-medium text-xs uppercase border border-white/10">
+                      {(user.name || user.email).charAt(0)}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-white">{user.name || user.email}</span>
+                      <span className="text-xs text-zinc-500">{user.email}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-zinc-500">No team members assigned.</p>
+            )}
+          </ModuleDetailsSection>
 
-          {/* Right Column: Meta & Finances */}
-          <div className="space-y-6">
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-zinc-400" /> Finances
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                  <span className="text-zinc-400 text-sm">Quotation Amount</span>
-                  <span className="text-white">₹{Number(project.quotationAmount || 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex items-center justify-between border-b border-white/5 pb-2 pt-1">
-                  <span className="text-zinc-400 text-sm">Total Amount</span>
-                  <span className="text-white">₹{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex items-center justify-between border-b border-white/5 pb-2 pt-1">
-                  <span className="text-emerald-400 text-sm">Total Revenue (Paid)</span>
-                  <span className="text-emerald-400 font-medium">₹{paymentsData.reduce((s, p) => s + Number(p.amount), 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex items-center justify-between border-b border-white/5 pb-2 pt-1">
-                  <span className="text-red-400 text-sm font-medium">Balance Due</span>
-                  <span className="text-red-400 font-bold text-lg">₹{Math.max(0, Number(project.totalAmount || 0) - paymentsData.reduce((s, p) => s + Number(p.amount), 0)).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex items-center justify-between border-b border-white/5 pb-2 pt-2">
-                  <span className="text-red-400 text-sm">Project Expenses</span>
-                  <span className="text-red-400 font-medium">₹{expensesData.reduce((s, e) => s + Number(e.amount), 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-zinc-400 text-sm font-medium">Project Net Profit</span>
-                  <span className={`font-bold text-lg ${paymentsData.reduce((s, p) => s + Number(p.amount), 0) - expensesData.reduce((s, e) => s + Number(e.amount), 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    ₹{(paymentsData.reduce((s, p) => s + Number(p.amount), 0) - expensesData.reduce((s, e) => s + Number(e.amount), 0)).toLocaleString('en-IN')}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-            
-              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-zinc-400" />
-                  Invoices
-                </CardTitle>
-                <Link href={`/finance/invoices?projectId=${project.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-8 px-2 bg-[#C1121F] hover:bg-[#a00f1a] text-white">
-                  <Plus className="w-3 h-3 mr-1" /> New
+          <ModuleDetailsSection>
+             <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+              <IndianRupee className="w-5 h-5 text-zinc-400" />
+              <span className="text-white text-lg font-medium">Financials</span>
+             </div>
+             <div className="space-y-4">
+               <div className="flex justify-between items-center text-sm">
+                 <span className="text-zinc-500">Quotation</span>
+                 <span className="text-white font-medium">₹{Number(project.quotationAmount || 0).toLocaleString('en-IN')}</span>
+               </div>
+               <div className="flex justify-between items-center text-sm">
+                 <span className="text-zinc-500">Total Billed</span>
+                 <span className="text-white font-medium">₹{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>
+               </div>
+               <div className="flex justify-between items-center text-sm">
+                 <span className="text-zinc-500">Advance Paid</span>
+                 <span className="text-emerald-400 font-medium">₹{Number(project.advanceAmount || 0).toLocaleString('en-IN')}</span>
+               </div>
+               <div className="flex justify-between items-center text-sm font-medium pt-2 border-t border-white/10">
+                 <span className="text-zinc-400">Balance Due</span>
+                 <span className="text-red-400">₹{Number(project.balanceAmount || 0).toLocaleString('en-IN')}</span>
+               </div>
+             </div>
+             <div className="mt-4">
+                <Link href={`/invoices?projectId=${project.id}`} className="w-full inline-flex h-9 items-center justify-center rounded-md border border-white/10 bg-transparent text-sm font-medium hover:bg-white/5 transition-colors">
+                  View Invoices ({invoicesData.length})
                 </Link>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                  {invoicesData.length === 0 ? (
-                    <p className="text-zinc-500 text-sm">No invoices generated.</p>
-                  ) : (
-                    invoicesData.slice(0, 5).map((inv) => (
-                      <Link key={inv.id} href={`/finance/invoices/${inv.id}`} className="flex justify-between items-center p-2 rounded-md hover:bg-white/5 transition-colors border border-transparent hover:border-white/10">
-                        <div>
-                          <p className="text-white text-sm font-medium">{inv.invoiceNumber}</p>
-                          <p className="text-zinc-500 text-[10px]">{new Date(inv.issueDate).toLocaleDateString()}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-white text-sm font-semibold">${Number(inv.total).toLocaleString()}</p>
-                          <Badge variant="outline" className={`text-[10px] mt-1 ${inv.status === 'PAID' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-400 bg-zinc-500/10'}`}>
-                            {inv.status}
-                          </Badge>
-                        </div>
-                      </Link>
-                    ))
-                  )}
-                  {invoicesData.length > 5 && (
-                    <Link href={`/finance/invoices?projectId=${project.id}`} className="block text-center text-sm text-[#C1121F] hover:text-white mt-2">
-                      View all invoices
-                    </Link>
-                  )}
-              </CardContent>
-            </Card>
-
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white text-lg">Internal Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-zinc-300 whitespace-pre-wrap text-sm">
-                  {project.notes || "No notes available for this project."}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="storage" className="m-0">
-          <ProjectStorageTab project={project as any} />
-        </TabsContent>
-      </Tabs>
-    </div>
+             </div>
+          </ModuleDetailsSection>
+          
+          <ModuleDetailsSection>
+            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+              <Clock className="w-5 h-5 text-zinc-400" />
+              <span className="text-white text-lg font-medium">Timeline</span>
+            </div>
+            <div className="h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              <ActivityTimeline activities={project.activities || []} />
+            </div>
+          </ModuleDetailsSection>
+        </ModuleDetailsSidebar>
+      </ModuleDetailsBody>
+    </ModuleDetailsLayout>
   );
 }

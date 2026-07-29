@@ -7,7 +7,7 @@ export function ModuleLayout({ className, children, ...props }: ModuleLayoutProp
   return (
     <div
       className={cn(
-        "flex flex-col flex-1 w-full h-full min-h-0 bg-background relative",
+        "flex flex-col flex-1 w-full h-full min-h-0 bg-transparent relative",
         className
       )}
       {...props}

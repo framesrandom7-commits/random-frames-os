@@ -27,8 +27,7 @@ export default async function WorkflowDashboard() {
   // Fetch Audit Logs (Recent Events)
   const auditLogs: any[] = await (prisma as any).auditLog.findMany({
     orderBy: { createdAt: 'desc' },
-    take: 10,
-    include: { user: { select: { name: true } } }
+    take: 10
   });
 
   // Fetch Recent Notifications

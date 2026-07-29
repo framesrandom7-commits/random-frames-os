@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Skeleton } from "@/components/ui/feedback/skeleton"
 import { AlertCircle, RefreshCw, ChevronDown, ChevronUp } from "lucide-react"
 
-export interface WidgetProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
+export interface ModuleWidgetProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
@@ -27,7 +27,7 @@ export interface WidgetProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 
   contentClassName?: string;
 }
 
-export function Widget({
+export function ModuleWidget({
   title,
   subtitle,
   actions,
@@ -43,7 +43,7 @@ export function Widget({
   contentClassName,
   children,
   ...props
-}: WidgetProps) {
+}: ModuleWidgetProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   return (

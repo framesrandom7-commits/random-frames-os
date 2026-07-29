@@ -6,3 +6,8 @@ export * from "./module-bulk-actions";
 export * from "./module-data-view";
 export * from "./module-states";
 export * from "./module-pagination";
+export * from "./module-summary";
+export * from "./module-view-switcher";
+export * from "./module-details-layout";
+export * from "./entity-config";
+export * from "./module-page";

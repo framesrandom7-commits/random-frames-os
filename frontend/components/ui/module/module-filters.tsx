@@ -100,7 +100,7 @@ export function ModuleFilters({
               value={searchParams.get(filter.id)?.toString() || "all"}
               onValueChange={(val: string | null) => handleFilterChange(filter.id, val || "")}
             >
-              <SelectTrigger className="w-[160px] h-9 bg-background/50 backdrop-blur-sm border-white/10">
+              <SelectTrigger className="w-[160px] h-9 bg-white/5 backdrop-blur-sm border-white/10">
                 <SelectValue placeholder={filter.placeholder || `Select ${filter.label}`} />
               </SelectTrigger>
               <SelectContent>

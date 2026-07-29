@@ -15,11 +15,10 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function ShootsPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
+export default async function ShootsPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+  const searchParams = await props.searchParams;
   const page = typeof searchParams.page === "string" ? parseInt(searchParams.page) : 1;
   const search = typeof searchParams.search === "string" ? searchParams.search : "";
   const status = typeof searchParams.status === "string" ? searchParams.status as ShootStatus : "";

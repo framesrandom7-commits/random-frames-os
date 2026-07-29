@@ -1,13 +1,13 @@
 import * as React from "react"
-import { LucideIcon } from "lucide-react"
-import { Widget } from "../layout/widget"
-import { Typography } from "@/components/ui/typography"
 import { cn } from "@/lib/utils"
+import { Typography } from "@/components/ui/typography"
+import { ModuleWidget } from "./module-widget"
 
-export interface KpiCardProps {
+// ModuleSummaryCard (formerly KpiCard)
+export interface ModuleSummaryCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   trend?: string;
   trendDirection?: "up" | "down" | "neutral" | "warning";
   comparison?: string;
@@ -17,10 +17,10 @@ export interface KpiCardProps {
   className?: string;
 }
 
-export function KpiCard({
+export function ModuleSummaryCard({
   title,
   value,
-  icon: Icon,
+  icon,
   trend,
   trendDirection = "neutral",
   comparison,
@@ -28,9 +28,8 @@ export function KpiCard({
   empty,
   onClick,
   className
-}: KpiCardProps) {
+}: ModuleSummaryCardProps) {
   
-  // Trend colours could be mapped to design tokens, assuming success/destructive classes exist
   const trendColorClass = {
     up: "text-emerald-500",
     down: "text-red-500",
@@ -61,8 +60,8 @@ export function KpiCard({
       <div className="relative z-10 flex flex-col gap-4">
         <div className="flex flex-row items-center justify-between">
           <Typography variant="label" color="muted">{title}</Typography>
-          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
-            <Icon className="h-4 w-4 text-muted-foreground" />
+          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/5 [&>svg]:h-4 [&>svg]:w-4 text-muted-foreground">
+            {icon}
           </div>
         </div>
         
@@ -84,6 +83,19 @@ export function KpiCard({
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+// ModuleSummary Container
+export interface ModuleSummaryProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+export function ModuleSummary({ children, className, ...props }: ModuleSummaryProps) {
+  return (
+    <div className={cn("grid gap-4 md:grid-cols-2 lg:grid-cols-4", className)} {...props}>
+      {children}
     </div>
   )
 }

@@ -14,6 +14,7 @@ import { leadSchema, LeadFormData, leadUpdateSchema, LeadUpdateFormData } from "
 import { createLead, updateLead } from "@/app/actions/lead";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { ResponsiveFormGrid } from "@/components/ui/form/responsive-form-grid";
 
 interface LeadFormProps {
   open: boolean;
@@ -115,7 +116,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
           <DialogTitle className="text-xl font-semibold">{isEditing ? "Edit Lead" : "Add New Lead"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <ResponsiveFormGrid>
             
             {/* Business Name */}
             <div className="space-y-2">
@@ -404,7 +405,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
               />
             </div>
 
-          </div>
+          </ResponsiveFormGrid>
 
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-zinc-400">Notes / Requirements</Label>

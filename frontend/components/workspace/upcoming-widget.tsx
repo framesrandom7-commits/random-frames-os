@@ -2,6 +2,7 @@ import React from "react";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Calendar, Video, FileText, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { InteractiveCalendarPreview } from "./interactive-calendar-preview";
 
 export default async function UpcomingWidget() {
   const today = new Date();
@@ -56,32 +57,10 @@ export default async function UpcomingWidget() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-8 bg-[#171A21]/50 p-6 rounded-[24px] border border-white/5">
         
-        {/* Simple Calendar Preview */}
+        {/* Interactive Calendar Preview */}
         <div>
           <h3 className="text-sm font-semibold text-white mb-4">Calendar Preview</h3>
-          <div className="bg-[#0F1115] rounded-[16px] p-4 border border-white/5">
-            <div className="flex items-center justify-between mb-4">
-              <ChevronLeft className="w-4 h-4 text-zinc-500 hover:text-white cursor-pointer transition-colors" />
-              <span className="text-xs font-semibold text-white">July 2026</span>
-              <ChevronRight className="w-4 h-4 text-zinc-500 hover:text-white cursor-pointer transition-colors" />
-            </div>
-            <div className="grid grid-cols-7 gap-1 text-center mb-2">
-              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                <span key={day} className="text-[10px] font-medium text-zinc-500">{day}</span>
-              ))}
-            </div>
-            <div className="grid grid-cols-7 gap-1 text-center">
-              {/* Dummy dates for preview to match image */}
-              {[...Array(31)].map((_, i) => {
-                const isToday = i + 1 === 23;
-                return (
-                  <div key={i} className={`text-xs py-1.5 rounded-full cursor-pointer hover:bg-white/10 transition-colors ${isToday ? 'bg-[#E53935] text-white font-bold' : 'text-zinc-300'}`}>
-                    {i + 1}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <InteractiveCalendarPreview />
         </div>
 
         {/* Compact Lists */}

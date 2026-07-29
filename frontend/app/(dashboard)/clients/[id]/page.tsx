@@ -6,11 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getProjects } from "@/app/actions/project";
-import ProjectCardGrid from "@/components/projects/project-card-grid";
+import { projectConfig } from "@/components/projects/project-config";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ArrowLeft, Mail, Phone, MapPin, Globe, AtSign, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera, MessageCircle } from "lucide-react";
 import Link from "next/link";
+import { 
+  ModuleDetailsLayout, 
+  ModuleDetailsHeader, 
+  ModuleDetailsBody, 
+  ModuleDetailsContent, 
+  ModuleDetailsSidebar,
+  ModuleDetailsSection
+} from "@/components/ui/module";
 
 import { getShoots } from "@/app/actions/shoot";
 import { format, formatDistanceToNow } from "date-fns";
@@ -46,62 +54,56 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
     .join(", ");
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4">
-        <Link href="/clients">
-          <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Clients
-          </Button>
-        </Link>
+    <ModuleDetailsLayout>
+      <Link href="/clients">
+        <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Clients
+        </Button>
+      </Link>
+      
+      <ModuleDetailsHeader>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl font-bold text-white tracking-tight">{client.businessName}</span>
+            <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono">
+              {client.clientCode}
+            </Badge>
+          </div>
+          {client.contactPerson && <span className="text-lg text-zinc-400">{client.contactPerson}</span>}
+        </div>
         
-        <PageHeader 
-          title={
-            <div className="flex items-center gap-3">
-              <span>{client.businessName}</span>
-              <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono">
-                {client.clientCode}
-              </Badge>
-            </div>
-          }
-          subtitle={
-            client.contactPerson && <span className="text-lg">{client.contactPerson}</span>
-          }
-          action={
-            <div className="flex items-center gap-3">
-              <WhatsAppButton 
-                variant="outline" 
-                className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-7 text-xs px-3 py-0"
-                phone={client.phone}
-                onSavePhone={async (phone) => {
-                  "use server";
-                  return updateClientPhone(client.id, phone);
-                }}
-                whatsappTemplate="generalMessage"
-                whatsappArgs={[`Hi ${client.contactPerson || client.businessName},\n\n`]}
-              >
-                <MessageCircle className="w-3 h-3 mr-1.5" />
-                WhatsApp
-              </WhatsAppButton>
-              <Badge className={client.archivedAt ? "bg-red-500/20 text-red-500" : "bg-emerald-500/20 text-emerald-500"}>
-                {client.archivedAt ? "Archived" : "Active"}
-              </Badge>
-              <Badge variant="outline" className="capitalize">
-                {client.businessType.replace(/_/g, " ").toLowerCase()}
-              </Badge>
-            </div>
-          }
-        />
-      </div>
+        <div className="flex items-center gap-3 mt-4 md:mt-0">
+          <WhatsAppButton 
+            variant="outline" 
+            className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-8 text-sm px-3"
+            phone={client.phone}
+            onSavePhone={async (phone) => {
+              "use server";
+              return updateClientPhone(client.id, phone);
+            }}
+            whatsappTemplate="generalMessage"
+            whatsappArgs={[`Hi ${client.contactPerson || client.businessName},\n\n`]}
+          >
+            <MessageCircle className="w-4 h-4 mr-2" />
+            WhatsApp
+          </WhatsAppButton>
+          <Badge className={client.archivedAt ? "bg-red-500/20 text-red-500" : "bg-emerald-500/20 text-emerald-500"}>
+            {client.archivedAt ? "Archived" : "Active"}
+          </Badge>
+          <Badge variant="outline" className="capitalize">
+            {client.businessType.replace(/_/g, " ").toLowerCase()}
+          </Badge>
+        </div>
+      </ModuleDetailsHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Info & Timeline */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white text-lg">Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <ModuleDetailsBody>
+        <ModuleDetailsContent className="space-y-6">
+          <ModuleDetailsSection>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-white text-lg font-medium">Contact Information</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex items-start gap-3">
                   <Mail className="w-5 h-5 text-zinc-400 mt-0.5" />
                   <div>
@@ -152,59 +154,57 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </ModuleDetailsSection>
 
             <div className="grid grid-cols-1 gap-6">
-              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
-                  <CardTitle className="text-white text-lg flex items-center gap-2">
+              <ModuleDetailsSection>
+                <div className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
+                  <div className="text-white text-lg flex items-center gap-2 font-medium">
                     <CheckCircle className="w-5 h-5 text-zinc-400" />
                     Projects ({projectData.total})
-                  </CardTitle>
+                  </div>
                   <Link href={`/projects?new=true&clientId=${client.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 bg-[#C1121F] hover:bg-[#a00f1a] text-white">
                     <Plus className="w-4 h-4 mr-2" /> New Project
                   </Link>
-                </CardHeader>
-                <CardContent>
-                  <ProjectCardGrid 
-                    projects={projectData.projects as any} 
-                    clients={[{ id: client.id, businessName: client.businessName }]} 
-                    total={projectData.total}
-                  />
-                </CardContent>
-              </Card>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(projectData.projects as any[]).map(p => (
+                    <div key={p.id}>{projectConfig.cardRender(p)}</div>
+                  ))}
+                  {projectData.projects.length === 0 && (
+                    <p className="text-zinc-500 text-sm">No projects found.</p>
+                  )}
+                </div>
+              </ModuleDetailsSection>
 
-              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
-                  <CardTitle className="text-white text-lg flex items-center gap-2">
+              <ModuleDetailsSection>
+                <div className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
+                  <div className="text-white text-lg flex items-center gap-2 font-medium">
                     <Camera className="w-5 h-5 text-zinc-400" />
                     Shoots ({shootData.total})
-                  </CardTitle>
+                  </div>
                   <Link href={`/shoots?new=true&clientId=${client.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 bg-[#C1121F] hover:bg-[#a00f1a] text-white">
                     <Plus className="w-4 h-4 mr-2" /> Schedule Shoot
                   </Link>
-                </CardHeader>
-                <CardContent>
+                </div>
                   <ShootTable 
                     shoots={shootData.shoots as any} 
                     clients={clients} 
                     projects={projects}
                     total={shootData.total}
                   />
-                </CardContent>
-              </Card>
+              </ModuleDetailsSection>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-white text-lg flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-zinc-400" />
-                    Invoices
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                <ModuleDetailsSection>
+                  <div className="flex flex-row items-center justify-between mb-4">
+                    <div className="text-white text-lg flex items-center gap-2 font-medium">
+                      <FileText className="w-5 h-5 text-zinc-400" />
+                      Invoices
+                    </div>
+                  </div>
+                  <div className="space-y-3">
                   {invoicesData.length === 0 ? (
                     <p className="text-zinc-500 text-sm">No invoices generated.</p>
                   ) : (
@@ -228,17 +228,17 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                       View all {invoicesData.length} invoices
                     </Link>
                   )}
-                </CardContent>
-              </Card>
+                  </div>
+                </ModuleDetailsSection>
 
-              <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-white text-lg flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-zinc-400" />
-                    Finances Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                <ModuleDetailsSection>
+                  <div className="flex flex-row items-center justify-between mb-4">
+                    <div className="text-white text-lg flex items-center gap-2 font-medium">
+                      <CreditCard className="w-5 h-5 text-zinc-400" />
+                      Finances Summary
+                    </div>
+                  </div>
+                  <div className="space-y-4">
                   <div className="flex justify-between items-center border-b border-white/5 pb-2">
                     <span className="text-zinc-400 text-sm">Total Invoiced</span>
                     <span className="text-white font-medium">${invoicesData.reduce((s, i) => s + Number(i.total), 0).toLocaleString()}</span>
@@ -262,48 +262,36 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                       Go to Finance Dashboard
                     </Link>
                   </div>
-                </CardContent>
-              </Card>
+                  </div>
+                </ModuleDetailsSection>
+              </div>
             </div>
             
-            </div>
-            
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md mt-6">
-              <CardHeader>
-                <CardTitle className="text-white text-lg">Activity Timeline</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ActivityTimeline activities={client.activities || []} />
-              </CardContent>
-            </Card>
-          </div>
+            <ModuleDetailsSection className="mt-6">
+              <div className="text-white text-lg font-medium mb-4">Activity Timeline</div>
+              <ActivityTimeline activities={client.activities || []} />
+            </ModuleDetailsSection>
+        </ModuleDetailsContent>
 
-          {/* Right Column: Meta & Notes */}
-          <div className="space-y-6">
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white text-lg">Client Profile</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        <ModuleDetailsSidebar className="space-y-6">
+          <ModuleDetailsSection>
+            <div className="text-white text-lg font-medium mb-4">Client Profile</div>
+            <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-zinc-400 flex items-center gap-2"><Clock className="w-4 h-4"/> Client Since</span>
                   <span className="text-white text-sm">{new Date(client.createdAt).toLocaleDateString()}</span>
                 </div>
-              </CardContent>
-            </Card>
+            </div>
+          </ModuleDetailsSection>
 
-            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white text-lg">Internal Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-zinc-300 whitespace-pre-wrap text-sm">
-                  {client.notes || "No notes available for this client."}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-      </div>
-    </div>
+          <ModuleDetailsSection>
+            <div className="text-white text-lg font-medium mb-4">Internal Notes</div>
+            <p className="text-zinc-300 whitespace-pre-wrap text-sm">
+              {client.notes || "No internal notes for this client."}
+            </p>
+          </ModuleDetailsSection>
+        </ModuleDetailsSidebar>
+      </ModuleDetailsBody>
+    </ModuleDetailsLayout>
   );
 }

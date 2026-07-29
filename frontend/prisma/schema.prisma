@@ -30,6 +30,7 @@ model User {
   leadsUpdated        Lead[]                @relation("LeadUpdatedBy")
   notifications       Notification[]
   tasks               Task[]
+  assignedProjects    Project[]             @relation("ProjectAssignments")
   role                Role?                 @relation(fields: [roleId], references: [id])
 }
 
@@ -336,6 +337,7 @@ model Project {
   reminders            Reminder[]
   shoots               Shoot[]
   tasks                Task[]
+  assignedUsers        User[]          @relation("ProjectAssignments")
 }
 
 model Shoot {

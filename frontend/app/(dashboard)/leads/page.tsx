@@ -1,12 +1,22 @@
 import React from "react";
-import { PageHeader } from "@/components/layout/page-header";
 import { getLeads, getLeadStats } from "@/app/actions/lead";
-import LeadTable from "@/components/leads/lead-table";
+import { getUsers } from "@/app/actions/user";
+import {
+  ModuleLayout,
+  ModuleHeader,
+  ModuleToolbar,
+  ModuleContent,
+  ModuleViewSwitcher,
+  ModuleSummary,
+  ModuleSummaryCard
+} from "@/components/ui/module";
+import { Button } from "@/components/ui/button";
+import { Users, FileText, CheckCircle, Clock } from "lucide-react";
+import { LeadViewManager } from "@/components/leads/lead-view-manager";
+import { getLeadFilters } from "@/components/leads/lead-config";
 import LeadKanban from "@/components/leads/lead-kanban";
-import LeadDashboard from "@/components/leads/lead-dashboard";
 import LeadImportExport from "@/components/leads/lead-import-export";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import LeadToolbar from "@/components/leads/lead-toolbar";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -14,63 +24,103 @@ export default async function LeadsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const searchParams = await props.searchParams;
-  const search = typeof searchParams.search === 'string' ? searchParams.search : undefined;
+  const search = typeof searchParams.q === 'string' ? searchParams.q : undefined;
   const status = typeof searchParams.status === 'string' ? searchParams.status as any : undefined;
   const priority = typeof searchParams.priority === 'string' ? searchParams.priority as any : undefined;
   const source = typeof searchParams.source === 'string' ? searchParams.source as any : undefined;
   const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 1;
-  const limit = typeof searchParams.limit === 'string' ? parseInt(searchParams.limit) : 50;
+  const size = typeof searchParams.size === 'string' ? parseInt(searchParams.size) : 50;
   const sortBy = typeof searchParams.sortBy === 'string' ? searchParams.sortBy : undefined;
   const sortOrder = searchParams.sortOrder === 'asc' ? 'asc' : 'desc';
   const archived = searchParams.archived === 'true';
+  const view = typeof searchParams.view === 'string' ? searchParams.view : 'list';
 
-  const { leads, total, totalPages } = await getLeads({
+  // Fetch data
+  const { leads, total } = await getLeads({
     search,
     status,
     priority,
     source,
     page,
-    limit,
+    limit: size,
     sortBy,
     sortOrder,
     archived
   });
+  
   const stats = await getLeadStats();
+  const users = await getUsers();
+  const filters = getLeadFilters(users);
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader 
+    <ModuleLayout>
+      <ModuleHeader 
         title="Leads"
         subtitle="Manage and track your sales pipeline"
-        action={
-          <>
-            <LeadImportExport leads={leads} />
-            <LeadToolbar />
-          </>
+        primaryAction={
+          <Link href="/leads/new">
+            <Button className="bg-[#C1121F] text-white hover:bg-[#a00f1a]">Add Lead</Button>
+          </Link>
+        }
+        secondaryActions={<LeadImportExport leads={leads} />}
+      />
+
+      <ModuleSummary>
+        <ModuleSummaryCard 
+          title="Total Leads" 
+          value={stats?.total || 0} 
+          icon={<Users />} 
+          trend="+12%" 
+          trendDirection="up" 
+        />
+        <ModuleSummaryCard 
+          title="New This Month" 
+          value={stats?.newLeads || 0} 
+          icon={<FileText />} 
+          trend="+5%" 
+          trendDirection="up" 
+        />
+        <ModuleSummaryCard 
+          title="Converted" 
+          value={stats?.won || 0} 
+          icon={<CheckCircle />} 
+          trend="8%" 
+          trendDirection="neutral" 
+          comparison="conversion rate"
+        />
+        <ModuleSummaryCard 
+          title="Avg. Response" 
+          value="2.4h" 
+          icon={<Clock />} 
+          trend="-15m" 
+          trendDirection="down" 
+          comparison="vs last month"
+        />
+      </ModuleSummary>
+
+      <ModuleToolbar 
+        searchPlaceholder="Search leads..."
+        filters={filters}
+        right={
+          <ModuleViewSwitcher 
+            views={[
+              { id: "list", label: "List" },
+              { id: "kanban", label: "Kanban" }
+            ]} 
+            defaultView="list" 
+          />
         }
       />
-      
-      {/* Dashboard at the top */}
-      <div className="mb-2">
-        <LeadDashboard stats={stats} />
-      </div>
-      
-      <Tabs defaultValue="list" className="w-full space-y-6">
-        <div className="flex justify-between items-center bg-white/5 p-1 rounded-lg w-fit border border-white/10">
-          <TabsList className="bg-transparent text-zinc-400 h-9">
-            <TabsTrigger value="list" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">List View</TabsTrigger>
-            <TabsTrigger value="kanban" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Kanban Board</TabsTrigger>
-          </TabsList>
-        </div>
 
-        <TabsContent value="list" className="m-0 focus-visible:outline-none">
-          <LeadTable leads={leads} page={page} totalPages={totalPages} total={total} />
-        </TabsContent>
-
-        <TabsContent value="kanban" className="m-0 focus-visible:outline-none h-[calc(100vh-250px)]">
-          <LeadKanban leads={leads} />
-        </TabsContent>
-      </Tabs>
-    </div>
+      <ModuleContent>
+        {view === "kanban" ? (
+          <div className="h-[calc(100vh-350px)]">
+            <LeadKanban leads={leads} />
+          </div>
+        ) : (
+          <LeadViewManager leads={leads} isArchived={archived} total={total} />
+        )}
+      </ModuleContent>
+    </ModuleLayout>
   );
 }

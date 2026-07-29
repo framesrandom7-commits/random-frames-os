@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useTransition, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
+import { ResponsiveFormGrid } from "@/components/ui/form/responsive-form-grid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,31 +13,35 @@ import { toast } from "sonner";
 import { Project, ProjectCategory, ProjectStatus, ProjectPriority, PaymentStatus } from "@prisma/client";
 
 interface ProjectFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   project?: Project;
   prefilledClientId?: string;
   clients: { id: string; businessName: string }[];
+  users: { id: string; name: string | null; email: string }[];
 }
 
-export default function ProjectForm({ open, onOpenChange, project, prefilledClientId, clients }: ProjectFormProps) {
+export default function ProjectForm({ project, prefilledClientId, clients, users }: ProjectFormProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [formData, setFormData] = useState<Partial<Project>>({});
+  const [formData, setFormData] = useState<Partial<Project> & { assignedUserIds?: string[] }>({});
 
   useEffect(() => {
-    if (project && open) {
+    if (project) {
       // eslint-disable-next-line
-      setFormData(project);
-    } else if (open) {
+      setFormData({
+        ...project,
+        assignedUserIds: (project as any).assignedUsers?.map((u: any) => u.id) || []
+      });
+    } else {
       setFormData({
         category: "OTHER",
         status: "INQUIRY",
         priority: "MEDIUM",
         paymentStatus: "PENDING",
         clientId: prefilledClientId || undefined,
+        assignedUserIds: [],
       });
     }
-  }, [project, open, prefilledClientId]);
+  }, [project, prefilledClientId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -88,13 +93,15 @@ export default function ProjectForm({ open, onOpenChange, project, prefilledClie
         totalAmount: formData.totalAmount ? Number(formData.totalAmount) : null,
         balanceAmount: formData.balanceAmount ? Number(formData.balanceAmount) : null,
         notes: formData.notes,
+        assignedUserIds: formData.assignedUserIds,
       };
 
       if (project?.id) {
         const result = await updateProject(project.id, dataToSubmit);
         if (result.success) {
           toast.success("Project updated successfully");
-          onOpenChange(false);
+          router.push(`/projects/${project.id}`);
+          router.refresh();
         } else {
           toast.error(result.error || "Failed to update project");
         }
@@ -102,7 +109,8 @@ export default function ProjectForm({ open, onOpenChange, project, prefilledClie
         const result = await createProject(dataToSubmit);
         if (result.success) {
           toast.success("Project created successfully");
-          onOpenChange(false);
+          router.push("/projects");
+          router.refresh();
         } else {
           toast.error(result.error || "Failed to create project");
         }
@@ -118,17 +126,16 @@ export default function ProjectForm({ open, onOpenChange, project, prefilledClie
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-[#111] border-white/10 text-white">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{project ? "Edit Project" : "Create New Project"}</DialogTitle>
-          <DialogDescription className="text-zinc-400">
-            {project ? "Update the details of your project." : "Fill in the details to start a new project."}
-          </DialogDescription>
-        </DialogHeader>
+    <div className="bg-[#111] border border-white/10 rounded-xl p-6 text-white max-w-4xl mx-auto w-full">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold">{project ? "Edit Project" : "Create New Project"}</h2>
+        <p className="text-zinc-400 text-sm mt-1">
+          {project ? "Update the details of your project." : "Fill in the details to start a new project."}
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+          <ResponsiveFormGrid>
             
             {/* Core Info */}
             <div className="space-y-2 md:col-span-2">
@@ -352,18 +359,52 @@ export default function ProjectForm({ open, onOpenChange, project, prefilledClie
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F] min-h-[100px]"
               />
             </div>
+          </ResponsiveFormGrid>
+
+          <div className="space-y-2 mt-4">
+            <Label className="text-zinc-300">Assigned Team Members</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+              {users.map((user) => (
+                <label 
+                  key={user.id} 
+                  className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors ${
+                    formData.assignedUserIds?.includes(user.id) 
+                      ? "bg-white/10 border-white/20" 
+                      : "bg-black/20 border-white/5 hover:bg-white/5"
+                  }`}
+                >
+                  <input 
+                    type="checkbox"
+                    className="sr-only"
+                    checked={formData.assignedUserIds?.includes(user.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFormData(prev => ({ ...prev, assignedUserIds: [...(prev.assignedUserIds || []), user.id] }));
+                      } else {
+                        setFormData(prev => ({ ...prev, assignedUserIds: (prev.assignedUserIds || []).filter(id => id !== user.id) }));
+                      }
+                    }}
+                  />
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-xs font-medium text-white uppercase border border-white/10">
+                    {(user.name || user.email).charAt(0)}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-zinc-300 line-clamp-1">{user.name || user.email}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
           </div>
 
-          <DialogFooter className="pt-4 border-t border-white/10 mt-6">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="bg-transparent border-white/20 text-white hover:bg-white/10">
+          <div className="pt-4 border-t border-white/10 mt-6 flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => router.back()} className="bg-transparent border-white/20 text-white hover:bg-white/10">
               Cancel
             </Button>
             <Button type="submit" disabled={isPending} className="bg-[#C1121F] text-white hover:bg-[#a00f1a]">
               {isPending ? "Saving..." : project ? "Update Project" : "Create Project"}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 }

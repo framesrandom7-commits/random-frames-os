@@ -22,7 +22,7 @@ export function ModuleToolbar({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 md:px-6 lg:px-8 py-4 bg-background z-10",
+        "flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 md:px-6 lg:px-8 py-4 bg-transparent z-10",
         className
       )}
       {...props}

@@ -10,8 +10,6 @@ import {
 } from "@/components/ui/table";
 import { ModuleLoadingState, ModuleEmptyState, ModuleErrorState } from "./module-states";
 import { ModulePagination, ModulePaginationProps } from "./module-pagination";
-import { Checkbox } from "@/components/ui/form/checkbox";
-
 export interface ColumnDef<T> {
   header: React.ReactNode;
   accessorKey?: keyof T | string;
@@ -35,10 +33,9 @@ export interface ModuleDataViewProps<T> extends React.HTMLAttributes<HTMLDivElem
   errorState?: React.ReactNode;
 
   // Selection
-  selectedIds?: string[];
-  onSelectChange?: (id: string, checked: boolean) => void;
-  onSelectAll?: (checked: boolean) => void;
   getRowId?: (row: T) => string;
+  onSelectionChange?: (selectedIds: string[]) => void;
+  bulkActions?: (selectedIds: string[], onClearSelection: () => void) => React.ReactNode;
 
   // Pagination
   pagination?: Omit<ModulePaginationProps, "className">;
@@ -54,14 +51,40 @@ export function ModuleDataView<T>({
   emptyState,
   loadingState,
   errorState,
-  selectedIds = [],
-  onSelectChange,
-  onSelectAll,
   getRowId,
+  onSelectionChange,
+  bulkActions,
   pagination,
   className,
   ...props
 }: ModuleDataViewProps<T>) {
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+
+  // Notify parent of selection changes if needed
+  React.useEffect(() => {
+    if (onSelectionChange) {
+      onSelectionChange(selectedIds);
+    }
+  }, [selectedIds, onSelectionChange]);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (!getRowId) return;
+    if (checked) {
+      setSelectedIds(data.map(getRowId));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectChange = (id: string, checked: boolean) => {
+    setSelectedIds(prev => 
+      checked ? [...prev, id] : prev.filter(i => i !== id)
+    );
+  };
+
+  const clearSelection = () => {
+    setSelectedIds([]);
+  };
   
   if (isLoading) {
     return <>{loadingState || <ModuleLoadingState />}</>;
@@ -75,23 +98,28 @@ export function ModuleDataView<T>({
     return <>{emptyState || <ModuleEmptyState />}</>;
   }
 
-  const hasSelection = !!onSelectChange && !!getRowId;
+  const hasSelection = !!getRowId && !!bulkActions;
   const isAllSelected = hasSelection && data.length > 0 && selectedIds.length === data.length;
   const isSomeSelected = hasSelection && selectedIds.length > 0 && selectedIds.length < data.length;
 
   return (
     <div className={cn("flex flex-col w-full", className)} {...props}>
+      {hasSelection && selectedIds.length > 0 && bulkActions && (
+        bulkActions(selectedIds, clearSelection)
+      )}
       {/* Desktop / Tablet Table View */}
-      <div className="hidden md:block w-full overflow-x-auto rounded-xl border border-white/10 bg-background/50 backdrop-blur-sm">
+      <div className="hidden md:block w-full overflow-x-auto rounded-xl border border-white/10 bg-black/20 backdrop-blur-sm">
         <Table>
           <TableHeader>
             <TableRow>
               {hasSelection && (
                 <TableHead className="w-12 px-4">
-                  <Checkbox 
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#C1121F] focus:ring-[#C1121F]"
                     checked={isAllSelected}
                     ref={ref => { if (ref) { (ref as any).indeterminate = isSomeSelected } }}
-                    onChange={(e) => onSelectAll?.(e.target.checked)}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
                     aria-label="Select all"
                   />
                 </TableHead>
@@ -112,9 +140,11 @@ export function ModuleDataView<T>({
                 <TableRow key={rowId} data-state={isSelected ? "selected" : undefined}>
                   {hasSelection && (
                     <TableCell className="px-4">
-                      <Checkbox 
+                      <input 
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#C1121F] focus:ring-[#C1121F]"
                         checked={isSelected}
-                        onChange={(e) => onSelectChange?.(rowId, e.target.checked)}
+                        onChange={(e) => handleSelectChange(rowId, e.target.checked)}
                         aria-label={`Select row ${rowId}`}
                       />
                     </TableCell>
@@ -135,12 +165,14 @@ export function ModuleDataView<T>({
       <div className="flex flex-col gap-4 md:hidden">
         {hasSelection && (
           <div className="flex items-center gap-2 px-2 pb-2 border-b border-white/10">
-            <Checkbox 
-              checked={isAllSelected}
-              ref={ref => { if (ref) { (ref as any).indeterminate = isSomeSelected } }}
-              onChange={(e) => onSelectAll?.(e.target.checked)}
-              id="select-all-mobile"
-            />
+              <input 
+                type="checkbox"
+                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#C1121F] focus:ring-[#C1121F]"
+                checked={isAllSelected}
+                ref={ref => { if (ref) { (ref as any).indeterminate = isSomeSelected } }}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                id="select-all-mobile"
+              />
             <label htmlFor="select-all-mobile" className="text-sm text-zinc-400">
               Select All
             </label>
@@ -154,12 +186,15 @@ export function ModuleDataView<T>({
           return (
             <div key={rowId} className="relative group">
               {hasSelection && (
-                <div className="absolute top-4 right-4 z-10">
-                  <Checkbox 
-                    checked={isSelected}
-                    onChange={(e) => onSelectChange?.(rowId, e.target.checked)}
-                  />
-                </div>
+                <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+                <input 
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#C1121F] focus:ring-[#C1121F]"
+                  checked={isSelected}
+                  onChange={(e) => handleSelectChange(rowId, e.target.checked)}
+                  id={`card-checkbox-${rowId}`}
+                />
+              </div>
               )}
               {cardRender(row)}
             </div>

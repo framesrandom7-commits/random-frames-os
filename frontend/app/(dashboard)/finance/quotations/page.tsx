@@ -6,16 +6,15 @@ import { QuotationStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-export default async function QuotationsPage({
-  searchParams,
-}: {
-  searchParams: {
+export default async function QuotationsPage(props: {
+  searchParams: Promise<{
     status?: QuotationStatus;
     clientId?: string;
     projectId?: string;
     page?: string;
-  };
+  }>;
 }) {
+  const searchParams = await props.searchParams;
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
   
   const [quotationsResponse, clientsResponse] = await Promise.all([

@@ -4,22 +4,21 @@ import { getCalendarEvents } from "@/app/actions/calendar";
 import { getClients } from "@/app/actions/client";
 import { getProjects } from "@/app/actions/project";
 import CalendarSidebar from "@/components/calendar/calendar-sidebar";
-import FullCalendarWrapper from "@/components/calendar/full-calendar-wrapper";
+import CalendarDynamicWrapper from "@/components/calendar/calendar-dynamic-wrapper";
 import { CalendarEventType, CalendarEventStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-export default async function CalendarPage({
-  searchParams,
-}: {
-  searchParams: {
+export default async function CalendarPage(props: {
+  searchParams: Promise<{
     date?: string;
     clientId?: string;
     projectId?: string;
     eventType?: CalendarEventType;
     status?: CalendarEventStatus;
-  };
+  }>;
 }) {
+  const searchParams = await props.searchParams;
   const currentDate = searchParams.date || new Date().toISOString();
 
   // FullCalendar will load events lazily if configured that way, 
@@ -83,7 +82,7 @@ export default async function CalendarPage({
         </div>
         
         <div className="flex-1 overflow-hidden flex flex-col">
-          <FullCalendarWrapper 
+          <CalendarDynamicWrapper 
             events={events as any} 
             clients={clients as any} 
             projects={projects}
