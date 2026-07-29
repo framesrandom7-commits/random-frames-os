@@ -53,7 +53,6 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
                   className="h-12 bg-black/40 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-[#C1121F] focus-visible:border-[#C1121F] rounded-lg transition-all"
                 />
               </div>

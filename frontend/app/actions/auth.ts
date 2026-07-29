@@ -16,8 +16,17 @@ export async function login(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  if (!email || !password) {
-    return { error: "Please enter your email and password." };
+  if (!email) {
+    return { error: "Please enter your email address." };
+  }
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return { error: "Please enter a valid email address." };
+  }
+
+  if (!password) {
+    return { error: "Please enter your password." };
   }
 
   try {
@@ -43,7 +52,7 @@ export async function login(formData: FormData) {
     await createSession(user.id);
   } catch (error) {
     console.error("Login error:", error);
-    return { error: "An unexpected error occurred. Please try again later." };
+    return { error: "Something went wrong. Please try again." };
   }
   
   redirect("/home");
@@ -72,7 +81,7 @@ export async function forgotPassword(formData: FormData) {
       const rawToken = crypto.randomBytes(32).toString("hex");
       const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
       
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiration
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiration
 
       await prisma.passwordResetToken.create({
         data: {
@@ -92,20 +101,28 @@ export async function forgotPassword(formData: FormData) {
         console.log("Reset Link:", resetLink);
         console.log("=========================================");
       } else {
-        await resend.emails.send({
-          from: "Random Frames OS <noreply@randomframes.com>", // Replace with verified domain
+        console.log("[Phase 5] Email function called with provider: Resend");
+        const resendResponse = await resend.emails.send({
+          from: "Random Frames OS <onboarding@resend.dev>", // Safe fallback for unverified domains
           to: email,
           subject: "Password Reset Request",
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
               <h2>Reset Your Password</h2>
               <p>You requested a password reset for Random Frames OS.</p>
-              <p>Click the link below to set a new password. This link will expire in 1 hour.</p>
+              <p>Click the link below to set a new password. This link will expire in 10 minutes.</p>
               <a href="${resetLink}" style="display: inline-block; background-color: #E53935; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
               <p style="margin-top: 30px; font-size: 12px; color: #888;">If you didn't request this, you can safely ignore this email.</p>
             </div>
           `,
         });
+        
+        console.log("[Phase 5] Provider response:", resendResponse);
+        
+        if (resendResponse.error) {
+          console.error("[Phase 6] Resend Provider Error:", resendResponse.error);
+          throw new Error(resendResponse.error.message || "Resend API rejected the email");
+        }
       }
     }
     
@@ -134,16 +151,8 @@ export async function resetPassword(formData: FormData) {
       where: { tokenHash },
     });
 
-    if (!resetToken) {
-      return { error: "Invalid or expired reset token." };
-    }
-
-    if (resetToken.usedAt) {
-      return { error: "This password reset token has already been used." };
-    }
-
-    if (resetToken.expiresAt < new Date()) {
-      return { error: "This password reset token has expired." };
+    if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
+      return { error: "Your password reset link has expired. Please request a new password reset email." };
     }
 
     const user = await prisma.user.findUnique({

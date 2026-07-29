@@ -108,7 +108,6 @@ function ResetPasswordForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
                   className="h-11 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-white placeholder:text-zinc-600 focus:border-[#E53935] focus:outline-none focus:ring-1 focus:ring-[#E53935] transition-all pr-10"
                 />
                 <button 
@@ -146,7 +145,6 @@ function ResetPasswordForm() {
                   name="confirmPassword"
                   type={showPassword ? "text" : "password"} 
                   required
-                  placeholder="••••••••"
                   className="h-11 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-white placeholder:text-zinc-600 focus:border-[#E53935] focus:outline-none focus:ring-1 focus:ring-[#E53935] transition-all pr-10"
                 />
               </div>

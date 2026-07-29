@@ -31,17 +31,17 @@ export default function SecurityTab() {
           <Key className="w-4 h-4 text-zinc-400" /> Change Password
         </h4>
         <div className="bg-white/5 border border-white/10 rounded-lg p-6 space-y-4">
-          <div className="space-y-2">
-            <Label>Current Password</Label>
-            <Input type="password" placeholder="••••••••" className="bg-black/50 border-white/10 max-w-md" />
+          <div className="space-y-1">
+            <Label className="text-zinc-400">Current Password</Label>
+            <Input type="password" className="bg-black/50 border-white/10 max-w-md" />
           </div>
-          <div className="space-y-2">
-            <Label>New Password</Label>
-            <Input type="password" placeholder="••••••••" className="bg-black/50 border-white/10 max-w-md" />
+          <div className="space-y-1">
+            <Label className="text-zinc-400">New Password</Label>
+            <Input type="password" className="bg-black/50 border-white/10 max-w-md" />
           </div>
-          <div className="space-y-2">
-            <Label>Confirm New Password</Label>
-            <Input type="password" placeholder="••••••••" className="bg-black/50 border-white/10 max-w-md" />
+          <div className="space-y-1">
+            <Label className="text-zinc-400">Confirm New Password</Label>
+            <Input type="password" className="bg-black/50 border-white/10 max-w-md" />
           </div>
           <Button onClick={handlePasswordChange} disabled={isSaving} className="bg-white/10 hover:bg-white/20 text-white mt-2">
             {isSaving ? "Updating..." : "Update Password"}
