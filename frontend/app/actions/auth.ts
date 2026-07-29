@@ -7,10 +7,7 @@ import { Resend } from "resend";
 import { createSession, deleteSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-// Next.js recommended way to instantiate Prisma Client in dev
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-const prisma = globalForPrisma.prisma || new PrismaClient();
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "dummy_key");
 

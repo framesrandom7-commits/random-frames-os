@@ -139,6 +139,10 @@ export default async function ContinueWorkingWidget() {
             return (
               <div key={item.id} className="group relative flex flex-col h-[280px] bg-[#171A21] rounded-[24px] border border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.2)] hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer">
                 
+                <Link href={item.href} className="absolute inset-0 z-10">
+                  <span className="sr-only">View {item.title}</span>
+                </Link>
+
                 {/* Background Image / Placeholder */}
                 <div className="absolute inset-0 z-0 pointer-events-none">
                   {item.coverImage ? (
@@ -150,12 +154,12 @@ export default async function ContinueWorkingWidget() {
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111318] via-[#111318]/80 to-transparent" />
                 </div>
 
-                <div className="relative z-10 flex flex-col h-full p-5">
-                  <div className="flex items-center justify-between mb-auto">
+                <div className="relative z-10 flex flex-col h-full p-5 pointer-events-none">
+                  <div className="flex items-center justify-between mb-auto pointer-events-auto">
                     <span className="px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-md text-[10px] font-semibold text-white tracking-wider border border-white/10 relative z-20">
                       {item.type}
                     </span>
-                    <button className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-md flex items-center justify-center text-white/70 hover:text-white transition-colors border border-white/5 relative z-20">
+                    <button className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-md flex items-center justify-center text-white/70 hover:text-white transition-colors border border-white/5 relative z-30">
                       <span className="sr-only">More</span>
                       •••
                     </button>
@@ -176,11 +180,9 @@ export default async function ContinueWorkingWidget() {
                     </div>
 
                     <div className="mt-5">
-                      <Link href={item.href} className="after:absolute after:inset-0">
-                        <button className="w-full py-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 text-xs font-semibold text-white tracking-wide flex items-center justify-center gap-2 transition-all duration-200">
-                          {item.actionText} <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </Link>
+                      <div className="w-full py-2.5 rounded-full bg-white/10 group-hover:bg-white/20 backdrop-blur-md border border-white/10 text-xs font-semibold text-white tracking-wide flex items-center justify-center gap-2 transition-all duration-200 pointer-events-auto cursor-pointer">
+                        {item.actionText} <ArrowRight className="w-3.5 h-3.5" />
+                      </div>
                     </div>
                   </div>
                 </div>

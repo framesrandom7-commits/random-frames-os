@@ -1,10 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { verifySession } from "../../auth";
 import { redirect } from "next/navigation";
-
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-const prisma = globalForPrisma.prisma || new PrismaClient();
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+import { prisma } from "@/lib/prisma";
 
 /**
  * Fetches all permissions for a specific user ID

@@ -1,8 +1,24 @@
- 
 import { PrismaClient } from "@prisma/client";
+import { neonConfig } from "@neondatabase/serverless";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import ws from "ws";
+
+// Set up WebSocket for Node.js environment
+neonConfig.webSocketConstructor = ws;
 
 const prismaClientSingleton = () => {
-  return new PrismaClient();
+  // Use the connection string from environment variables
+  const connectionString = process.env.DATABASE_URL || "";
+  
+  if (!connectionString) {
+    console.warn("WARNING: DATABASE_URL is missing in prismaClientSingleton!");
+  }
+
+  // Initialize the Prisma Adapter with PoolConfig
+  const adapter = new PrismaNeon({ connectionString });
+  
+  // Return PrismaClient with the adapter
+  return new PrismaClient({ adapter });
 };
 
 declare const globalThis: {
