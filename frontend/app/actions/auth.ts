@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { Resend } from "resend";
 import { createSession, deleteSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
@@ -50,6 +51,7 @@ export async function login(formData: FormData) {
 
 export async function logout() {
   await deleteSession();
+  revalidatePath("/", "layout");
   redirect("/login");
 }
 

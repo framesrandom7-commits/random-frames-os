@@ -35,7 +35,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  if (!isPublicRoute) {
+    response.headers.set("Cache-Control", "no-store, max-age=0");
+  }
+
+  return response;
 }
 
 export const config = {
