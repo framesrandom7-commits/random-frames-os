@@ -1,14 +1,11 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { prisma } from "@/lib/prisma";
+import { getRecentActivities } from "@/lib/timeline";
 import { formatDistanceToNow } from "date-fns";
 import { Activity, Clock } from "lucide-react";
 
 export default async function RecentActivities() {
-  const activities = await prisma.activity.findMany({
-    take: 5,
-    orderBy: { createdAt: "desc" },
-  });
+  const activities = await getRecentActivities(5);
 
   return (
     <Card className="border-white/10 bg-white/5 backdrop-blur-md shadow-lg h-full">

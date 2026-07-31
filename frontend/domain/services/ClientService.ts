@@ -1,0 +1,169 @@
+import { ClientRepository, GetClientsParams } from "../repositories/ClientRepository";
+import { CreateClientData, OnboardClientData } from "@/app/actions/client";
+import { prisma } from "@/lib/prisma";
+
+export class ClientService {
+  static async getDashboardRecentClients(limit: number = 5) {
+    return ClientRepository.findRecent(limit);
+  }
+
+  static async generateCode(): Promise<string> {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    
+    const count = await prisma.client.count({
+      where: {
+        createdAt: {
+          gte: new Date(date.getFullYear(), date.getMonth(), 1),
+        }
+      }
+    });
+
+    const sequential = (count + 1).toString().padStart(3, '0');
+    return `CL${year}${month}${sequential}`;
+  }
+
+  static async create(data: CreateClientData) {
+    const clientCode = await ClientService.generateCode();
+    
+    const client = await ClientRepository.create({
+      ...data,
+      clientCode,
+    });
+    
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Client profile created`,
+      clientId: client.id,
+    });
+    
+    const { DriveService } = await import("@/lib/drive.service");
+    await DriveService.createClientFolders(client.id, client.businessName);
+    
+    const { WhatsAppService } = await import("@/lib/whatsapp.service");
+    if (client.phone || client.whatsapp) {
+      await WhatsAppService.sendTemplateMessage(
+        client.whatsapp || client.phone || "",
+        "Quote Approved",
+        { clientName: client.contactPerson || client.businessName }
+      );
+    }
+
+    return client;
+  }
+
+  static async update(id: string, data: Partial<CreateClientData>) {
+    return ClientRepository.update(id, data);
+  }
+
+  static async updatePhone(id: string, phone: string) {
+    const client = await ClientRepository.update(id, { phone });
+    
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Phone number updated to ${phone}`,
+      clientId: id
+    });
+    
+    return client;
+  }
+
+  static async softDelete(id: string) {
+    return ClientRepository.softDelete(id);
+  }
+
+  static async getById(id: string) {
+    return ClientRepository.findById(id);
+  }
+
+  static async getMany(params: GetClientsParams) {
+    return ClientRepository.findMany(params);
+  }
+
+  static async onboard(data: OnboardClientData) {
+    const lead = await prisma.lead.findUnique({ where: { id: data.leadId } });
+    if (!lead) throw new Error("Lead not found");
+    if (lead.convertedToClientId) throw new Error("Lead already converted");
+
+    const clientCode = await ClientService.generateCode();
+    const projectCode = `PRJ${new Date().getTime().toString().slice(-6)}`;
+
+    const result = await prisma.$transaction(async (tx: any) => {
+      let combinedNotes = data.clientNotes || "";
+      if (data.whatsapp) combinedNotes += `\nWhatsApp: ${data.whatsapp}`;
+      if (data.gstNumber) combinedNotes += `\nGST Number: ${data.gstNumber}`;
+
+      const newClient = await tx.client.create({
+        data: {
+          clientCode,
+          businessName: data.businessName,
+          contactPerson: data.contactPerson,
+          phone: data.phone,
+          email: data.email,
+          instagram: data.instagram,
+          website: data.website,
+          address: data.address,
+          notes: combinedNotes,
+        }
+      });
+
+      const newProject = await tx.project.create({
+        data: {
+          projectCode,
+          title: data.projectTitle,
+          description: data.projectDescription,
+          category: data.projectCategory || "ONE_TIME_SHOOT",
+          priority: data.projectPriority || "MEDIUM",
+          clientId: newClient.id,
+          quotationAmount: 0,
+          advanceAmount: 0,
+          totalAmount: 0,
+          balanceAmount: 0,
+          paymentStatus: "PENDING",
+        }
+      });
+
+      await tx.lead.update({
+        where: { id: data.leadId },
+        data: {
+          status: "CONVERTED",
+          convertedToClientId: newClient.id
+        }
+      });
+
+      return { newClient, newProject };
+    });
+
+    const { logActivity } = await import('@/lib/timeline');
+    await logActivity({
+      type: "SYSTEM",
+      description: `Client onboarded. Created project: ${data.projectTitle}`,
+      clientId: result.newClient.id,
+      projectId: result.newProject.id,
+      leadId: data.leadId,
+    });
+    
+    return result.newClient;
+  }
+
+  static async getStats() {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const [totalClients, newClientsThisMonth, archivedClients] = await Promise.all([
+      ClientRepository.count(),
+      prisma.client.count({ where: { archivedAt: null, createdAt: { gte: startOfMonth } } }),
+      prisma.client.count({ where: { archivedAt: { not: null } } }),
+    ]);
+
+    return {
+      totalClients,
+      newClientsThisMonth,
+      activeClients: totalClients, 
+      inactiveClients: archivedClients
+    };
+  }
+}

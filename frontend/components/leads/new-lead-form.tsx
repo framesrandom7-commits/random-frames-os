@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { leadSchema, LeadFormData } from "@/lib/validations/lead";
 import { checkLeadDuplicates, createLead } from "@/app/actions/lead";
-import { LeadStatus, LeadPriority, LeadSource, BusinessType, ReminderType } from "@prisma/client";
+import { LeadStatus, LeadPriority, LeadSource, BusinessType, ReminderType, PreferredContact } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ export function NewLeadForm() {
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   
-  const form = useForm<LeadFormData>({
+  const form = useForm<any>({
     resolver: zodResolver(leadSchema) as any,
     defaultValues: {
       businessName: "",
@@ -61,6 +61,8 @@ export function NewLeadForm() {
       priority: LeadPriority.MEDIUM,
       tags: [],
       notes: "",
+      serviceInterested: "",
+      preferredContactMethod: null,
     }
   });
 
@@ -71,6 +73,7 @@ export function NewLeadForm() {
   const status = watch("status");
   const priority = watch("priority");
   const reminderType = watch("reminderType");
+  const preferredContactMethod = watch("preferredContactMethod");
   const tags = watch("tags") || [];
 
   // 1. Load Draft on Mount
@@ -167,7 +170,7 @@ export function NewLeadForm() {
     if (checked) {
       setValue("tags", [...currentTags, service], { shouldDirty: true });
     } else {
-      setValue("tags", currentTags.filter(t => t !== service), { shouldDirty: true });
+      setValue("tags", currentTags.filter((t: string) => t !== service), { shouldDirty: true });
     }
   };
 
@@ -187,37 +190,50 @@ export function NewLeadForm() {
           <div className="space-y-2">
             <Label htmlFor="contactPerson" className="text-zinc-300">Contact Person <span className="text-red-500">*</span></Label>
             <Input id="contactPerson" {...register("contactPerson")} className="bg-white/5 border-white/10 text-white" />
-            {errors.contactPerson && <p className="text-xs text-red-400">{errors.contactPerson.message}</p>}
+            {errors.contactPerson && <p className="text-xs text-red-400">{errors.contactPerson.message as string}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="businessName" className="text-zinc-300">Business Name <span className="text-red-500">*</span></Label>
+            <Label htmlFor="businessName" className="text-zinc-300">Business Name</Label>
             <Input id="businessName" {...register("businessName")} className="bg-white/5 border-white/10 text-white" />
-            {errors.businessName && <p className="text-xs text-red-400">{errors.businessName.message}</p>}
+            {errors.businessName && <p className="text-xs text-red-400">{errors.businessName.message as string}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone" className="text-zinc-300">Phone <span className="text-red-500">*</span></Label>
             <Input id="phone" {...register("phone")} onBlur={checkDuplicates} className="bg-white/5 border-white/10 text-white" />
-            {errors.phone && <p className="text-xs text-red-400">{errors.phone.message}</p>}
+            {errors.phone && <p className="text-xs text-red-400">{errors.phone.message as string}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="whatsapp" className="text-zinc-300">WhatsApp</Label>
             <Input id="whatsapp" {...register("whatsapp")} className="bg-white/5 border-white/10 text-white" />
-            {errors.whatsapp && <p className="text-xs text-red-400">{errors.whatsapp.message}</p>}
+            {errors.whatsapp && <p className="text-xs text-red-400">{errors.whatsapp.message as string}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-zinc-300">Email</Label>
             <Input id="email" {...register("email")} onBlur={checkDuplicates} className="bg-white/5 border-white/10 text-white" />
-            {errors.email && <p className="text-xs text-red-400">{errors.email.message}</p>}
+            {errors.email && <p className="text-xs text-red-400">{errors.email.message as string}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="website" className="text-zinc-300">Website</Label>
             <Input id="website" {...register("website")} placeholder="https://" className="bg-white/5 border-white/10 text-white" />
-            {errors.website && <p className="text-xs text-red-400">{errors.website.message}</p>}
+            {errors.website && <p className="text-xs text-red-400">{errors.website.message as string}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="instagram" className="text-zinc-300">Instagram</Label>
             <Input id="instagram" {...register("instagram")} placeholder="@handle" className="bg-white/5 border-white/10 text-white" />
-            {errors.instagram && <p className="text-xs text-red-400">{errors.instagram.message}</p>}
+            {errors.instagram && <p className="text-xs text-red-400">{errors.instagram.message as string}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label className="text-zinc-300">Preferred Contact Method</Label>
+            <Select onValueChange={(v) => setValue("preferredContactMethod", v as PreferredContact)} value={preferredContactMethod || undefined}>
+              <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectValue placeholder="Select method" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 border-white/10">
+                {Object.values(PreferredContact).map((t) => (
+                  <SelectItem key={t} value={t} className="text-zinc-200 focus:bg-white/10">{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </section>
@@ -258,6 +274,10 @@ export function NewLeadForm() {
           <div className="space-y-2">
             <Label htmlFor="postalCode" className="text-zinc-300">Pincode</Label>
             <Input id="postalCode" {...register("postalCode")} className="bg-white/5 border-white/10 text-white" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="serviceInterested" className="text-zinc-300">Service Interested In</Label>
+            <Input id="serviceInterested" {...register("serviceInterested")} className="bg-white/5 border-white/10 text-white" />
           </div>
         </div>
       </section>

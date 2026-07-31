@@ -11,6 +11,7 @@ import { Prisma, InvoiceStatus } from "@prisma/client";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { deleteInvoice, generateInvoiceNumber, createInvoice } from "@/app/actions/invoice";
+import { getInvoiceStatusMetadata } from "@/domain/finance/metadata";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
 type InvoiceWithRelations = Prisma.InvoiceGetPayload<{
@@ -38,17 +39,7 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
-  const getStatusColor = (status: InvoiceStatus) => {
-    switch (status) {
-      case "PAID": return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-      case "OVERDUE": return "bg-red-500/10 text-red-400 border-red-500/20";
-      case "PARTIAL": return "bg-amber-500/10 text-amber-400 border-amber-500/20";
-      case "SENT": return "bg-blue-500/10 text-blue-400 border-blue-500/20";
-      case "DRAFT": return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
-      case "CANCELLED": return "bg-zinc-800 text-zinc-500 border-zinc-700";
-      default: return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
-    }
-  };
+
 
   const setFilter = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -203,9 +194,14 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
                       {formatCurrency(Number(invoice.total))}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={getStatusColor(invoice.status)}>
-                        {invoice.status}
-                      </Badge>
+                      {(() => {
+                        const meta = getInvoiceStatusMetadata(invoice.status);
+                        return (
+                          <Badge variant={meta?.variant || "outline"} className={meta?.color}>
+                            {meta?.label || invoice.status}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

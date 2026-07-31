@@ -39,7 +39,7 @@ export default function CustomerOnboardingPage({ params }: { params: Promise<{ i
           notFound();
           return;
         }
-        setLeadName(lead.businessName);
+        setLeadName(lead.businessName || "");
         setFormData({
           contactPerson: lead.contactPerson || "",
           phone: lead.phone || "",
@@ -67,11 +67,11 @@ export default function CustomerOnboardingPage({ params }: { params: Promise<{ i
     const result = await submitCustomerForm(resolvedParams.id, formData);
     setIsSubmitting(false);
 
-    if (result.success) {
+    if (result) {
       setIsSuccess(true);
       toast.success("Thank you! Your information has been submitted successfully.");
     } else {
-      toast.error(result.error || "Something went wrong.");
+      toast.error("Something went wrong.");
     }
   };
 

@@ -26,3 +26,10 @@ export async function logActivity(params: LogActivityParams) {
     return { success: false, error: "Failed to log activity" };
   }
 }
+
+export async function getRecentActivities(limit: number = 5) {
+  return prisma.activity.findMany({
+    take: limit,
+    orderBy: { createdAt: "desc" },
+  });
+}

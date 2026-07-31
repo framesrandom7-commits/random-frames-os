@@ -12,7 +12,7 @@ export default async function NotificationsWidget() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xs font-bold text-[#E53935] uppercase tracking-widest">
+        <h2 className="text-sm font-black text-[#E53935] uppercase tracking-widest">
           Notifications
         </h2>
         <Link href="/notifications" className="text-[10px] font-medium text-zinc-500 hover:text-white transition-colors uppercase tracking-wider">

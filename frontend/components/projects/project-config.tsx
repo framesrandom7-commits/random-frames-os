@@ -7,6 +7,7 @@ import { Typography } from "@/components/ui/typography";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ProjectBulkActions } from "./project-bulk-actions";
+import { getProjectStatusMetadata } from "@/domain/project/metadata";
 
 type ProjectWithRelations = Project & {
   client: Client;
@@ -57,11 +58,14 @@ export const projectConfig: EntityConfig<ProjectWithRelations> = {
     {
       header: "Status",
       accessorKey: "status",
-      cell: (project) => (
-        <Badge variant="outline" className="text-xs border-white/20 text-zinc-300">
-          {project.status}
-        </Badge>
-      ),
+      cell: (project) => {
+        const meta = getProjectStatusMetadata(project.status);
+        return (
+          <Badge variant={meta?.variant || "outline"} className={`text-xs ${meta?.color || 'text-zinc-300 border-white/20'}`}>
+            {meta?.label || project.status}
+          </Badge>
+        );
+      },
     },
     {
       header: "Priority",
@@ -109,7 +113,14 @@ export const projectConfig: EntityConfig<ProjectWithRelations> = {
           <Typography variant="caption" color="muted">{project.client?.businessName}</Typography>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <Badge variant="outline" className="text-[10px] py-0">{project.status}</Badge>
+          {(() => {
+            const meta = getProjectStatusMetadata(project.status);
+            return (
+              <Badge variant={meta?.variant || "outline"} className={`text-[10px] py-0 ${meta?.color || ''}`}>
+                {meta?.label || project.status}
+              </Badge>
+            );
+          })()}
           <Badge variant="outline" className={`text-[10px] py-0 ${project.priority === 'HIGH' ? 'text-red-400 border-red-400/50' : project.priority === 'MEDIUM' ? 'text-yellow-400 border-yellow-400/50' : 'text-blue-400 border-blue-400/50'}`}>
             {project.priority}
           </Badge>

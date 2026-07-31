@@ -1,22 +1,26 @@
 import React from "react";
-import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { ArrowRight, Image as ImageIcon } from "lucide-react";
+import { ProjectService } from "@/domain/services/ProjectService";
+import { ShootService } from "@/domain/services/ShootService";
+import { LeadService } from "@/domain/services/LeadService";
+import { DeliverableService } from "@/domain/services/DeliverableService";
+import { calculateProjectProgress, calculateShootProgress, calculateLeadProgress, calculateDeliverableProgress } from "@/domain/workflow/core";
+import { LeadStatus } from "@prisma/client";
 
 interface ResumeItem {
   id: string;
   type: "PROJECT" | "SHOOT" | "LEAD" | "DELIVERABLE";
   title: string;
-  subtitle: string; // client name or project name
+  subtitle: string;
   statusText: string;
   href: string;
   updatedAt: Date;
   actionText: string;
   progress: number;
-  coverImage?: string | null; // For future when cover images exist
+  coverImage?: string | null;
 }
 
-// Helper to generate a consistent gradient based on string ID
 const generateGradient = (id: string) => {
   const colors = [
     "from-blue-900/40 to-indigo-900/40",
@@ -31,34 +35,15 @@ const generateGradient = (id: string) => {
 
 export default async function ContinueWorkingWidget() {
   const [projects, shoots, leads, deliverables] = await Promise.all([
-    prisma.project.findMany({
-      where: { status: { in: ["SHOOTING", "EDITING", "REVIEW", "PLANNED"] } },
-      include: { client: true },
-      orderBy: { updatedAt: "desc" },
-      take: 2,
-    }),
-    prisma.shoot.findMany({
-      where: { status: { in: ["CONFIRMED", "IN_PROGRESS"] } },
-      include: { project: { include: { client: true } } },
-      orderBy: { updatedAt: "desc" },
-      take: 2,
-    }),
-    prisma.lead.findMany({
-      where: { status: { in: ["ATTENDED", "REQUIREMENT_DISCUSSION", "QUOTATION_SENT", "NEGOTIATION"] } },
-      orderBy: { updatedAt: "desc" },
-      take: 2,
-    }),
-    prisma.deliverable.findMany({
-      where: { status: { in: ["EDITING", "CHANGES_REQUESTED"] } },
-      include: { shoot: { include: { project: { include: { client: true } } } } },
-      orderBy: { updatedAt: "desc" },
-      take: 2,
-    })
+    ProjectService.getContinueWorkingProjects(2),
+    ShootService.getDashboardUpcomingShoots(2),
+    LeadService.getDashboardActiveLeads(2),
+    DeliverableService.getContinueWorkingDeliverables(2)
   ]);
 
   const items: ResumeItem[] = [];
 
-  projects.forEach(p => {
+  projects.forEach((p: any) => {
     items.push({
       id: `proj-${p.id}`,
       type: "PROJECT",
@@ -68,11 +53,11 @@ export default async function ContinueWorkingWidget() {
       href: `/projects/${p.id}`,
       updatedAt: p.updatedAt,
       actionText: "Resume",
-      progress: p.status === "SHOOTING" ? 40 : p.status === "EDITING" ? 70 : p.status === "REVIEW" ? 90 : 10
+      progress: calculateProjectProgress(p.status)
     });
   });
 
-  shoots.forEach(s => {
+  shoots.forEach((s: any) => {
     items.push({
       id: `shoot-${s.id}`,
       type: "SHOOT",
@@ -82,21 +67,21 @@ export default async function ContinueWorkingWidget() {
       href: `/shoots/${s.id}`,
       updatedAt: s.updatedAt,
       actionText: "Open",
-      progress: s.status === "IN_PROGRESS" ? 50 : 20
+      progress: calculateShootProgress(s.status)
     });
   });
 
-  leads.forEach(l => {
+  leads.forEach((l: any) => {
     items.push({
       id: `lead-${l.id}`,
       type: "LEAD",
-      title: l.businessName,
+      title: l.businessName || "Unknown",
       subtitle: l.contactPerson || "Lead",
       statusText: "Pending Follow-up",
       href: `/leads/${l.id}`,
       updatedAt: l.updatedAt,
       actionText: "Continue",
-      progress: 60
+      progress: calculateLeadProgress(l.status)
     });
   });
 
@@ -110,7 +95,7 @@ export default async function ContinueWorkingWidget() {
       href: `/shoots/${d.shootId}`,
       updatedAt: d.updatedAt,
       actionText: "Review",
-      progress: d.status === "EDITING" ? 50 : 95
+      progress: calculateDeliverableProgress(d.status)
     });
   });
 

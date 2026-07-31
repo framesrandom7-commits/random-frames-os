@@ -1,5 +1,5 @@
 import React from "react";
-import { prisma } from "@/lib/prisma";
+import { getRecentActivities } from "@/lib/timeline";
 import { Activity, Clock, Calendar, UploadCloud, CheckCircle, MessageSquare, FileText, User } from "lucide-react";
 import { formatDistanceToNow, isYesterday } from "date-fns";
 
@@ -16,10 +16,7 @@ const getActivityVisuals = (description: string) => {
 };
 
 export default async function RecentActivityWidget() {
-  const activities = await prisma.activity.findMany({
-    take: 6,
-    orderBy: { createdAt: "desc" },
-  });
+  const activities = await getRecentActivities(6);
 
   return (
     <div className="space-y-4">

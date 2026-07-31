@@ -168,7 +168,7 @@ export async function syncAutomatedNotifications() {
   // 3. Upcoming Shoots
   const upcomingShoots = await prisma.shoot.findMany({
     where: {
-      status: { in: ['PLANNED', 'CONFIRMED'] },
+      status: "UPCOMING",
       date: { lte: threeDaysFromNow, gte: now }
     }
   });
@@ -197,7 +197,7 @@ export async function syncAutomatedNotifications() {
   // 4. Project Deadlines
   const upcomingProjects = await prisma.project.findMany({
     where: {
-      status: { in: ['SHOOTING', 'EDITING', 'REVIEW'] },
+      status: { in: ['SCHEDULED', 'SHOOT_COMPLETED', 'EDITING', 'CLIENT_REVIEW'] },
       deliveryDate: { lte: threeDaysFromNow, gte: now }
     }
   });

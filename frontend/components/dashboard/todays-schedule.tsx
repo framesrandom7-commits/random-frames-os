@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { prisma } from "@/lib/prisma";
+import { CalendarService } from "@/domain/services/CalendarService";
 import { Calendar, Clock, Video } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -12,14 +12,9 @@ export default async function TodaysSchedule() {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const events = await prisma.calendarEvent.findMany({
-    where: {
-      date: {
-        gte: today,
-        lt: tomorrow,
-      }
-    },
-    orderBy: { startTime: "asc" }
+  const events = await CalendarService.getEvents({
+    dateStart: today.toISOString(),
+    dateEnd: tomorrow.toISOString()
   });
 
   return (

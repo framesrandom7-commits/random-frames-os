@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { login } from "@/app/actions/auth";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
@@ -58,11 +59,10 @@ export default function LoginPage() {
       
       <div className="w-full max-w-md z-10">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-[#0A0C10] mb-8 border-[3px] border-white shadow-xl shadow-black/50 overflow-hidden">
-            <span className="text-white font-bold text-2xl tracking-tight">R</span>
-            <span className="text-[#E53935] font-bold text-2xl tracking-tight">F</span>
+          <div className="inline-flex items-center justify-center h-20 w-20 rounded-2xl bg-[#0A0C10] mb-8 border-[3px] border-white/10 shadow-xl shadow-black/50 overflow-hidden">
+            <Image src="/logo.jpg" alt="Logo" width={80} height={80} className="object-contain h-full w-full" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-wide mb-2.5 font-[family-name:var(--font-heading)]">RANDOM FRAMES</h1>
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-wide mb-2.5 font-[family-name:var(--font-heading)]">RANDOM FRAMES</h1>
           <p className="text-sm sm:text-base font-medium text-zinc-400">Creative Business Platform</p>
         </div>
 
@@ -126,7 +126,7 @@ export default function LoginPage() {
         </div>
         
         <footer className="mt-8 text-center">
-          <p className="text-[12px] text-white/40 font-medium">© 2026 Random Frames By Savan</p>
+          <p className="text-[12px] text-white/40 font-medium">© 2026 Random Frames by Savan</p>
         </footer>
       </div>
     </div>

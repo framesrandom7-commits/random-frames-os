@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/button";
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-black p-4 text-white selection:bg-[#C1121F] selection:text-white">
-      <div className="w-full max-w-[420px]">
-        <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden ring-1 ring-white/5 transition-all duration-300 hover:ring-white/10">
+      <div className="w-full max-w-[420px] relative">
+        {/* Deep Red Gradient Glow Behind Form */}
+        <div className="absolute -inset-1 bg-gradient-to-tr from-[#E53935]/60 via-[#C1121F]/30 to-transparent rounded-3xl blur-2xl opacity-70"></div>
+        
+        <Card className="relative border-white/10 bg-[#0A0C10]/80 backdrop-blur-2xl shadow-2xl rounded-2xl overflow-hidden ring-1 ring-white/10 transition-all duration-300 hover:ring-white/20">
           <CardHeader className="space-y-5 pb-6 pt-10 text-center flex flex-col items-center">
             {/* Logo */}
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-black shadow-lg transition-transform duration-500 hover:scale-105 overflow-hidden ring-1 ring-white/10">
@@ -36,7 +39,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@example.com"
+                  placeholder=""
                   className="h-12 bg-black/40 border-white/10 text-white placeholder:text-zinc-600 focus-visible:ring-[#C1121F] focus-visible:border-[#C1121F] rounded-lg transition-all"
                 />
               </div>
@@ -70,7 +73,7 @@ export default function LoginPage() {
         </Card>
         
         <div className="mt-10 text-center text-sm font-medium text-zinc-500">
-          Powered by <span className="text-zinc-300">Random Frames</span>
+          © 2026 Random Frames by Savan
         </div>
       </div>
     </div>

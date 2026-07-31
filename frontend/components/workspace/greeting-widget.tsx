@@ -5,7 +5,13 @@ import Link from "next/link";
 import { Users, UserCircle, Briefcase, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function GreetingWidget({ user }: { user: { name: string, roleName: string } }) {
+export default function GreetingWidget({ 
+  user,
+  metrics
+}: { 
+  user: { name: string, roleName: string };
+  metrics?: { activeProjectsCount: number, openLeadsCount: number, pendingInvoicesAmount: number, shootsTodayCount: number };
+}) {
   const [greeting, setGreeting] = useState("Good Morning");
   const [dateStr, setDateStr] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -57,6 +63,19 @@ export default function GreetingWidget({ user }: { user: { name: string, roleNam
           <p className="text-zinc-500 text-base font-bold mt-3">
             Welcome back to Random Frames
           </p>
+          
+          {/* Business Summary */}
+          <div className="flex flex-wrap items-center gap-3 mt-4 text-sm font-medium text-zinc-400">
+            <span>{metrics?.activeProjectsCount ?? 0} Active Projects</span>
+            <span className="text-zinc-600 hidden sm:inline">•</span>
+            <span className="mt-1 sm:mt-0">{metrics?.openLeadsCount ?? 0} Open Leads</span>
+            <span className="text-zinc-600 hidden md:inline">•</span>
+            <span className="mt-1 md:mt-0">
+              {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(metrics?.pendingInvoicesAmount ?? 0)} Pending
+            </span>
+            <span className="text-zinc-600 hidden lg:inline">•</span>
+            <span className="mt-1 lg:mt-0">{metrics?.shootsTodayCount ?? 0} Shoots Today</span>
+          </div>
         </div>
 
         {/* Quick Actions */}

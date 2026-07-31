@@ -1,9 +1,8 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { ExpenseCategory, PaymentMethod, Prisma } from "@prisma/client";
+import { PaymentMethod } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { syncProjectFinancials } from "./project";
+import { FinanceService } from "@/domain/services/FinanceService";
 import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 
 export type CreateExpenseData = {
@@ -21,68 +20,28 @@ export type CreateExpenseData = {
 
 export async function createExpense(data: CreateExpenseData) {
   try {
-    const expense = await prisma.expense.create({
-      data: {
-        title: data.title,
-        categoryId: data.categoryId,
-        amount: data.amount,
-        date: data.date,
-        paymentMethod: data.paymentMethod,
-        clientId: data.clientId,
-        projectId: data.projectId,
-        vendor: data.vendor,
-        receiptUrl: data.receiptUrl,
-        notes: data.notes,
-      },
-    });
-
-    if (data.projectId) {
-      await syncProjectFinancials(data.projectId);
-    }
-
-    const { logActivity } = await import('@/lib/timeline');
-    await logActivity({
-      type: "SYSTEM",
-      description: `Expense added: ${data.title} (${data.amount})`,
-      expenseId: expense.id,
-      projectId: data.projectId,
-      clientId: data.clientId,
-    });
+    const expense = await FinanceService.createExpense(data);
 
     revalidatePath("/finance/expenses");
     revalidatePath("/finance");
     return { success: true, expense };
   } catch (error) {
-  console.error("Error in createExpense:", error);
-  return GlobalErrorService.handleError(error, "Action:createExpense");
-}
+    console.error("Error in createExpense:", error);
+    return GlobalErrorService.handleError(error, "Action:createExpense");
+  }
 }
 
 export async function deleteExpense(id: string) {
   try {
-    const expense = await prisma.expense.delete({
-      where: { id },
-    });
-
-    if (expense.projectId) {
-      await syncProjectFinancials(expense.projectId);
-    }
-
-    const { logActivity } = await import('@/lib/timeline');
-    await logActivity({
-      type: "SYSTEM",
-      description: `Expense deleted: ${expense.title}`,
-      projectId: expense.projectId,
-      clientId: expense.clientId || undefined,
-    });
+    await FinanceService.deleteExpense(id);
 
     revalidatePath("/finance/expenses");
     revalidatePath("/finance");
     return { success: true };
   } catch (error) {
-  console.error("Error in deleteExpense:", error);
-  return GlobalErrorService.handleError(error, "Action:deleteExpense");
-}
+    console.error("Error in deleteExpense:", error);
+    return GlobalErrorService.handleError(error, "Action:deleteExpense");
+  }
 }
 
 export async function getExpenses(params?: {
@@ -93,49 +52,9 @@ export async function getExpenses(params?: {
   limit?: number;
 }) {
   try {
-    const page = params?.page || 1;
-    const limit = params?.limit || 50;
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.ExpenseWhereInput = {};
-    
-    if (params?.categoryId) {
-      where.categoryId = params.categoryId;
-    }
-    
-    if (params?.month && params?.year) {
-      const startDate = new Date(params.year, params.month - 1, 1);
-      const endDate = new Date(params.year, params.month, 0, 23, 59, 59, 999);
-      where.date = {
-        gte: startDate,
-        lte: endDate,
-      };
-    }
-
-    const [expenses, total] = await Promise.all([
-      prisma.expense.findMany({
-        where,
-        include: {
-          client: true,
-          project: true,
-          category: true,
-        },
-        orderBy: { date: "desc" },
-        skip,
-        take: limit,
-      }),
-      prisma.expense.count({ where }),
-    ]);
-
-    return {
-      expenses,
-      total,
-      totalPages: Math.ceil(total / limit),
-      page,
-      limit
-    };
+    return await FinanceService.getExpenses(params);
   } catch (error) {
-  console.error("Error in getExpenses:", error);
-  return GlobalErrorService.handleError(error, "Action:getExpenses");
-}
+    console.error("Error in getExpenses:", error);
+    return GlobalErrorService.handleError(error, "Action:getExpenses");
+  }
 }

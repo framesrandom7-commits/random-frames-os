@@ -41,6 +41,11 @@ export function getLeadFilters(users: { id: string, name: string | null, email: 
       }))
     },
     {
+      id: "createdDate",
+      label: "Created Date",
+      type: "date"
+    },
+    {
       id: "archived",
       label: "Show Deleted",
       type: "select",

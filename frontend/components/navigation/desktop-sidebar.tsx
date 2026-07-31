@@ -12,23 +12,26 @@ export function DesktopSidebar() {
 
   return (
     <div className="flex h-full w-[260px] flex-col border-r border-white/5 bg-transparent text-white z-20 shrink-0">
-      
+
       {/* Brand Header */}
-      <div className="flex h-24 shrink-0 items-center gap-3 px-8">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg shadow-lg border border-white/10 overflow-hidden bg-black shrink-0">
-          <Image src="/logo.jpg" alt="Random Frames OS Logo" width={32} height={32} className="object-cover w-full h-full" />
+      <div className="flex h-24 shrink-0 items-center gap-3.5 px-8">
+        <div className="flex h-[65px] w-[65px] items-center justify-center rounded-xl shadow-lg border border-white/10 overflow-hidden bg-black shrink-0">
+          <Image src="/logo.jpg" alt="Random Frames OS Logo" width={65} height={65} className="object-cover w-full h-full" />
         </div>
-        <div className="flex flex-col font-heading justify-center overflow-hidden">
-          <span className="text-sm font-bold tracking-widest uppercase text-white truncate">Random Frames</span>
+        <div className="flex flex-col font-heading justify-center overflow-hidden leading-[1.05] pt-0.5">
+          <span className="text-[18px] font-black tracking-[0.15em] uppercase text-white">Random</span>
+          <span className="text-[18px] font-black uppercase text-white flex justify-between pr-[0.15em]">
+            <span>F</span><span>R</span><span>A</span><span>M</span><span>E</span><span>S</span>
+          </span>
         </div>
       </div>
-      
+
       {/* Navigation */}
       <div className="flex flex-1 flex-col overflow-y-auto custom-scrollbar px-4 pb-4">
         <nav className="flex-1 space-y-1">
           {NAVIGATION_CONFIG.map((item) => {
             const isActive = pathname === item.route || (item.route !== "/" && pathname?.startsWith(item.route));
-            
+
             return (
               <Link
                 key={item.id}
@@ -44,7 +47,7 @@ export function DesktopSidebar() {
                 {isActive && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-[#E53935] rounded-r-full" />
                 )}
-                
+
                 <item.icon
                   className={cn(
                     "h-4 w-4 shrink-0 transition-colors duration-200",

@@ -1,37 +1,13 @@
 import React from "react";
-import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Calendar, Video, FileText, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { InteractiveCalendarPreview } from "./interactive-calendar-preview";
+import { ShootService } from "@/domain/services/ShootService";
+import { DeliverableService } from "@/domain/services/DeliverableService";
 
 export default async function UpcomingWidget() {
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  
-  const nextWeek = new Date(today);
-  nextWeek.setDate(nextWeek.getDate() + 14); // Next 14 days for more data
-
-  // 1. Fetch Upcoming Shoots
-  const shoots = await prisma.shoot.findMany({
-    where: { 
-      date: { gt: today, lte: nextWeek },
-      status: { in: ["PLANNED", "CONFIRMED"] }
-    },
-    include: { project: true },
-    orderBy: { date: "asc" },
-    take: 3
-  });
-
-  // 2. Fetch Upcoming Deliverables
-  const deliverables = await prisma.deliverable.findMany({
-    where: { 
-      dueDate: { gt: today, lte: nextWeek },
-      status: { notIn: ["DELIVERED"] }
-    },
-    include: { shoot: { include: { project: true } } },
-    orderBy: { dueDate: "asc" },
-    take: 3
-  });
+  const shoots = await ShootService.getDashboardUpcomingShoots(3);
+  const deliverables = await DeliverableService.getDashboardUpcomingDeliverables(3);
 
   const getDay = (date: Date) => date.getDate();
   const getMonth = (date: Date) => date.toLocaleDateString('en-US', { month: 'short' });
@@ -47,7 +23,7 @@ export default async function UpcomingWidget() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xs font-bold text-[#E53935] uppercase tracking-widest flex items-center gap-2">
+        <h2 className="text-sm font-black text-[#E53935] uppercase tracking-widest flex items-center gap-2">
           <Calendar className="w-4 h-4 relative -top-[1px]" /> Upcoming
         </h2>
         <Link href="/calendar" className="text-[10px] font-medium text-zinc-500 hover:text-white transition-colors uppercase tracking-wider">

@@ -39,24 +39,34 @@ export async function GET(request: Request) {
     const encryptedRefreshToken = tokens.refresh_token ? encryptToken(tokens.refresh_token) : null;
     const tokenExpiry = tokens.expiry_date ? new Date(tokens.expiry_date) : null;
 
-    await prisma.integrationSettings.upsert({
-      where: { provider: 'GOOGLE_DRIVE' },
-      update: {
-        accessToken: tokens.access_token,
-        ...(encryptedRefreshToken ? { refreshToken: encryptedRefreshToken } : {}),
-        tokenExpiry,
-        userId: session.userId,
-        syncStatus: 'CONNECTED'
-      },
-      create: {
-        provider: 'GOOGLE_DRIVE',
-        accessToken: tokens.access_token,
-        refreshToken: encryptedRefreshToken,
-        tokenExpiry,
-        userId: session.userId,
-        syncStatus: 'CONNECTED'
-      },
-    });
+    const updateData = {
+      accessToken: tokens.access_token,
+      ...(encryptedRefreshToken ? { refreshToken: encryptedRefreshToken } : {}),
+      tokenExpiry,
+      userId: session.userId,
+      syncStatus: 'CONNECTED'
+    };
+
+    const createData = {
+      accessToken: tokens.access_token,
+      refreshToken: encryptedRefreshToken,
+      tokenExpiry,
+      userId: session.userId,
+      syncStatus: 'CONNECTED'
+    };
+
+    await prisma.$transaction([
+      prisma.integrationSettings.upsert({
+        where: { provider: 'GOOGLE_DRIVE' },
+        update: updateData,
+        create: { provider: 'GOOGLE_DRIVE', ...createData },
+      }),
+      prisma.integrationSettings.upsert({
+        where: { provider: 'GOOGLE_CALENDAR' },
+        update: updateData,
+        create: { provider: 'GOOGLE_CALENDAR', ...createData },
+      }),
+    ]);
 
     Logger.info('Successfully connected Google Drive', { module: 'OAuth', operation: 'auth_callback', status: 'SUCCESS' });
     return NextResponse.redirect(new URL('/settings/storage?success=Connected', request.url));

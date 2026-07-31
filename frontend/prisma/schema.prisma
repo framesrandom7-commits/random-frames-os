@@ -32,6 +32,7 @@ model User {
   tasks               Task[]
   assignedProjects    Project[]             @relation("ProjectAssignments")
   role                Role?                 @relation(fields: [roleId], references: [id])
+  leadsOwned          Lead[]                @relation("LeadOwner")
 }
 
 model PasswordResetToken {
@@ -58,6 +59,7 @@ model IntegrationSettings {
   lastSyncAt        DateTime?
   syncStatus        String    @default("IDLE")
   createdAt         DateTime  @default(now())
+  metadata          Json?
   updatedAt         DateTime  @updatedAt
   userId            String?
   user              User?     @relation(fields: [userId], references: [id])
@@ -130,48 +132,57 @@ model LeadTag {
 }
 
 model Lead {
-  id                   String              @id @default(cuid())
-  businessName         String
-  contactPerson        String?
-  phone                String?
-  email                String?
-  instagram            String?
-  website              String?
-  address              String?
-  city                 String?
-  state                String?
-  country              String?
-  postalCode           String?
-  businessType         BusinessType        @default(OTHER)
-  leadSource           LeadSource          @default(OTHER)
-  status               LeadStatus          @default(NEW)
-  priority             LeadPriority        @default(MEDIUM)
-  budget               Decimal?            @db.Decimal(10, 2)
-  currency             String              @default("USD")
-  leadScore            Int                 @default(0)
-  notes                String?
-  sourceEmailId        String?             @unique
-  convertedToClientId  String?             @unique
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
-  archivedAt           DateTime?
-  createdById          String?
-  updatedById          String?
-  whatsapp             String?
-  activities           Activity[]
-  calendarEvents       CalendarEvent[]
-  communicationsCenter Communication[]
-  followUps            FollowUp[]
-  internalNotes        InternalNote[]
-  convertedToClient    Client?             @relation("LeadConvertedToClient", fields: [convertedToClientId], references: [id])
-  createdBy            User?               @relation("LeadCreatedBy", fields: [createdById], references: [id])
-  updatedBy            User?               @relation("LeadUpdatedBy", fields: [updatedById], references: [id])
-  attachments          LeadAttachment[]
-  communications       LeadCommunication[]
-  reminders            LeadReminder[]
-  leadTags             LeadTag[]
-  notifications        Notification[]
-  tasks                Task[]
+  id                     String              @id @default(cuid())
+  businessName           String?
+  contactPerson          String?
+  phone                  String?
+  whatsapp               String?
+  email                  String?
+  instagram              String?
+  website                String?
+  address                String?
+  city                   String?
+  state                  String?
+  country                String?
+  postalCode             String?
+  businessType           BusinessType        @default(OTHER)
+  serviceInterested      String?
+  preferredContactMethod PreferredContact?
+  leadSource             LeadSource          @default(OTHER)
+  status                 LeadStatus          @default(NEW)
+  priority               LeadPriority        @default(MEDIUM)
+  budget                 Decimal?            @db.Decimal(10, 2)
+  currency               String              @default("USD")
+  leadScore              Int                 @default(0)
+  notes                  String?
+  lastContactDate        DateTime?
+  nextFollowUpDate       DateTime?
+  ownerId                String?
+  ownerRemarks           String?
+  lostReason             LostReason?
+  closingRemarks         String?
+  sourceEmailId          String?             @unique
+  convertedToClientId    String?             @unique
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  archivedAt             DateTime?
+  createdById            String?
+  updatedById            String?
+  activities             Activity[]
+  calendarEvents         CalendarEvent[]
+  communicationsCenter   Communication[]
+  followUps              FollowUp[]
+  internalNotes          InternalNote[]
+  convertedToClient      Client?             @relation("LeadConvertedToClient", fields: [convertedToClientId], references: [id])
+  createdBy              User?               @relation("LeadCreatedBy", fields: [createdById], references: [id])
+  updatedBy              User?               @relation("LeadUpdatedBy", fields: [updatedById], references: [id])
+  owner                  User?               @relation("LeadOwner", fields: [ownerId], references: [id])
+  attachments            LeadAttachment[]
+  communications         LeadCommunication[]
+  reminders              LeadReminder[]
+  leadTags               LeadTag[]
+  notifications          Notification[]
+  tasks                  Task[]
 }
 
 model Activity {
@@ -254,6 +265,11 @@ model Client {
   postalCode           String?
   businessType         BusinessType    @default(OTHER)
   gstNumber            String?
+  whatsapp             String?
+  googleMapsLink       String?
+  serviceType          String?
+  ownerNotes           String?
+  preferredContactMethod PreferredContact?
   notes                String?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
@@ -283,8 +299,8 @@ model Project {
   projectCode          String          @unique
   title                String
   description          String?
-  category             ProjectCategory @default(OTHER)
-  status               ProjectStatus   @default(INQUIRY)
+  category             ProjectCategory @default(ONE_TIME_SHOOT)
+  status               ProjectStatus   @default(PLANNING)
   priority             ProjectPriority @default(MEDIUM)
   paymentStatus        PaymentStatus   @default(PENDING)
   startDate            DateTime?
@@ -338,6 +354,7 @@ model Project {
   shoots               Shoot[]
   tasks                Task[]
   assignedUsers        User[]          @relation("ProjectAssignments")
+  contentPlans         ContentPlan[]
 }
 
 model Shoot {
@@ -345,7 +362,7 @@ model Shoot {
   shootCode             String           @unique
   title                 String
   shootType             ShootType        @default(OTHER)
-  status                ShootStatus      @default(PLANNED)
+  status                ShootStatus      @default(UPCOMING)
   date                  DateTime?
   startTime             String?
   endTime               String?
@@ -942,18 +959,14 @@ model InternalNote {
 
 enum LeadStatus {
   NEW
-  ATTENDED
+  CONTACTED
   REQUIREMENT_DISCUSSION
-  QUOTATION_SENT
+  QUOTE_SENT
   NEGOTIATION
-  QUOTATION_ACCEPTED
-  CLIENT_FORM_SENT
-  CLIENT_FORM_RECEIVED
-  CONVERTED_TO_CLIENT
-  PROJECT_CREATED
-  FIRST_SHOOT_SCHEDULED
-  COMPLETED
-  CLOSED_LOST
+  QUOTE_APPROVED
+  ADVANCE_PENDING
+  CONVERTED
+  LOST
 }
 
 enum LeadPriority {
@@ -965,15 +978,32 @@ enum LeadPriority {
 
 enum LeadSource {
   WEBSITE
-  MANUAL
   WHATSAPP
   INSTAGRAM
   FACEBOOK
-  LINKEDIN
   REFERRAL
   WALK_IN
-  COLD_CALL
+  PHONE_CALL
+  MANUAL
+  OTHER
+}
+
+enum PreferredContact {
+  PHONE
   EMAIL
+  WHATSAPP
+}
+
+enum LostReason {
+  PRICE_TOO_HIGH
+  CHOSE_ANOTHER_PHOTOGRAPHER
+  BUDGET_ISSUES
+  PROJECT_CANCELLED
+  JUST_AN_ENQUIRY
+  NO_RESPONSE
+  TIMING_ISSUES
+  NOT_INTERESTED
+  DUPLICATE_LEAD
   OTHER
 }
 
@@ -989,19 +1019,16 @@ enum BusinessType {
 }
 
 enum ProjectCategory {
-  CAFE
-  REAL_ESTATE
-  EVENT
-  PRODUCT
-  OTHER
+  ONE_TIME_SHOOT
+  MONTHLY_SOCIAL_MEDIA
 }
 
 enum ProjectStatus {
-  INQUIRY
-  PLANNED
-  SHOOTING
+  PLANNING
+  SCHEDULED
+  SHOOT_COMPLETED
   EDITING
-  REVIEW
+  CLIENT_REVIEW
   DELIVERED
   COMPLETED
   CANCELLED
@@ -1079,14 +1106,9 @@ enum ShootType {
 }
 
 enum ShootStatus {
-  PLANNED
-  CONFIRMED
-  IN_PROGRESS
-  EDITING
-  READY_FOR_REVIEW
+  UPCOMING
   COMPLETED
   CANCELLED
-  POSTPONED
 }
 
 enum ActivityType {
@@ -1164,6 +1186,7 @@ enum CalendarEventType {
   FOLLOW_UP
   DELIVERY
   PAYMENT_DUE
+  CONTENT_PUBLISHING
   PERSONAL_REMINDER
 }
 
@@ -1257,4 +1280,87 @@ enum ResourceType {
   ASSISTANT
   PHOTOGRAPHER
   OTHER
+}
+
+model ContentPlan {
+  id               String   @id @default(cuid())
+  title            String
+  description      String?
+  shootDate        DateTime?
+  platform         ContentPlatform
+  editingStatus    ContentEditingStatus @default(PENDING)
+  approvalStatus   ContentApprovalStatus @default(PENDING)
+  publishingStatus ContentPublishingStatus @default(DRAFT)
+  projectId        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+enum ContentPlatform {
+  INSTAGRAM
+  FACEBOOK
+  YOUTUBE
+  WEBSITE
+  THREADS
+  LINKEDIN
+}
+
+enum ContentEditingStatus {
+  PENDING
+  EDITING
+  DONE
+}
+
+enum ContentApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ContentPublishingStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+}
+
+model WhatsAppTemplate {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  isEnabled   Boolean  @default(true)
+  content     String
+  variables   String   
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WhatsAppLog {
+  id             String   @id @default(cuid())
+  templateName   String
+  recipientPhone String
+  status         WhatsAppDeliveryStatus @default(PENDING)
+  retryCount     Int      @default(0)
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum WhatsAppDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+model IntegrationJobQueue {
+  id              String    @id @default(cuid())
+  provider        String
+  action          String
+  payload         Json
+  status          JobStatus @default(QUEUED)
+  retryCount      Int       @default(0)
+  nextRetryAt     DateTime?
+  lastError       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }

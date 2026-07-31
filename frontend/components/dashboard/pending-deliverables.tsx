@@ -1,13 +1,12 @@
 import React from "react";
 import { FileText } from "lucide-react";
 import Link from "next/link";
-import { getPendingDeliverables } from "@/app/actions/deliverable";
+import { DeliverableService } from "@/domain/services/DeliverableService";
 import { ActivityFeed, ActivityFeedItem, ActivityItemStatus } from "@/components/dashboard/components/activity-feed";
 import { buttonVariants } from "@/components/ui/button";
 
 export default async function PendingDeliverables() {
-  const response = await getPendingDeliverables();
-  const deliverables = Array.isArray(response) ? response : [];
+  const deliverables = await DeliverableService.getContinueWorkingDeliverables(5);
 
   const getStatus = (status: string): ActivityItemStatus => {
     switch (status) {

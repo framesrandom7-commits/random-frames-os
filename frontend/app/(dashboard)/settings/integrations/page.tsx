@@ -75,6 +75,12 @@ export default async function IntegrationsHubPage() {
                       Disconnect
                     </Button>
                   </div>
+                ) : provider.id === "GOOGLE_DRIVE" || provider.id === "GOOGLE_CALENDAR" ? (
+                  <a href="/api/auth/google" className="w-full block">
+                    <Button variant="outline" size="sm" className="border-white/10 text-white w-full">
+                      Configure
+                    </Button>
+                  </a>
                 ) : (
                   <Button variant="outline" size="sm" className="border-white/10 text-white w-full">
                     Configure

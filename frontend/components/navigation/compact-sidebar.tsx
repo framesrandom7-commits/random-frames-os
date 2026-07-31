@@ -27,17 +27,20 @@ export function CompactSidebar() {
     >
       {/* Brand Header */}
       <div className={cn(
-        "flex h-24 shrink-0 items-center gap-3 transition-all duration-300",
+        "flex h-24 shrink-0 items-center gap-3.5 transition-all duration-300",
         isExpanded ? "px-8" : "px-0 justify-center"
       )}>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg shadow-lg border border-white/10 overflow-hidden bg-black shrink-0">
-          <Image src="/logo.jpg" alt="Random Frames OS Logo" width={32} height={32} className="object-cover w-full h-full" />
+        <div className="flex h-[65px] w-[65px] items-center justify-center rounded-xl shadow-lg border border-white/10 overflow-hidden bg-black shrink-0">
+          <Image src="/logo.jpg" alt="Random Frames OS Logo" width={65} height={65} className="object-cover w-full h-full" />
         </div>
         <div className={cn(
-          "flex flex-col font-heading justify-center overflow-hidden transition-all duration-300",
+          "flex flex-col font-heading justify-center overflow-hidden transition-all duration-300 leading-[1.05] pt-0.5",
           isExpanded ? "w-auto opacity-100" : "w-0 opacity-0"
         )}>
-          <span className="text-sm font-bold tracking-widest uppercase text-white truncate">Random Frames</span>
+          <span className="text-[18px] font-black tracking-[0.15em] uppercase text-white">Random</span>
+          <span className="text-[18px] font-black uppercase text-white flex justify-between pr-[0.15em]">
+            <span>F</span><span>R</span><span>A</span><span>M</span><span>E</span><span>S</span>
+          </span>
         </div>
       </div>
       

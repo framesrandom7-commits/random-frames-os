@@ -1,13 +1,12 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getClients } from "@/app/actions/client";
+import { ClientService } from "@/domain/services/ClientService";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { UserCircle } from "lucide-react";
 
 export default async function RecentClients() {
-  const response = await getClients({ limit: 5, sortBy: "createdAt", sortOrder: "desc" });
-  const clients = 'clients' in response ? response.clients : [];
+  const clients = await ClientService.getDashboardRecentClients(5);
 
   return (
     <Card className="border-white/10 bg-white/5 backdrop-blur-md shadow-lg h-full">

@@ -38,7 +38,7 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
         if (lead) {
           setFormData(prev => ({
             ...prev,
-            businessName: lead.businessName,
+            businessName: lead.businessName || "",
             contactPerson: lead.contactPerson || "",
             phone: lead.phone || "",
             whatsapp: lead.phone || "",

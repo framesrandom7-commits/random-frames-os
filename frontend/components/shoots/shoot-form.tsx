@@ -44,7 +44,7 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
 
       setFormData({
         shootType: "OTHER",
-        status: "PLANNED",
+        status: "UPCOMING",
         clientId: defaultClientId,
         projectId: defaultProjectId,
       });

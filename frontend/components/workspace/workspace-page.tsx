@@ -8,12 +8,18 @@ import NotificationsWidget from "./notifications-widget";
 import RecentActivityWidget from "./recent-activity-widget";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function WorkspacePage({ user }: { user: { name: string, roleName: string } }) {
+export default function WorkspacePage({ 
+  user,
+  metrics
+}: { 
+  user: { name: string, roleName: string };
+  metrics?: { activeProjectsCount: number, openLeadsCount: number, pendingInvoicesAmount: number, shootsTodayCount: number };
+}) {
   return (
     <AppShell>
       <div className="space-y-10">
         <Suspense fallback={<Skeleton className="h-24 w-full rounded-2xl bg-white/5" />}>
-          <GreetingWidget user={user} />
+          <GreetingWidget user={user} metrics={metrics} />
         </Suspense>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 lg:gap-12">

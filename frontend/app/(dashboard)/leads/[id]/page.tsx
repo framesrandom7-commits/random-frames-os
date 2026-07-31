@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import ReminderCard from "@/components/leads/reminder-card";
 import AttachmentCard from "@/components/leads/attachment-card";
 import ConvertToClientButton from "@/components/leads/convert-to-client-button";
+import MarkAsLostButton from "@/components/leads/mark-as-lost-button";
 import CopyOnboardingLinkButton from "@/components/leads/copy-onboarding-link";
 import { ActivityTimeline } from "@/components/shared/activity-timeline";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
@@ -100,7 +101,7 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
             </Link>
           ) : (
             <div className="flex gap-2 items-center">
-              {(lead.status === "NEW" || lead.status === "ATTENDED" || lead.status === "REQUIREMENT_DISCUSSION") && (
+              {(lead.status === "NEW" || lead.status === "CONTACTED" || lead.status === "REQUIREMENT_DISCUSSION") && (
                 <WhatsAppButton 
                   variant="outline" 
                   className="border-red-500/30 text-red-400 hover:bg-red-500/10"
@@ -115,7 +116,7 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
                   Reject (Pre-Quote)
                 </WhatsAppButton>
               )}
-              {(lead.status === "QUOTATION_SENT" || lead.status === "NEGOTIATION" || lead.status === "QUOTATION_ACCEPTED") && (
+              {(lead.status === "QUOTE_SENT" || lead.status === "NEGOTIATION" || lead.status === "QUOTE_APPROVED") && (
                 <WhatsAppButton 
                   variant="outline" 
                   className="border-red-500/30 text-red-400 hover:bg-red-500/10"
@@ -131,8 +132,11 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
                 </WhatsAppButton>
               )}
               <QuotationActions lead={lead} />
-              {lead.status === "QUOTATION_ACCEPTED" && (
+              {lead.status === "QUOTE_APPROVED" && (
                 <CopyOnboardingLinkButton leadId={lead.id} />
+              )}
+              {lead.status !== "CONVERTED" && lead.status !== "LOST" && (
+                <MarkAsLostButton leadId={lead.id} />
               )}
               <ConvertToClientButton leadId={lead.id} />
             </div>

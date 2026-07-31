@@ -76,6 +76,24 @@ export function useLeadColumns({
       )
     },
     {
+      header: "Owner",
+      accessorKey: "owner",
+      cell: (lead) => (
+        <div className="text-zinc-300 text-sm">
+          {lead.owner?.name || lead.owner?.email || "Unassigned"}
+        </div>
+      )
+    },
+    {
+      header: "Created Date",
+      accessorKey: "createdAt",
+      cell: (lead) => (
+        <div className="text-zinc-300 text-sm">
+          {new Date(lead.createdAt).toLocaleDateString()}
+        </div>
+      )
+    },
+    {
       header: "Reminder",
       cell: (lead) => (
         <div className="text-zinc-400 text-sm">

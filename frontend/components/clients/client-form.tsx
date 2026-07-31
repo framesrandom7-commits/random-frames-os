@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createClient, updateClient } from "@/app/actions/client";
 import { toast } from "sonner";
-import { BusinessType, Client } from "@prisma/client";
+import { BusinessType, Client, PreferredContact } from "@prisma/client";
 
 interface ClientFormProps {
   open: boolean;
@@ -64,6 +64,11 @@ export default function ClientForm({ open, onOpenChange, client }: ClientFormPro
         postalCode: formData.postalCode,
         businessType: formData.businessType as BusinessType,
         gstNumber: formData.gstNumber,
+        whatsapp: formData.whatsapp,
+        googleMapsLink: formData.googleMapsLink,
+        serviceType: formData.serviceType,
+        preferredContactMethod: formData.preferredContactMethod as PreferredContact | undefined,
+        ownerNotes: formData.ownerNotes,
         notes: formData.notes,
       };
 
@@ -164,6 +169,44 @@ export default function ClientForm({ open, onOpenChange, client }: ClientFormPro
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="whatsapp" className="text-zinc-300">WhatsApp</Label>
+              <Input
+                id="whatsapp"
+                name="whatsapp"
+                placeholder="Enter WhatsApp number"
+                value={formData.whatsapp || ""}
+                onChange={handleChange}
+                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="preferredContactMethod" className="text-zinc-300">Preferred Contact Method</Label>
+              <Select value={formData.preferredContactMethod || ""} onValueChange={(val) => handleSelectChange("preferredContactMethod", val || "")}>
+                <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
+                  <SelectValue placeholder="Select method" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
+                  {Object.values(PreferredContact).map((type) => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="serviceType" className="text-zinc-300">Service Type</Label>
+              <Input
+                id="serviceType"
+                name="serviceType"
+                placeholder="e.g. Wedding, Commercial, etc."
+                value={formData.serviceType || ""}
+                onChange={handleChange}
+                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="instagram" className="text-zinc-300">Instagram Handle</Label>
               <Input
                 id="instagram"
@@ -182,6 +225,18 @@ export default function ClientForm({ open, onOpenChange, client }: ClientFormPro
                 name="website"
                 placeholder="https://..."
                 value={formData.website || ""}
+                onChange={handleChange}
+                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="googleMapsLink" className="text-zinc-300">Google Maps Link</Label>
+              <Input
+                id="googleMapsLink"
+                name="googleMapsLink"
+                placeholder="https://maps.app.goo.gl/..."
+                value={formData.googleMapsLink || ""}
                 onChange={handleChange}
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
               />
@@ -266,6 +321,18 @@ export default function ClientForm({ open, onOpenChange, client }: ClientFormPro
                 name="notes"
                 placeholder="Add any additional notes about this client..."
                 value={formData.notes || ""}
+                onChange={handleChange}
+                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F] min-h-[100px]"
+              />
+            </div>
+            
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="ownerNotes" className="text-zinc-300">Owner Notes (Private)</Label>
+              <Textarea
+                id="ownerNotes"
+                name="ownerNotes"
+                placeholder="Private notes only visible to owners..."
+                value={formData.ownerNotes || ""}
                 onChange={handleChange}
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F] min-h-[100px]"
               />

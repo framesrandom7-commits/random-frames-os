@@ -10,8 +10,8 @@ import { Prisma, QuotationStatus } from "@prisma/client";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { createQuotation } from "@/app/actions/quotation";
+import { getQuotationStatusMetadata } from "@/domain/finance/metadata";
 import { NumberGenerator } from "@/lib/finance/number-generator.service";
-
 type QuotationWithRelations = Prisma.QuotationGetPayload<{
   include: { client: true; project: true; items: true }
 }>;
@@ -35,16 +35,7 @@ export default function QuotationsTable({ data, clients }: QuotationsTableProps)
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
-  const getStatusColor = (status: QuotationStatus) => {
-    switch (status) {
-      case "APPROVED": return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-      case "REJECTED": return "bg-red-500/10 text-red-400 border-red-500/20";
-      case "SENT": return "bg-blue-500/10 text-blue-400 border-blue-500/20";
-      case "DRAFT": return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
-      case "EXPIRED": return "bg-zinc-800 text-zinc-500 border-zinc-700";
-      default: return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
-    }
-  };
+
 
   const setFilter = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -148,9 +139,14 @@ export default function QuotationsTable({ data, clients }: QuotationsTableProps)
                       <span className="font-medium text-white">{formatCurrency(Number(quotation.total))}</span>
                     </TableCell>
                     <TableCell onClick={() => router.push(`/finance/quotations/${quotation.id}`)}>
-                      <Badge variant="outline" className={getStatusColor(quotation.status)}>
-                        {quotation.status}
-                      </Badge>
+                      {(() => {
+                        const meta = getQuotationStatusMetadata(quotation.status);
+                        return (
+                          <Badge variant={meta?.variant || "outline"} className={meta?.color}>
+                            {meta?.label || quotation.status}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

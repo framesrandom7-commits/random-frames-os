@@ -59,11 +59,11 @@ export function MobileDrawer() {
         )}
       >
         <div className="flex h-20 items-center justify-between px-6 border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg shadow-lg border border-white/10 overflow-hidden bg-black shrink-0">
-              <Image src="/logo.jpg" alt="Random Frames OS Logo" width={32} height={32} className="object-cover w-full h-full" />
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-[65px] w-[65px] items-center justify-center rounded-xl shadow-lg border border-white/10 overflow-hidden bg-black shrink-0">
+              <Image src="/logo.jpg" alt="Random Frames OS Logo" width={65} height={65} className="object-cover w-full h-full" />
             </div>
-            <span className="text-sm font-bold tracking-widest uppercase text-white truncate">Menu</span>
+            <span className="text-[18px] font-black tracking-[0.15em] uppercase text-white truncate pt-0.5">Menu</span>
           </div>
           <button 
             onClick={() => setDrawerOpen(false)}

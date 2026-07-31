@@ -33,8 +33,8 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
       });
     } else {
       setFormData({
-        category: "OTHER",
-        status: "INQUIRY",
+        category: "ONE_TIME_SHOOT",
+        status: "PLANNING",
         priority: "MEDIUM",
         paymentStatus: "PENDING",
         clientId: prefilledClientId || undefined,

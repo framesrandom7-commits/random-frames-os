@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 const navigation = [
-  { name: "Home", href: "/", icon: LayoutDashboard },
+  { name: "Home", href: "/home", icon: LayoutDashboard },
   { name: "Dashboard", href: "/dashboard", icon: PieChart },
   { name: "Leads", href: "/leads", icon: Users },
   { name: "Clients", href: "/clients", icon: UserCircle },
@@ -16,7 +16,8 @@ const navigation = [
   { name: "Shoots", href: "/shoots", icon: Camera },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Finance", href: "/finance", icon: DollarSign },
-  { name: "Analytics", href: "/analytics", icon: BarChart },
+  { name: "Content", href: "/content", icon: Aperture },
+  { name: "Reports", href: "/reports", icon: BarChart },
 ];
 
 export default function Sidebar() {

@@ -2,13 +2,13 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { getLeads } from "@/app/actions/lead";
+import { LeadService } from "@/domain/services/LeadService";
 import { formatDistanceToNow } from "date-fns";
 import StatusBadge from "@/components/leads/status-badge";
 import Link from "next/link";
 
 export default async function RecentLeads() {
-  const { leads } = await getLeads({ limit: 5 });
+  const leads = await LeadService.getDashboardActiveLeads(5);
 
   return (
     <Card className="border-white/10 bg-white/5 backdrop-blur-md shadow-lg h-full">

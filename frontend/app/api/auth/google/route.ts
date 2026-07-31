@@ -6,6 +6,7 @@ import { Logger } from '@/lib/logger';
 const SCOPES = [
   'https://www.googleapis.com/auth/drive.file', // For creating and managing files we create
   'https://www.googleapis.com/auth/drive',      // Full drive access if needed for complete DAM
+  'https://www.googleapis.com/auth/calendar.events', // Manage Google Calendar events
 ];
 
 export async function GET() {

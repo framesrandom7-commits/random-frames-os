@@ -1,7 +1,7 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { ReportsRepository } from "@/domain/repositories/ReportsRepository";
+import { LEAD_FUNNEL_ORDER } from "@/domain/workflow/core";
 
 export type DateRangeFilter = {
   startDate?: Date;
@@ -29,16 +29,7 @@ export async function getDashboardData(range?: DateRangeFilter) {
     projectsByPayment,
     invoices,
     expenses
-  ] = await Promise.all([
-    prisma.lead.groupBy({ by: ['status'], where: createdAtFilter, _count: true }),
-    prisma.project.groupBy({ by: ['status'], where: createdAtFilter, _count: true }),
-    prisma.client.count({ where: createdAtFilter }),
-    prisma.shoot.count({ where: dateFilter ? { date: dateFilter } : undefined }),
-    prisma.lead.groupBy({ by: ['leadSource'], where: createdAtFilter, _count: true }),
-    prisma.project.groupBy({ by: ['paymentStatus'], where: createdAtFilter, _count: true }),
-    prisma.invoice.findMany({ where: dateFilter ? { issueDate: dateFilter } : undefined, select: { total: true, status: true, issueDate: true, payments: { select: { amount: true, paymentDate: true } } } }),
-    prisma.expense.findMany({ where: dateFilter ? { date: dateFilter } : undefined, select: { amount: true, date: true } })
-  ]);
+  ] = await ReportsRepository.getDashboardMetrics(createdAtFilter, dateFilter);
 
   // Metrics processing
   const totalLeads = leadsByStatus.reduce((sum, item) => sum + item._count, 0);
@@ -83,18 +74,7 @@ export async function getDashboardData(range?: DateRangeFilter) {
   const projectDistribution = projectsByStatus.map(p => ({ name: p.status.replace("_", " "), value: p._count }));
   const paymentDistribution = projectsByPayment.map(p => ({ name: p.paymentStatus, value: p._count }));
 
-  const funnelOrder = [
-    "NEW", 
-    "ATTENDED", 
-    "REQUIREMENT_DISCUSSION", 
-    "QUOTATION_SENT", 
-    "NEGOTIATION", 
-    "QUOTATION_ACCEPTED", 
-    "CLIENT_FORM_SENT", 
-    "CLIENT_FORM_RECEIVED", 
-    "CONVERTED_TO_CLIENT", 
-    "CLOSED_LOST"
-  ];
+  const funnelOrder = LEAD_FUNNEL_ORDER;
   const leadFunnel = funnelOrder.map(status => {
     const found = leadsByStatus.find(l => l.status === status);
     return { name: status.replace(/_/g, " "), value: found ? found._count : 0 };
@@ -128,11 +108,7 @@ export async function getTopLists(range?: DateRangeFilter) {
   const dateFilter = getDateFilter(range);
   const createdAtFilter = dateFilter ? { createdAt: dateFilter } : undefined;
 
-  // Top Clients (by total revenue via projects)
-  const projects = await prisma.project.findMany({
-    where: createdAtFilter,
-    include: { client: true }
-  });
+  const [projects, upcomingDeliveries, overdueInvoices] = await ReportsRepository.getTopListsData(createdAtFilter);
 
   const clientRevenue: Record<string, { id: string, name: string, total: number }> = {};
   projects.forEach(p => {
@@ -146,7 +122,6 @@ export async function getTopLists(range?: DateRangeFilter) {
     .sort((a, b) => b.total - a.total)
     .slice(0, 5);
 
-  // Most Profitable Projects
   const topProjects = projects
     .filter(p => Number(p.totalAmount || 0) > 0)
     .sort((a, b) => Number(b.totalAmount || 0) - Number(a.totalAmount || 0))
@@ -157,30 +132,6 @@ export async function getTopLists(range?: DateRangeFilter) {
       clientName: p.client.businessName,
       amount: Number(p.totalAmount || 0)
     }));
-
-  // Upcoming Deliveries
-  const upcomingDeliveries = await prisma.project.findMany({
-    where: {
-      deliveryDate: { gte: new Date() },
-      status: { notIn: ["COMPLETED", "DELIVERED", "CANCELLED"] }
-    },
-    orderBy: { deliveryDate: 'asc' },
-    take: 5,
-    include: { client: true }
-  });
-
-  // Overdue Payments (Invoices)
-  const overdueInvoices = await prisma.invoice.findMany({
-    where: {
-      OR: [
-        { status: "OVERDUE" },
-        { status: { notIn: ["PAID", "CANCELLED"] }, dueDate: { lt: new Date() } }
-      ]
-    },
-    orderBy: { dueDate: 'asc' },
-    take: 5,
-    include: { client: true, project: true, payments: true }
-  });
 
   const overdueMapped = overdueInvoices.map(inv => {
     const paid = inv.payments.reduce((sum, p) => sum + Number(p.amount), 0);
@@ -214,10 +165,7 @@ export async function generatePnLReportAction(startDate: Date, endDate: Date) {
 
 export async function getFinancialReports() {
   try {
-    return await prisma.financialReport.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 10
-    });
+    return await ReportsRepository.getFinancialReports();
   } catch (error) {
     console.error("Error fetching financial reports:", error);
     return [];

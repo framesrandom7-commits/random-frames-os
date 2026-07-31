@@ -1,7 +1,10 @@
 import React from "react";
-import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { AlertCircle, Calendar, FileText, CheckCircle, ArrowRight } from "lucide-react";
+import { LeadStatus } from "@prisma/client";
+import { LeadService } from "@/domain/services/LeadService";
+import { CalendarService } from "@/domain/services/CalendarService";
+import { DeliverableService } from "@/domain/services/DeliverableService";
 
 const CardHeader = ({ title, count, colorClass, Icon }: any) => (
   <div className="flex items-center justify-between mb-4">
@@ -26,39 +29,23 @@ export default async function TodaysFocusWidget() {
   sevenDaysAgo.setDate(today.getDate() - 7);
 
   // 1. Action Required (Leads)
-  const leads = await prisma.lead.findMany({
-    where: { 
-      status: { in: ["NEW", "ATTENDED"] }, 
-      createdAt: { gte: sevenDaysAgo } 
-    },
-    take: 3,
-  });
+  const allLeads = await LeadService.getMany({});
+  const leads = allLeads.filter((l: any) => 
+    [LeadStatus.NEW, LeadStatus.CONTACTED, LeadStatus.REQUIREMENT_DISCUSSION].includes(l.status as any) &&
+    new Date(l.createdAt) >= sevenDaysAgo
+  ).slice(0, 3);
 
   // 2. Today's Schedule
-  const events = await prisma.calendarEvent.findMany({
-    where: { date: { gte: today, lt: tomorrow } },
-    orderBy: { startTime: "asc" },
-    take: 3,
+  const events = await CalendarService.getEvents({
+    dateStart: today.toISOString(),
+    dateEnd: tomorrow.toISOString()
   });
 
   // 3. Today's Deliverables
-  const deliverables = await prisma.deliverable.findMany({
-    where: { 
-      dueDate: { lt: tomorrow },
-      status: { in: ["PENDING", "EDITING"] }
-    },
-    include: { shoot: { include: { project: true } } },
-    take: 3,
-  });
+  const deliverables = await DeliverableService.getPendingDue(tomorrow, 3);
 
   // 4. Today's Reviews
-  const reviews = await prisma.deliverable.findMany({
-    where: {
-      status: { in: ["READY_FOR_REVIEW", "CHANGES_REQUESTED"] }
-    },
-    include: { shoot: { include: { project: true } } },
-    take: 3,
-  });
+  const reviews = await DeliverableService.getForReview(3);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

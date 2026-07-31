@@ -128,6 +128,7 @@ export default function ReportsDashboard() {
             <MetricCard title="Total Clients" value={metrics.totalClients} icon={<Users />} />
             <MetricCard title="Completed Projects" value={metrics.completedProjects} icon={<Briefcase />} />
             <MetricCard title="Total Shoots" value={metrics.totalShoots} icon={<Camera />} />
+            <MetricCard title="Content Plans" value={metrics.totalContent} icon={<FileText />} />
             <MetricCard title="Net Profit" value={formatCurr(metrics.netProfit)} icon={<IndianRupee />} className={metrics.netProfit >= 0 ? "text-emerald-400" : "text-red-400"} />
           </div>
 
@@ -181,6 +182,28 @@ export default function ReportsDashboard() {
               </CardHeader>
               <CardContent>
                 <ProjectDistributionChart data={charts.paymentDistribution} />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-white/10 backdrop-blur-md lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-white text-lg">Team Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {charts.teamPerformance.map((tp: any, idx: number) => (
+                    <div key={idx} className="p-4 rounded-lg bg-black/40 border border-white/10 flex flex-col justify-between">
+                      <span className="text-white font-medium mb-2">{tp.name}</span>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-400">Active: <span className="text-blue-400">{tp.activeProjects}</span></span>
+                        <span className="text-zinc-400">Completed: <span className="text-emerald-400">{tp.completedProjects}</span></span>
+                      </div>
+                    </div>
+                  ))}
+                  {charts.teamPerformance.length === 0 && (
+                    <div className="text-zinc-500 py-4 col-span-full">No team data available</div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>

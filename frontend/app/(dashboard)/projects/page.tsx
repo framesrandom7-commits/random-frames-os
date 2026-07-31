@@ -51,7 +51,7 @@ export default async function ProjectsPage(props: {
       stats={stats}
       allUsers={allUsers}
       allClients={allClients}
-      currentView={view}
+      currentView={view as any}
     />
   );
 }

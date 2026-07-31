@@ -11,7 +11,7 @@ import { Shoot, Client, Project } from "@prisma/client";
 import { deleteShoot, duplicateShoot } from "@/app/actions/shoot";
 import ShootForm from "./shoot-form";
 import { Badge } from "@/components/ui/badge";
-
+import { getShootStatusMetadata } from "@/domain/shoot/metadata";
 interface ShootWithRelations extends Shoot {
   client: Client;
   project: Project;
@@ -125,17 +125,7 @@ export default function ShootTable({ shoots, clients, projects, page = 1, totalP
     return sortOrder === "asc" ? <ArrowUp className="ml-1 h-3 w-3 inline" /> : <ArrowDown className="ml-1 h-3 w-3 inline" />;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'SCHEDULED': return 'bg-blue-500/20 text-blue-400';
-      case 'CONFIRMED': return 'bg-purple-500/20 text-purple-400';
-      case 'IN_PROGRESS': return 'bg-amber-500/20 text-amber-400';
-      case 'COMPLETED': return 'bg-emerald-500/20 text-emerald-400';
-      case 'CANCELLED': return 'bg-red-500/20 text-red-400';
-      case 'POSTPONED': return 'bg-orange-500/20 text-orange-400';
-      default: return 'bg-zinc-500/20 text-zinc-400';
-    }
-  };
+
 
   return (
     <>
@@ -209,9 +199,14 @@ export default function ShootTable({ shoots, clients, projects, page = 1, totalP
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={`border-0 ${getStatusColor(shoot.status)}`}>
-                      {shoot.status.replace(/_/g, " ")}
-                    </Badge>
+                    {(() => {
+                      const meta = getShootStatusMetadata(shoot.status as any);
+                      return (
+                        <Badge variant={meta?.variant || "outline"} className={`border-0 ${meta?.color}`}>
+                          {meta?.label || shoot.status.replace(/_/g, " ")}
+                        </Badge>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

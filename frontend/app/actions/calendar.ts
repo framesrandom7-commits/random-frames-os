@@ -1,9 +1,8 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { CalendarEventType, CalendarEventStatus, Prisma } from "@prisma/client";
+import { CalendarEventType, CalendarEventStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-
+import { CalendarService } from "@/domain/services/CalendarService";
 import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 
 export async function getCalendarEvents(params?: {
@@ -15,43 +14,11 @@ export async function getCalendarEvents(params?: {
   status?: CalendarEventStatus;
 }) {
   try {
-    const where: Prisma.CalendarEventWhereInput = {};
-
-    if (params?.dateStart && params?.dateEnd) {
-      where.date = {
-        gte: new Date(params.dateStart),
-        lte: new Date(params.dateEnd),
-      };
-    } else if (params?.dateStart) {
-      where.date = {
-        gte: new Date(params.dateStart),
-      };
-    }
-
-    if (params?.clientId) where.clientId = params.clientId;
-    if (params?.projectId) where.projectId = params.projectId;
-    if (params?.eventType) where.eventType = params.eventType;
-    if (params?.status) where.status = params.status;
-
-    const events = await prisma.calendarEvent.findMany({
-      where,
-      include: {
-        client: true,
-        project: true,
-        shoot: true,
-        lead: true,
-      },
-      orderBy: [
-        { date: "asc" },
-        { startTime: "asc" },
-      ],
-    });
-
-    return events;
+    return await CalendarService.getEvents(params);
   } catch (error) {
-  console.error("Error in getCalendarEvents:", error);
-  return GlobalErrorService.handleError(error, "Action:getCalendarEvents");
-}
+    console.error("Error in getCalendarEvents:", error);
+    return GlobalErrorService.handleError(error, "Action:getCalendarEvents");
+  }
 }
 
 export async function createCalendarEvent(data: {
@@ -70,17 +37,13 @@ export async function createCalendarEvent(data: {
   notes?: string;
 }) {
   try {
-    const event = await prisma.calendarEvent.create({
-      data: {
-        ...data,
-      },
-    });
+    const event = await CalendarService.createEvent(data);
     revalidatePath("/calendar");
     return event;
   } catch (error) {
-  console.error("Error in createCalendarEvent:", error);
-  return GlobalErrorService.handleError(error, "Action:createCalendarEvent");
-}
+    console.error("Error in createCalendarEvent:", error);
+    return GlobalErrorService.handleError(error, "Action:createCalendarEvent");
+  }
 }
 
 export async function updateCalendarEvent(
@@ -102,26 +65,21 @@ export async function updateCalendarEvent(
   }>
 ) {
   try {
-    const event = await prisma.calendarEvent.update({
-      where: { id },
-      data,
-    });
+    const event = await CalendarService.updateEvent(id, data);
     revalidatePath("/calendar");
     return event;
   } catch (error) {
-  console.error("Error in updateCalendarEvent:", error);
-  return GlobalErrorService.handleError(error, "Action:updateCalendarEvent");
-}
+    console.error("Error in updateCalendarEvent:", error);
+    return GlobalErrorService.handleError(error, "Action:updateCalendarEvent");
+  }
 }
 
 export async function deleteCalendarEvent(id: string) {
   try {
-    await prisma.calendarEvent.delete({
-      where: { id },
-    });
+    await CalendarService.deleteEvent(id);
     revalidatePath("/calendar");
   } catch (error) {
-  console.error("Error in deleteCalendarEvent:", error);
-  return GlobalErrorService.handleError(error, "Action:deleteCalendarEvent");
-}
+    console.error("Error in deleteCalendarEvent:", error);
+    return GlobalErrorService.handleError(error, "Action:deleteCalendarEvent");
+  }
 }

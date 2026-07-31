@@ -238,6 +238,12 @@ export default function LeadTable({ leads, page = 1, totalPages = 1, total = 0 }
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap cursor-pointer hover:text-white transition-colors" onClick={() => handleSort("leadScore")}>
                   Score {renderSortIcon("leadScore")}
                 </TableHead>
+                <TableHead className="text-zinc-400 font-medium whitespace-nowrap cursor-pointer hover:text-white transition-colors" onClick={() => handleSort("ownerId")}>
+                  Owner {renderSortIcon("ownerId")}
+                </TableHead>
+                <TableHead className="text-zinc-400 font-medium whitespace-nowrap cursor-pointer hover:text-white transition-colors" onClick={() => handleSort("createdAt")}>
+                  Created Date {renderSortIcon("createdAt")}
+                </TableHead>
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Reminder</TableHead>
                 <TableHead className="text-zinc-400 font-medium text-right whitespace-nowrap">Actions</TableHead>
               </TableRow>
@@ -285,6 +291,12 @@ export default function LeadTable({ leads, page = 1, totalPages = 1, total = 0 }
                       <Star className="w-3 h-3 fill-current" />
                       {lead.leadScore}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-zinc-300 text-sm">
+                    {lead.owner?.name || lead.owner?.email || "Unassigned"}
+                  </TableCell>
+                  <TableCell className="text-zinc-300 text-sm">
+                    {new Date(lead.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-zinc-400 text-sm">
                     {lead.reminders && lead.reminders.length > 0 ? (
