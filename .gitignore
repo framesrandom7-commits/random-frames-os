@@ -20,3 +20,4 @@ out/
 
 # Prisma generated client (if applicable)
 /app/generated/prisma
+.agents/
