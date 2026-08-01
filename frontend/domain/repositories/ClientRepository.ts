@@ -7,6 +7,7 @@ export interface GetClientsParams {
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  businessType?: any; archived?: boolean;
 }
 
 export class ClientRepository {
@@ -36,6 +37,10 @@ export class ClientRepository {
         { email: { contains: params.search, mode: "insensitive" } },
         { phone: { contains: params.search, mode: "insensitive" } },
       ];
+    }
+
+    if (params.businessType) {
+      where.businessType = params.businessType;
     }
 
     const orderBy: Prisma.ClientOrderByWithRelationInput = {};

@@ -11,7 +11,7 @@ export class DriveRepository {
   static async updateProjectDriveFolder(projectId: string, folderId: string, folderUrl: string) {
     return prisma.project.update({
       where: { id: projectId },
-      data: { driveFolderId: folderId, driveFolderUrl: folderUrl }
+      data: { driveRootFolderId: folderId, driveRootFolderUrl: folderUrl }
     });
   }
 
@@ -25,7 +25,7 @@ export class DriveRepository {
   static async getProjectDriveInfo(projectId: string) {
     return prisma.project.findUnique({
       where: { id: projectId },
-      select: { driveFolderId: true, driveFolderUrl: true, title: true, client: { select: { driveFolderId: true, businessName: true } } }
+      select: { driveRootFolderId: true, driveRootFolderUrl: true, title: true, client: { select: { driveFolderId: true, businessName: true } } }
     });
   }
 }

@@ -10,7 +10,21 @@ export class ReportsRepository {
       prisma.lead.groupBy({ by: ['leadSource'], where: createdAtFilter, _count: true }),
       prisma.project.groupBy({ by: ['paymentStatus'], where: createdAtFilter, _count: true }),
       prisma.invoice.findMany({ where: dateFilter ? { issueDate: dateFilter } : undefined, select: { total: true, status: true, issueDate: true, payments: { select: { amount: true, paymentDate: true } } } }),
-      prisma.expense.findMany({ where: dateFilter ? { date: dateFilter } : undefined, select: { amount: true, date: true } })
+      prisma.expense.findMany({ where: dateFilter ? { date: dateFilter } : undefined, select: { amount: true, date: true } }),
+      prisma.contentPlan.count({ where: createdAtFilter }),
+      prisma.user.findMany({ select: { name: true, role: true, assignedProjects: { select: { id: true } } } })
+    ]);
+  }
+
+  static async getFinancialData(startDate: Date, endDate: Date) {
+    return Promise.all([
+      prisma.invoice.findMany({
+        where: { issueDate: { gte: startDate, lte: endDate } },
+        include: { payments: true }
+      }),
+      prisma.expense.findMany({
+        where: { date: { gte: startDate, lte: endDate } }
+      })
     ]);
   }
 

@@ -62,7 +62,7 @@ export default async function ShootDetailsPage({ params }: { params: Promise<{ i
             <div className="flex flex-wrap items-center text-sm text-zinc-400 gap-x-6 gap-y-2">
               <Link href={`/clients/${shoot.clientId}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
                 <Building className="w-4 h-4 text-zinc-500" />
-                {shoot.client.businessName}
+                {shoot.project.client.businessName}
               </Link>
               <div className="w-1 h-1 rounded-full bg-zinc-700 hidden sm:block"></div>
               <Link href={`/projects/${shoot.projectId}`} className="flex items-center gap-1.5 hover:text-white transition-colors">

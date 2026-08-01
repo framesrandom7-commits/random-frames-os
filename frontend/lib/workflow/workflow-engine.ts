@@ -3,6 +3,8 @@ import { registerTimelineHandlers } from "./handlers/timeline-handler";
 import { registerFinanceHandlers } from "./handlers/finance-handler";
 import { registerCalendarHandlers } from "./handlers/calendar-handler";
 import { registerCommunicationHandlers } from "./handlers/communication-handler";
+import { registerWhatsAppHandlers } from "./handlers/whatsapp-handler";
+import { registerAutomationHandlers } from "./handlers/automation-handler";
 import { Logger } from "@/lib/logger";
 
 class WorkflowEngineService {
@@ -23,6 +25,8 @@ class WorkflowEngineService {
     registerFinanceHandlers();
     registerCalendarHandlers();
     registerCommunicationHandlers();
+    registerWhatsAppHandlers();
+    registerAutomationHandlers();
     
     this.isInitialized = true;
     Logger.info("[WorkflowEngine] Initialization complete. Listening for events.");

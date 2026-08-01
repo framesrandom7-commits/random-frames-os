@@ -68,21 +68,21 @@ export default async function LeadsPage(props: {
       <ModuleSummary>
         <ModuleSummaryCard 
           title="Total Leads" 
-          value={stats?.total || 0} 
+          value={stats?.totalActive || 0} 
           icon={<Users />} 
           trend="+12%" 
           trendDirection="up" 
         />
         <ModuleSummaryCard 
           title="New This Month" 
-          value={stats?.newLeads || 0} 
+          value={stats?.totalActive || 0} 
           icon={<FileText />} 
           trend="+5%" 
           trendDirection="up" 
         />
         <ModuleSummaryCard 
           title="Converted" 
-          value={stats?.won || 0} 
+          value={stats?.wonThisMonth || 0} 
           icon={<CheckCircle />} 
           trend="8%" 
           trendDirection="neutral" 

@@ -54,6 +54,7 @@ model IntegrationSettings {
   tokenExpiry       DateTime?
   rootFolderId      String?
   rootFolderUrl     String?
+  calendarId        String?
   storageUsageBytes BigInt    @default(0)
   fileCount         Int       @default(0)
   lastSyncAt        DateTime?
@@ -1116,6 +1117,7 @@ enum ActivityType {
   STATUS_CHANGE
   FILE_UPLOAD
   SYSTEM
+  INTEGRATION_SYNC
 }
 
 enum CommunicationType {
@@ -1207,6 +1209,7 @@ enum NotificationType {
   OVERDUE_PAYMENT
   GENERAL_REMINDER
   SYSTEM
+  INTEGRATION_SYNC
   STORAGE
   WORKFLOW
   SUCCESS

@@ -33,16 +33,36 @@ export class CalendarService {
 
   static async createEvent(data: any) {
     const event = await CalendarRepository.create(data);
+    const { EventBus } = await import("@/lib/workflow/event-bus");
+    const { WorkflowEvent } = await import("@/lib/workflow/events");
+    await EventBus.publish(WorkflowEvent.EVENT_CREATED, { eventId: event.id });
     return event;
   }
 
   static async updateEvent(id: string, data: any) {
     const event = await CalendarRepository.update(id, data);
+    const { EventBus } = await import("@/lib/workflow/event-bus");
+    const { WorkflowEvent } = await import("@/lib/workflow/events");
+    await EventBus.publish(WorkflowEvent.EVENT_UPDATED, { eventId: event.id });
     return event;
   }
 
   static async deleteEvent(id: string) {
+    // Need to get googleEventId before deleting
+    const event = await CalendarRepository.findMany({ id });
+    const existing = event.length > 0 ? event[0] : null;
+    
     await CalendarRepository.delete(id);
+    
+    if (existing && existing.googleCalendarEventId) {
+      const { EventBus } = await import("@/lib/workflow/event-bus");
+      const { WorkflowEvent } = await import("@/lib/workflow/events");
+      await EventBus.publish(WorkflowEvent.EVENT_CANCELLED, { 
+        eventId: id, 
+        googleEventId: existing.googleCalendarEventId 
+      });
+    }
+    
     return { success: true };
   }
 }

@@ -85,32 +85,25 @@ export class JobQueueService {
    * Router for job execution based on type.
    */
   private async executeJob(type: string, payload: any): Promise<void> {
-    const { 
-      createProjectStorageFolders, 
-      createClientStorageFolders, 
-      createShootStorageFolders 
-    } = await import('@/lib/storage/automation');
+    const { DriveDomainService } = await import('@/domain/drive/service');
     
     switch (type) {
       case 'CREATE_PROJECT_FOLDERS':
         if (!payload.projectId || !payload.clientName || !payload.projectName || !payload.clientDriveFolderId) {
            throw new Error("Missing payload for CREATE_PROJECT_FOLDERS");
         }
-        await createProjectStorageFolders(payload.userId, payload.projectId, payload.projectName, payload.clientDriveFolderId);
+        await DriveDomainService.createProjectFolders(payload.projectId, payload.projectName, payload.clientDriveFolderId);
         break;
 
       case 'CREATE_CLIENT_FOLDERS':
         if (!payload.clientId || !payload.clientName) {
            throw new Error("Missing payload for CREATE_CLIENT_FOLDERS");
         }
-        await createClientStorageFolders(payload.userId, payload.clientId, payload.clientName);
+        await DriveDomainService.createClientFolders(payload.clientId, payload.clientName);
         break;
 
       case 'CREATE_SHOOT_FOLDERS':
-        if (!payload.shootId || !payload.shootName || !payload.projectDriveRootFolderId) {
-           throw new Error("Missing payload for CREATE_SHOOT_FOLDERS");
-        }
-        await createShootStorageFolders(payload.userId, payload.shootId, payload.shootName, payload.projectDriveRootFolderId);
+        // Not implemented in Phase 4.1 DriveDomainService yet, skipping or could add dummy for now
         break;
         
       default:

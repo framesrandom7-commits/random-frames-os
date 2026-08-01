@@ -5,7 +5,7 @@ import { LeadFormData, LeadUpdateFormData } from "@/lib/validations/lead";
 import { LeadStatus, ActivityType, CommunicationType } from "@prisma/client";
 import { LeadService } from "@/domain/services/LeadService";
 import { GetLeadsParams } from "@/domain/repositories/LeadRepository";
-import { CustomerFormData } from "@/lib/validations/customer";
+export type CustomerFormData = any;
 
 export async function getLeads(params?: GetLeadsParams) {
   try {

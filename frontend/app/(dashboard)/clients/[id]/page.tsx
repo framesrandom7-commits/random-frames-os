@@ -27,6 +27,7 @@ import { ActivityTimeline } from "@/components/shared/activity-timeline";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
 import { updateClientPhone } from "@/app/actions/client";
+import ClientDriveWidget from "@/components/clients/client-drive-widget";
 
 export const dynamic = "force-dynamic";
 
@@ -282,6 +283,15 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                   <span className="text-white text-sm">{new Date(client.createdAt).toLocaleDateString()}</span>
                 </div>
             </div>
+          </ModuleDetailsSection>
+
+          <ModuleDetailsSection>
+            <div className="text-white text-lg font-medium mb-4">Google Drive Integration</div>
+            <ClientDriveWidget 
+              clientId={client.id} 
+              driveFolderId={client.driveFolderId} 
+              driveFolderUrl={client.driveFolderUrl} 
+            />
           </ModuleDetailsSection>
 
           <ModuleDetailsSection>

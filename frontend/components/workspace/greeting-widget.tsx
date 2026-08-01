@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Users, UserCircle, Briefcase, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RbacDomainService } from "@/domain/rbac/service";
 
 export default function GreetingWidget({ 
   user,
@@ -61,7 +62,7 @@ export default function GreetingWidget({
             </span>
           </h1>
           <p className="text-zinc-500 text-base font-bold mt-3">
-            Welcome back to Random Frames
+            Welcome back to Random Frames • {RbacDomainService.getPersonalizedDashboardContext(user.roleName, user.name).subtitle}
           </p>
           
           {/* Business Summary */}

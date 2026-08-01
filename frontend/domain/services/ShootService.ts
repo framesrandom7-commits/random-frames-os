@@ -26,9 +26,13 @@ export class ShootService {
   static async create(data: CreateShootData) {
     const shootCode = await ShootService.generateCode();
     
+    const { clientId, projectId, ...shootData } = data;
+
     const shoot = await ShootRepository.create({
-      ...data,
+      ...shootData,
       shootCode,
+      client: { connect: { id: clientId } },
+      project: { connect: { id: projectId } },
       ...(data.date ? {
         calendarEvents: {
           create: {
@@ -216,7 +220,7 @@ export class ShootService {
   }
 
   static async addEquipment(shootId: string, name: string) {
-    return ShootRepository.addEquipment({ shootId, name });
+    return ShootRepository.addEquipment({ shoot: { connect: { id: shootId } }, name });
   }
 
   static async toggleEquipment(id: string, isCompleted: boolean) {
@@ -228,7 +232,7 @@ export class ShootService {
   }
 
   static async addShot(shootId: string, title: string, description: string, order: number) {
-    return ShootRepository.addShot({ shootId, title, description, order });
+    return ShootRepository.addShot({ shoot: { connect: { id: shootId } }, title, description, order });
   }
 
   static async toggleShot(id: string, isCompleted: boolean) {

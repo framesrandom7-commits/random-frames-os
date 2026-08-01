@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Logger } from '@/lib/logger';
-import { DriveService } from '@/lib/drive.service';
-import { GCalService } from '@/lib/gcal.service';
-import { WhatsAppService } from '@/lib/whatsapp.service';
 import { QueueService } from '@/lib/queue.service';
 
 export async function GET(request: Request) {
@@ -37,19 +34,37 @@ export async function GET(request: Request) {
         const payload = job.payload as any;
         if (job.provider === 'GOOGLE_DRIVE') {
           if (job.action === 'CREATE_CLIENT_FOLDERS') {
-            success = await DriveService.createClientFolders(payload.clientId, payload.clientName);
+            const { DriveDomainService } = await import('@/domain/drive/service');
+            await DriveDomainService.createClientFolders(payload.clientId, payload.clientName);
+            success = true;
           } else if (job.action === 'CREATE_PROJECT_FOLDERS') {
-            success = await DriveService.createProjectFolders(payload.projectId, payload.projectName, payload.clientFolderId);
+            const { DriveDomainService } = await import('@/domain/drive/service');
+            await DriveDomainService.createProjectFolders(payload.projectId, payload.projectName, payload.clientFolderId || payload.clientDriveFolderId);
+            success = true;
           }
         } else if (job.provider === 'GOOGLE_CALENDAR') {
-          if (job.action === 'SYNC_SHOOT_EVENT') {
-            success = await GCalService.syncShootEvent(payload.shootId);
-          } else if (job.action === 'DELETE_EVENT') {
-            success = await GCalService.deleteShootEvent(payload.calendarEventId);
+          const { CalendarDomainService } = await import('@/domain/calendar/service');
+          if (job.action === 'SYNC_GOOGLE_CALENDAR') {
+            await CalendarDomainService.syncEventToGoogle(payload.crmEventId);
+            success = true;
+          } else if (job.action === 'DELETE_GOOGLE_CALENDAR_EVENT') {
+            await CalendarDomainService.deleteGoogleEvent(payload.googleEventId);
+            success = true;
           }
         } else if (job.provider === 'WHATSAPP') {
+          const { WhatsAppDomainService } = await import('@/domain/whatsapp/service');
           if (job.action === 'SEND_TEMPLATE') {
-            success = await WhatsAppService.sendTemplateMessage(payload.to, payload.templateName, payload.templateData);
+            success = await WhatsAppDomainService.sendTemplateMessage(payload.to || payload.recipientPhone, payload.templateName, payload.components || payload.dynamicVariables);
+          }
+        } else if (job.provider === 'EMAIL') {
+          const { EmailDomainService } = await import('@/domain/email/service');
+          if (job.action === 'SEND_EMAIL') {
+            const result = await EmailDomainService.sendEmail({
+              to: payload.to,
+              subject: payload.subject,
+              body: payload.body
+            });
+            success = result.success;
           }
         }
       } catch (err: any) {

@@ -26,8 +26,8 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
   const router = useRouter();
 
   const [formData, setFormData] = useState<Partial<OnboardClientData>>({
-    projectCategory: "OTHER",
-    projectPriority: "MEDIUM",
+    projectCategory: ProjectCategory.ONE_TIME_SHOOT,
+    projectPriority: ProjectPriority.MEDIUM,
   });
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
       try {
         const lead = await getLead(leadId!);
         if (lead) {
-          setFormData(prev => ({
+          setFormData((prev: Partial<OnboardClientData>) => ({
             ...prev,
             businessName: lead.businessName || "",
             contactPerson: lead.contactPerson || "",
@@ -59,10 +59,11 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
     } else if (open) {
       // Reset form
       setTimeout(() => {
-        setFormData({
-          projectCategory: "OTHER",
-          projectPriority: "MEDIUM",
-        });
+        setFormData((prev: Partial<OnboardClientData>) => ({
+          ...prev,
+          projectCategory: ProjectCategory.ONE_TIME_SHOOT,
+          projectPriority: ProjectPriority.MEDIUM,
+        }));
       }, 0);
     }
   }, [open, leadId]);
@@ -70,11 +71,11 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
-    setFormData(prev => ({ ...prev, [name]: type === 'number' ? Number(value) : value }));
+    setFormData((prev: Partial<OnboardClientData>) => ({ ...prev, [name]: type === 'number' ? Number(value) : value }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: Partial<OnboardClientData>) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -99,10 +100,10 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
         clientNotes: formData.clientNotes || "",
         
         projectTitle: formData.projectTitle || "",
-        projectCategory: formData.projectCategory || "OTHER",
+        projectCategory: formData.projectCategory || ProjectCategory.ONE_TIME_SHOOT,
         projectDescription: formData.projectDescription || "",
         deliverables: formData.deliverables || "",
-        projectPriority: formData.projectPriority || "MEDIUM",
+        projectPriority: formData.projectPriority || ProjectPriority.MEDIUM,
       };
 
       const result = await onboardClient(dataToSubmit);
@@ -196,19 +197,19 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
                 </div>
                 <div className="space-y-2">
                   <Label>Category</Label>
-                  <Select value={formData.projectCategory || "OTHER"} onValueChange={(v) => handleSelectChange("projectCategory", v)}>
+                  <Select value={formData.projectCategory || ProjectCategory.ONE_TIME_SHOOT} onValueChange={(v) => handleSelectChange("projectCategory", v || "")}>
                     <SelectTrigger className="bg-black/50 border-white/10"><SelectValue/></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                      {Object.values(ProjectCategory).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      {Object.values(ProjectCategory).map(c => <SelectItem key={c as string} value={c as string}>{c as string}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Priority</Label>
-                  <Select value={formData.projectPriority || "MEDIUM"} onValueChange={(v) => handleSelectChange("projectPriority", v)}>
+                  <Select value={formData.projectPriority || ProjectPriority.MEDIUM} onValueChange={(v) => handleSelectChange("projectPriority", v || "")}>
                     <SelectTrigger className="bg-black/50 border-white/10"><SelectValue/></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                      {Object.values(ProjectPriority).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      {Object.values(ProjectPriority).map(p => <SelectItem key={p as string} value={p as string}>{p as string}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

@@ -31,22 +31,22 @@ export class ReportsService {
     const conversionRate = totalLeads > 0 ? (wonLeads / totalLeads) * 100 : 0;
 
     const totalProjects = projectsByStatus.reduce((sum, item) => sum + item._count, 0);
-    const completedProjects = projectsByStatus.filter(p => p.status === "COMPLETED" || p.status === "DELIVERED").reduce((sum, p) => sum + p._count, 0);
+    const completedProjects = projectsByStatus.filter(p => p.status === "COMPLETED" || p.status === "DELIVERED").reduce((sum: any, p: any) => sum + p._count, 0);
 
     let totalRevenue = 0;
     let outstandingPayments = 0;
     
     const monthlyData: Record<string, { revenue: number; expenses: number }> = {};
 
-    invoices.forEach(inv => {
-      const paidAmount = inv.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    invoices.forEach((inv: any) => {
+      const paidAmount = inv.payments.reduce((sum: any, p: any) => sum + Number(p.amount), 0);
       totalRevenue += paidAmount;
       
       if (inv.status !== "PAID" && inv.status !== "CANCELLED") {
         outstandingPayments += (Number(inv.total) - paidAmount);
       }
 
-      inv.payments.forEach(p => {
+      inv.payments.forEach((p: any) => {
         const monthYear = `${p.paymentDate.getFullYear()}-${String(p.paymentDate.getMonth() + 1).padStart(2, '0')}`;
         if (!monthlyData[monthYear]) monthlyData[monthYear] = { revenue: 0, expenses: 0 };
         monthlyData[monthYear].revenue += Number(p.amount);
@@ -56,7 +56,7 @@ export class ReportsService {
     const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
     const netProfit = totalRevenue - totalExpenses;
 
-    expenses.forEach(exp => {
+    expenses.forEach((exp: any) => {
       const monthYear = `${exp.date.getFullYear()}-${String(exp.date.getMonth() + 1).padStart(2, '0')}`;
       if (!monthlyData[monthYear]) monthlyData[monthYear] = { revenue: 0, expenses: 0 };
       monthlyData[monthYear].expenses += Number(exp.amount);
@@ -119,7 +119,7 @@ export class ReportsService {
         revenueTrend
       },
       team: {
-        users: users.map(u => ({
+        users: users.map((u: any) => ({
           name: u.name,
           role: u.role,
           projectsCount: u.assignedProjects.length
@@ -140,14 +140,14 @@ export class ReportsService {
     const categoryExpenses: Record<string, number> = {};
     const monthlyData: Record<string, { invoiced: number, collected: number, expenses: number }> = {};
 
-    invoices.forEach(inv => {
+    invoices.forEach((inv: any) => {
       totalInvoiced += Number(inv.total);
       
       const monthKey = inv.issueDate.toLocaleString('default', { month: 'short' });
       if (!monthlyData[monthKey]) monthlyData[monthKey] = { invoiced: 0, collected: 0, expenses: 0 };
       monthlyData[monthKey].invoiced += Number(inv.total);
 
-      inv.payments.forEach(p => {
+      inv.payments.forEach((p: any) => {
         totalCollected += Number(p.amount);
         const pMonthKey = p.paymentDate.toLocaleString('default', { month: 'short' });
         if (!monthlyData[pMonthKey]) monthlyData[pMonthKey] = { invoiced: 0, collected: 0, expenses: 0 };
@@ -155,7 +155,7 @@ export class ReportsService {
       });
     });
 
-    expenses.forEach(exp => {
+    expenses.forEach((exp: any) => {
       totalExpenses += Number(exp.amount);
       
       // We don't have category string easily accessible here without include, assume we group by some ID or name if added later

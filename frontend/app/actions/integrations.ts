@@ -7,7 +7,6 @@ import { successResponse } from "@/lib/core/api/response";
 import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 import { verifySession as getSession } from "@/lib/auth";
 import { WebhookRepository } from "@/domain/repositories/WebhookRepository";
-import { DriveService } from "@/domain/services/DriveService";
 
 export async function getIntegrationStatuses() {
   try {
@@ -76,13 +75,42 @@ export async function createProjectDriveFolder(projectId: string) {
     
     // Fetch project to get client and title
     const { ProjectService } = await import("@/domain/services/ProjectService");
-    const project = await ProjectService.getProject(projectId);
+    const project = await ProjectService.getById(projectId);
     if (!project) throw new Error("Project not found");
     
-    const result = await DriveService.setupProjectFolder(projectId, project.clientId, project.title);
-    return successResponse(result);
+    const { QueueManager } = await import("@/domain/integrations/queue-manager");
+    await QueueManager.pushJob('GOOGLE_DRIVE', 'CREATE_PROJECT_FOLDERS', {
+      projectId: project.id,
+      projectName: project.title,
+      clientName: project.client?.businessName || "Client",
+      clientDriveFolderId: project.client?.driveFolderId,
+      userId: session.userId
+    });
+    return successResponse({ queued: true });
   } catch (error) {
     return GlobalErrorService.handleError(error, "IntegrationsAction:CreateDriveFolder");
+  }
+}
+
+export async function createClientDriveFolder(clientId: string) {
+  try {
+    const session = await getSession();
+    if (!session) throw new Error("Unauthorized");
+    
+    // Fetch client to get businessName
+    const { prisma } = await import("@/lib/prisma");
+    const client = await prisma.client.findUnique({ where: { id: clientId } });
+    if (!client) throw new Error("Client not found");
+    
+    const { QueueManager } = await import("@/domain/integrations/queue-manager");
+    await QueueManager.pushJob('GOOGLE_DRIVE', 'CREATE_CLIENT_FOLDERS', {
+      clientId: client.id,
+      clientName: client.businessName,
+      userId: session.userId
+    });
+    return successResponse({ queued: true });
+  } catch (error) {
+    return GlobalErrorService.handleError(error, "IntegrationsAction:CreateClientFolder");
   }
 }
 

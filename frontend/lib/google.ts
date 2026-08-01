@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
-import { prisma } from './prisma';
-import { decryptToken, encryptToken } from './crypto';
+import { CredentialManager } from '@/domain/integrations/credential-manager';
+import { DRIVE_CONSTANTS } from '@/domain/drive/constants';
 
 export async function getGoogleOAuthClient() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -17,11 +17,7 @@ export async function getGoogleOAuthClient() {
     redirectUri
   );
 
-  // We fetch GOOGLE_DRIVE settings, assuming they use the same account for Calendar.
-  // In a robust multi-user app, we'd pass the userId. For this single-tenant OS, we take the first connected.
-  const settings = await prisma.integrationSettings.findUnique({
-    where: { provider: 'GOOGLE_DRIVE' }
-  });
+  const settings = await CredentialManager.getCredentials(DRIVE_CONSTANTS.PROVIDER_ID);
 
   if (!settings || !settings.accessToken) {
     throw new Error('Google Drive integration not connected');
@@ -29,27 +25,26 @@ export async function getGoogleOAuthClient() {
 
   oauth2Client.setCredentials({
     access_token: settings.accessToken,
-    refresh_token: settings.refreshToken ? decryptToken(settings.refreshToken) : undefined,
+    refresh_token: settings.refreshToken ? CredentialManager.decrypt(settings.refreshToken) : undefined,
     expiry_date: settings.tokenExpiry?.getTime(),
   });
 
-  // Handle token refresh automatically
   oauth2Client.on('tokens', async (tokens) => {
     if (tokens.access_token) {
-      const updateData: any = {
-        accessToken: tokens.access_token,
-      };
-      if (tokens.expiry_date) {
-        updateData.tokenExpiry = new Date(tokens.expiry_date);
-      }
-      if (tokens.refresh_token) {
-        updateData.refreshToken = encryptToken(tokens.refresh_token);
-      }
-
-      await prisma.integrationSettings.updateMany({
-        where: { provider: { in: ['GOOGLE_DRIVE', 'GOOGLE_CALENDAR'] } },
-        data: updateData,
-      });
+      await CredentialManager.updateCredentials(
+        DRIVE_CONSTANTS.PROVIDER_ID,
+        tokens.access_token,
+        tokens.refresh_token,
+        tokens.expiry_date ? new Date(tokens.expiry_date) : undefined
+      );
+      
+      // Also update calendar if we share credentials
+      await CredentialManager.updateCredentials(
+        'GOOGLE_CALENDAR',
+        tokens.access_token,
+        tokens.refresh_token,
+        tokens.expiry_date ? new Date(tokens.expiry_date) : undefined
+      );
     }
   });
 

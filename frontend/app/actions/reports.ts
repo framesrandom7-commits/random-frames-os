@@ -33,8 +33,8 @@ export async function getDashboardData(range?: DateRangeFilter) {
 
   // Metrics processing
   const totalLeads = leadsByStatus.reduce((sum, item) => sum + item._count, 0);
-  const wonLeads = leadsByStatus.find(l => l.status === "CONVERTED_TO_CLIENT")?._count || 0;
-  const lostLeads = leadsByStatus.find(l => l.status === "CLOSED_LOST")?._count || 0;
+  const wonLeads = leadsByStatus.find(l => l.status === "CONVERTED")?._count || 0;
+  const lostLeads = leadsByStatus.find(l => l.status === "LOST")?._count || 0;
   const conversionRate = totalLeads > 0 ? (wonLeads / totalLeads) * 100 : 0;
 
   const totalProjects = projectsByStatus.reduce((sum, item) => sum + item._count, 0);

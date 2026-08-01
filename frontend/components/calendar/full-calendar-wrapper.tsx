@@ -216,6 +216,21 @@ export default function FullCalendarWrapper({
                // Throttle this or handle it carefully to avoid loops
             }
           }}
+          eventContent={(arg) => {
+            const originalEvent = arg.event.extendedProps.originalEvent;
+            const isSynced = !!originalEvent?.googleCalendarEventId;
+            return (
+              <div className="flex flex-col gap-0.5 overflow-hidden text-xs p-1">
+                <div className="flex items-center gap-1 font-semibold truncate">
+                  {isSynced && <span title="Synced to Google Calendar"><CalendarIcon className="w-3 h-3 text-white/70 flex-shrink-0" /></span>}
+                  <span className="truncate">{arg.event.title}</span>
+                </div>
+                {!arg.event.allDay && arg.timeText && (
+                  <div className="opacity-80 truncate">{arg.timeText}</div>
+                )}
+              </div>
+            );
+          }}
           height="100%"
         />
       </div>

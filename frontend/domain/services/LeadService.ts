@@ -322,7 +322,7 @@ export class LeadService {
 
     await LeadRepository.update(id, { 
       status: LeadStatus.CONVERTED,
-      convertedToClientId: client.id
+      convertedToClient: { connect: { id: client.id } }
     });
 
     await prisma.activity.create({
@@ -334,17 +334,10 @@ export class LeadService {
       }
     });
     
-    const { DriveService } = await import("@/lib/drive.service");
-    await DriveService.createClientFolders(client.id, client.businessName);
-    
-    const { WhatsAppService } = await import("@/lib/whatsapp.service");
-    if (client.phone || client.whatsapp) {
-      await WhatsAppService.sendTemplateMessage(
-        client.whatsapp || client.phone || "",
-        "Quote Approved",
-        { clientName: client.contactPerson || client.businessName }
-      );
-    }
+    const { EventBus } = await import("@/lib/workflow/event-bus");
+    const { WorkflowEvent } = await import("@/lib/workflow/events");
+    EventBus.publish(WorkflowEvent.CLIENT_CREATED, { clientId: client.id, userId: lead.createdById || undefined });
+
     return true;
   }
 }

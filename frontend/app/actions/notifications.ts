@@ -3,14 +3,19 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { NotificationType, NotificationStatus, NotificationPriority } from "@prisma/client";
+import { getCurrentUserRbac } from "@/lib/core/permissions/rbac.service";
+import { RbacDomainService } from "@/domain/rbac/service";
 
-export async function getNotifications(filter?: { status?: NotificationStatus }) {
+export async function getNotifications(filter?: { status?: NotificationStatus; priority?: any }) {
   const where: any = {};
   if (filter?.status) {
     where.status = filter.status;
   }
+  if (filter?.priority) {
+    where.priority = filter.priority;
+  }
   
-  return await prisma.notification.findMany({
+  const allNotifications = await prisma.notification.findMany({
     where,
     orderBy: { dueDate: 'asc' },
     include: {
@@ -21,6 +26,22 @@ export async function getNotifications(filter?: { status?: NotificationStatus })
       invoice: { select: { id: true, invoiceNumber: true } }
     }
   });
+
+  const rbac = await getCurrentUserRbac();
+  if (!rbac || rbac.isFounder) {
+    // Founder is Super Admin and receives EVERYTHING across all priorities and system domains
+    return allNotifications;
+  }
+
+  // Co-Founder receives operational notifications PLUS Critical notifications (enforced via Domain RBAC)
+  return allNotifications.filter(n =>
+    RbacDomainService.canReceiveNotification(rbac.roleName, {
+      type: n.type as string,
+      title: n.title || "",
+      message: n.message || "",
+      priority: n.priority as string,
+    })
+  );
 }
 
 export async function markAsRead(id: string) {

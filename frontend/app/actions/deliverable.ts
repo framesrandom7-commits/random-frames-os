@@ -126,7 +126,7 @@ export async function addDeliverableVersion(data: z.infer<typeof addDeliverableV
     const { logActivity } = await import("@/lib/timeline");
     await logActivity({
       type: "SYSTEM",
-      description: `New version (v${nextVersionNum}) uploaded for deliverable ${version.deliverable.type}`,
+      description: `New version (v${version.versionNumber}) uploaded for deliverable ${version.deliverable.type}`,
       clientId: version.deliverable.shoot.clientId,
       projectId: version.deliverable.shoot.projectId,
       shootId: version.deliverable.shootId,

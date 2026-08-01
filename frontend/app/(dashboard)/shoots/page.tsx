@@ -29,14 +29,14 @@ export default async function ShootsPage(props: {
   const view = typeof searchParams.view === "string" ? searchParams.view : "list";
   
   // Date params for calendar view
-  const dateStart = typeof searchParams.dateStart === "string" ? new Date(searchParams.dateStart) : undefined;
+  const dateFrom = typeof searchParams.dateFrom === "string" ? new Date(searchParams.dateFrom) : undefined;
   const dateEnd = typeof searchParams.dateEnd === "string" ? new Date(searchParams.dateEnd) : undefined;
 
   // We need to fetch without pagination limit if calendar view to get all month shoots
   const limit = view === "calendar" ? 1000 : 50;
 
   const [shootData, stats, allClients, allProjects] = await Promise.all([
-    getShoots({ page, limit, search, status, shootType, archived, sortBy, sortOrder, dateStart, dateEnd }),
+    getShoots({ page, limit, search, status, shootType, archived, sortBy, sortOrder, dateFrom: dateFrom?.toISOString(), dateTo: dateEnd?.toISOString() }),
     getShootStats(),
     prisma.client.findMany({ select: { id: true, businessName: true }, orderBy: { businessName: 'asc' }, where: { archivedAt: null } }),
     prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } })
@@ -138,7 +138,7 @@ export default async function ShootsPage(props: {
               shoots={shootData.shoots as any} 
               clients={allClients}
               projects={allProjects}
-              page={shootData.currentPage} 
+              page={(shootData as any).page || (shootData as any).currentPage} 
               totalPages={shootData.totalPages} 
               total={shootData.total} 
             />

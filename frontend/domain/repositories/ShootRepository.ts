@@ -14,6 +14,8 @@ export interface GetShootsParams {
   dateFrom?: string;
   dateTo?: string;
   assignedUserId?: string;
+  clientId?: string;
+  shootType?: string;
 }
 
 export class ShootRepository {
@@ -58,6 +60,8 @@ export class ShootRepository {
       dateFrom,
       dateTo,
       assignedUserId,
+      clientId,
+      shootType,
     } = params;
 
     const where: any = {};
@@ -70,6 +74,14 @@ export class ShootRepository {
 
     if (projectId) {
       where.projectId = projectId;
+    }
+
+    if (clientId) {
+      where.clientId = clientId;
+    }
+
+    if (shootType) {
+      where.shootType = shootType;
     }
 
     if (search) {
@@ -111,7 +123,6 @@ export class ShootRepository {
               client: true
             }
           },
-          assignedUsers: true,
           equipment: true,
         }
       }),
@@ -130,7 +141,6 @@ export class ShootRepository {
             client: true
           }
         },
-        assignedUsers: true,
         shots: {
           orderBy: { order: "asc" }
         },

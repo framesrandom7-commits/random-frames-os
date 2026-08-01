@@ -30,11 +30,12 @@ export class ProjectService {
   static async create(data: CreateProjectData) {
     const projectCode = await ProjectService.generateCode();
     
-    const { assignedUserIds, ...projectData } = data;
+    const { assignedUserIds, clientId, ...projectData } = data;
 
     const project = await ProjectRepository.create({
       ...projectData,
       projectCode,
+      client: { connect: { id: clientId } },
       ...(assignedUserIds && assignedUserIds.length > 0 ? {
         assignedUsers: {
           connect: assignedUserIds.map(id => ({ id }))
@@ -64,8 +65,9 @@ export class ProjectService {
     
     const client = await prisma.client.findUnique({ where: { id: data.clientId } });
     if (client && client.driveFolderId) {
-      const { DriveService } = await import("@/lib/drive.service");
-      await DriveService.createProjectFolders(project.id, project.title, client.driveFolderId);
+      const { EventBus } = await import("@/lib/workflow/event-bus");
+      const { WorkflowEvent } = await import("@/lib/workflow/events");
+      EventBus.publish(WorkflowEvent.PROJECT_CREATED, { projectId: project.id, clientId: client.id, userId: client.createdBy || undefined });
     }
     
     return project;
@@ -259,7 +261,7 @@ export class ProjectService {
       editingProjects,
       deliveredProjects,
       overdueDeliveries: overdueProjects,
-      revenueInProgress: Number(revenueInProgress._sum.totalAmount || 0)
+      revenueInProgress: Number(revenueInProgress._sum?.totalAmount || 0)
     };
   }
 }

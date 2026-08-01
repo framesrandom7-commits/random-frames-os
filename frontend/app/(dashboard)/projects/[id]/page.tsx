@@ -2,13 +2,13 @@ import React from "react";
 import { getProject } from "@/app/actions/project";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, Building, Plus, FileText, CheckCircle, Folder, Camera, Info, Calendar, IndianRupee, MessageCircle, Users } from "lucide-react";
+import { ArrowLeft, Clock, Building, Plus, FileText, CheckCircle, Folder, Camera, Info, Calendar, IndianRupee, MessageCircle, Users, HardDrive } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { getShoots } from "@/app/actions/shoot";
 import ShootTable from "@/components/shoots/shoot-table";
 import { prisma } from "@/lib/prisma";
-import ProjectDriveButton from "@/components/projects/project-drive-button";
+import ProjectDriveTree from "@/components/projects/project-drive-tree";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProjectStorageTab from "@/components/projects/project-storage-tab";
 import { ActivityTimeline } from "@/components/shared/activity-timeline";
@@ -91,12 +91,6 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
         </div>
         
         <div className="flex items-center gap-3 mt-4 md:mt-0 flex-wrap justify-end">
-          <ProjectDriveButton 
-            projectId={project.id} 
-            driveRootFolderId={project.driveRootFolderId} 
-            driveRootFolderUrl={project.driveRootFolderUrl} 
-          />
-          
           <WhatsAppButton 
             variant="outline" 
             className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-9"
@@ -264,6 +258,14 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
                   View Invoices ({invoicesData.length})
                 </Link>
              </div>
+          </ModuleDetailsSection>
+
+          <ModuleDetailsSection>
+            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+              <HardDrive className="w-5 h-5 text-zinc-400" />
+              <span className="text-white text-lg font-medium">Google Drive Integration</span>
+            </div>
+            <ProjectDriveTree project={project} />
           </ModuleDetailsSection>
           
           <ModuleDetailsSection>

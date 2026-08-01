@@ -18,10 +18,10 @@ export class WhatsAppService {
       leadId: referenceId?.leadId,
     });
     
-    EventBus.emit(WorkflowEvent.WHATSAPP_MESSAGE_SENT, {
+    EventBus.publish(WorkflowEvent.WHATSAPP_MESSAGE_SENT, {
       logId: log.id,
-      to,
-      templateId
+      recipientPhone: to,
+      templateName: templateId
     });
     
     return log;
@@ -32,8 +32,8 @@ export class WhatsAppService {
     // Actually we don't have messageId on WhatsAppLog in Prisma currently, but if we did:
     // await WhatsAppRepository.updateLogStatus(messageId, status, status === 'DELIVERED' ? new Date() : undefined);
     
-    EventBus.emit(WorkflowEvent.WHATSAPP_DELIVERY_UPDATE, {
-      messageId,
+    EventBus.publish(WorkflowEvent.WHATSAPP_DELIVERY_UPDATE, {
+      logId: messageId,
       status
     });
   }

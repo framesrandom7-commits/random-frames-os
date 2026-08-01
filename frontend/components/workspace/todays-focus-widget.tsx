@@ -29,7 +29,8 @@ export default async function TodaysFocusWidget() {
   sevenDaysAgo.setDate(today.getDate() - 7);
 
   // 1. Action Required (Leads)
-  const allLeads = await LeadService.getMany({});
+  const allLeadsData = await LeadService.getLeads({});
+  const allLeads = allLeadsData.leads;
   const leads = allLeads.filter((l: any) => 
     [LeadStatus.NEW, LeadStatus.CONTACTED, LeadStatus.REQUIREMENT_DISCUSSION].includes(l.status as any) &&
     new Date(l.createdAt) >= sevenDaysAgo
@@ -63,7 +64,7 @@ export default async function TodaysFocusWidget() {
           {leads.length === 0 ? (
             <p className="text-xs text-zinc-500 font-medium relative z-10">No actions required.</p>
           ) : (
-            leads.map(lead => (
+            leads.map((lead: any) => (
               <div key={lead.id} className="group/item cursor-pointer relative z-20">
                 <Link href={`/leads/${lead.id}`} className="block">
                   <h4 className="text-sm font-medium text-white group-hover/item:text-[#E53935] transition-colors truncate">{lead.businessName}</h4>

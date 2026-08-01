@@ -36,42 +36,35 @@ export async function GET(request: Request) {
 
     const { tokens } = await oauth2Client.getToken(code);
     
-    const encryptedRefreshToken = tokens.refresh_token ? encryptToken(tokens.refresh_token) : null;
+    const encryptedRefreshToken = tokens.refresh_token || null; // CredentialManager handles encryption
     const tokenExpiry = tokens.expiry_date ? new Date(tokens.expiry_date) : null;
 
-    const updateData = {
-      accessToken: tokens.access_token,
-      ...(encryptedRefreshToken ? { refreshToken: encryptedRefreshToken } : {}),
+    // Use the framework instead of raw Prisma calls
+    const { CredentialManager } = await import('@/domain/integrations/credential-manager');
+    const { AuditManager } = await import('@/domain/integrations/audit-manager');
+    
+    await CredentialManager.updateCredentials(
+      'GOOGLE_DRIVE',
+      tokens.access_token!,
+      encryptedRefreshToken,
       tokenExpiry,
-      userId: session.userId,
-      syncStatus: 'CONNECTED'
-    };
-
-    const createData = {
-      accessToken: tokens.access_token,
-      refreshToken: encryptedRefreshToken,
+      session.userId
+    );
+    
+    await CredentialManager.updateCredentials(
+      'GOOGLE_CALENDAR',
+      tokens.access_token!,
+      encryptedRefreshToken,
       tokenExpiry,
-      userId: session.userId,
-      syncStatus: 'CONNECTED'
-    };
+      session.userId
+    );
 
-    await prisma.$transaction([
-      prisma.integrationSettings.upsert({
-        where: { provider: 'GOOGLE_DRIVE' },
-        update: updateData,
-        create: { provider: 'GOOGLE_DRIVE', ...createData },
-      }),
-      prisma.integrationSettings.upsert({
-        where: { provider: 'GOOGLE_CALENDAR' },
-        update: updateData,
-        create: { provider: 'GOOGLE_CALENDAR', ...createData },
-      }),
-    ]);
+    await AuditManager.logIntegrationEvent('GOOGLE_DRIVE', 'OAUTH_CONNECTED', 'Successfully connected Google Drive and Calendar');
 
-    Logger.info('Successfully connected Google Drive', { module: 'OAuth', operation: 'auth_callback', status: 'SUCCESS' });
-    return NextResponse.redirect(new URL('/settings/storage?success=Connected', request.url));
+    Logger.info('Successfully connected Google Drive and Calendar', { module: 'OAuth', operation: 'auth_callback', status: 'SUCCESS' });
+    return NextResponse.redirect(new URL('/settings/integrations?success=GoogleAuthConnected', request.url));
   } catch (error: any) {
     Logger.error('Failed to exchange Google OAuth code', error, { module: 'OAuth', operation: 'auth_callback', status: 'ERROR' });
-    return NextResponse.redirect(new URL('/settings/storage?error=ExchangeFailed', request.url));
+    return NextResponse.redirect(new URL('/settings/integrations?error=ExchangeFailed', request.url));
   }
 }

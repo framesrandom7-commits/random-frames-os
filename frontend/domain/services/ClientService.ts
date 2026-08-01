@@ -39,17 +39,9 @@ export class ClientService {
       clientId: client.id,
     });
     
-    const { DriveService } = await import("@/lib/drive.service");
-    await DriveService.createClientFolders(client.id, client.businessName);
-    
-    const { WhatsAppService } = await import("@/lib/whatsapp.service");
-    if (client.phone || client.whatsapp) {
-      await WhatsAppService.sendTemplateMessage(
-        client.whatsapp || client.phone || "",
-        "Quote Approved",
-        { clientName: client.contactPerson || client.businessName }
-      );
-    }
+    const { EventBus } = await import("@/lib/workflow/event-bus");
+    const { WorkflowEvent } = await import("@/lib/workflow/events");
+    EventBus.publish(WorkflowEvent.CLIENT_CREATED, { clientId: client.id, userId: client.createdBy || undefined });
 
     return client;
   }
@@ -146,6 +138,14 @@ export class ClientService {
       leadId: data.leadId,
     });
     
+    const { EventBus } = await import("@/lib/workflow/event-bus");
+    const { WorkflowEvent } = await import("@/lib/workflow/events");
+    EventBus.publish(WorkflowEvent.CLIENT_CREATED, { clientId: result.newClient.id, userId: result.newClient.createdBy || undefined });
+    // Note: Project Drive Folders require Client Drive Folders to exist first.
+    // The storage-handler handles PROJECT_CREATED, but it might fail if Client folders aren't created yet.
+    // The QueueManager retries will handle this ordering dependency.
+    EventBus.publish(WorkflowEvent.PROJECT_CREATED, { projectId: result.newProject.id, clientId: result.newClient.id, userId: result.newClient.createdBy || undefined });
+
     return result.newClient;
   }
 

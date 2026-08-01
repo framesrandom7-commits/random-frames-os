@@ -1,6 +1,6 @@
 import { EventBus } from "../event-bus";
 import { WorkflowEvent } from "../events";
-import { NotificationCenter, NotificationChannel } from "@/lib/core/notifications/notification-center";
+import { NotificationCenter, NotificationChannel } from "@/domain/integrations/notification-manager";
 import { prisma } from "@/lib/prisma";
 
 export function registerCalendarHandlers() {
@@ -61,5 +61,35 @@ export function registerCalendarHandlers() {
         createdBy: payload.userId,
       }
     });
+  });
+
+  EventBus.subscribe(WorkflowEvent.EVENT_CREATED, "SyncGoogleCalendarCreate", async (payload: any) => {
+    const { QueueManager } = await import("@/domain/integrations/queue-manager");
+    const { CALENDAR_CONSTANTS } = await import("@/domain/calendar/constants");
+    await QueueManager.pushJob(
+      CALENDAR_CONSTANTS.PROVIDER_ID,
+      'SYNC_GOOGLE_CALENDAR',
+      { crmEventId: payload.eventId }
+    );
+  });
+
+  EventBus.subscribe(WorkflowEvent.EVENT_UPDATED, "SyncGoogleCalendarUpdate", async (payload: any) => {
+    const { QueueManager } = await import("@/domain/integrations/queue-manager");
+    const { CALENDAR_CONSTANTS } = await import("@/domain/calendar/constants");
+    await QueueManager.pushJob(
+      CALENDAR_CONSTANTS.PROVIDER_ID,
+      'SYNC_GOOGLE_CALENDAR',
+      { crmEventId: payload.eventId }
+    );
+  });
+
+  EventBus.subscribe(WorkflowEvent.EVENT_CANCELLED, "DeleteGoogleCalendarEvent", async (payload: any) => {
+    const { QueueManager } = await import("@/domain/integrations/queue-manager");
+    const { CALENDAR_CONSTANTS } = await import("@/domain/calendar/constants");
+    await QueueManager.pushJob(
+      CALENDAR_CONSTANTS.PROVIDER_ID,
+      'DELETE_GOOGLE_CALENDAR_EVENT',
+      { googleEventId: payload.googleEventId }
+    );
   });
 }

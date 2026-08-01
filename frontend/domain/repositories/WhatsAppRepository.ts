@@ -38,7 +38,7 @@ export class WhatsAppRepository {
   static async updateLogStatus(id: string, status: any, deliveredAt?: Date) {
     return prisma.whatsAppLog.update({
       where: { id },
-      data: { status, deliveredAt }
+      data: { status }
     });
   }
 
@@ -47,11 +47,7 @@ export class WhatsAppRepository {
       where,
       skip,
       take,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        client: { select: { businessName: true, contactPerson: true } },
-        lead: { select: { businessName: true, contactPerson: true } }
-      }
+      orderBy: { createdAt: 'desc' }
     });
   }
 }

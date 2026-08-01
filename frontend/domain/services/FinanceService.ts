@@ -38,16 +38,16 @@ export class FinanceService {
       })
     ]);
 
-    const revenue = Number(totalPayments._sum.amount || 0);
-    const expenses = Number(totalExpenses._sum.amount || 0);
+    const revenue = Number(totalPayments._sum?.amount || 0);
+    const expenses = Number(totalExpenses._sum?.amount || 0);
     const profit = revenue - expenses;
 
     return {
       monthlyRevenue: revenue,
       monthlyExpenses: expenses,
       monthlyProfit: profit,
-      invoicedThisMonth: Number(invoicesThisMonth._sum.total || 0),
-      overdueAmount: Number(overdueInvoices._sum.total || 0)
+      invoicedThisMonth: Number(invoicesThisMonth._sum?.total || 0),
+      overdueAmount: Number(overdueInvoices._sum?.total || 0)
     };
   }
 

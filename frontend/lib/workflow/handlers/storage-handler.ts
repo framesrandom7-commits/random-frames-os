@@ -1,7 +1,7 @@
 import { WorkflowEvent } from "../events";
 import { EventBus } from "../event-bus";
 import { JobQueue } from "@/lib/jobs/JobQueue";
-import { NotificationCenter } from "@/lib/core/notifications/notification-center";
+import { NotificationCenter } from "@/domain/integrations/notification-manager";
 import { prisma } from "@/lib/prisma";
 import { Logger } from "@/lib/logger";
 
@@ -14,7 +14,8 @@ export function registerStorageHandlers() {
     const client = await prisma.client.findUnique({ where: { id: payload.clientId } });
     if (!client) throw new Error("Client not found for automation");
 
-    await JobQueue.enqueue('CREATE_CLIENT_FOLDERS', {
+    const { QueueManager } = await import("@/domain/integrations/queue-manager");
+    await QueueManager.pushJob('GOOGLE_DRIVE', 'CREATE_CLIENT_FOLDERS', {
       clientId: client.id,
       clientName: client.businessName,
       userId: payload.userId
@@ -36,7 +37,8 @@ export function registerStorageHandlers() {
       return;
     }
 
-    await JobQueue.enqueue('CREATE_PROJECT_FOLDERS', {
+    const { QueueManager } = await import("@/domain/integrations/queue-manager");
+    await QueueManager.pushJob('GOOGLE_DRIVE', 'CREATE_PROJECT_FOLDERS', {
       projectId: project.id,
       projectName: project.title,
       clientName: project.client.businessName,
@@ -71,7 +73,8 @@ export function registerStorageHandlers() {
       return;
     }
 
-    await JobQueue.enqueue('CREATE_SHOOT_FOLDERS', {
+    const { QueueManager } = await import("@/domain/integrations/queue-manager");
+    await QueueManager.pushJob('GOOGLE_DRIVE', 'CREATE_SHOOT_FOLDERS', {
       shootId: shoot.id,
       shootName: shoot.title,
       projectDriveRootFolderId: project.driveRootFolderId,

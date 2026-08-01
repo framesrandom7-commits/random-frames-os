@@ -5,13 +5,20 @@ import { prisma } from "@/lib/prisma";
 import { Logger } from "@/lib/logger";
 
 export function registerTimelineHandlers() {
-  EventBus.subscribe(WorkflowEvent.PROJECT_CREATED, 'Timeline_ProjectCreated', async (payload) => {
-    const project = await prisma.project.findUnique({ where: { id: payload.projectId } });
-    if (!project) return;
+  // --- CRM & Lead Timeline Events ---
+  EventBus.subscribe(WorkflowEvent.LEAD_CREATED, 'Timeline_LeadCreated', async (payload) => {
+    const lead = await prisma.lead.findUnique({ where: { id: payload.leadId } });
     await logActivity({
       type: "SYSTEM",
-      description: `Project '${project.title}' was created`,
-      projectId: payload.projectId,
+      description: lead ? `Lead '${lead.businessName || lead.id}' was created and assigned to Operations` : "New lead created and assigned to Operations",
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.LEAD_CONVERTED, 'Timeline_LeadConverted', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Lead successfully converted to client profile`,
       clientId: payload.clientId,
       metadata: payload
     });
@@ -28,13 +35,64 @@ export function registerTimelineHandlers() {
     });
   });
 
+  // --- Project & Shoot Timeline Events ---
+  EventBus.subscribe(WorkflowEvent.PROJECT_CREATED, 'Timeline_ProjectCreated', async (payload) => {
+    const project = await prisma.project.findUnique({ where: { id: payload.projectId } });
+    if (!project) return;
+    await logActivity({
+      type: "SYSTEM",
+      description: `Project '${project.title}' was created (Creative Owner: Founder, Ops Owner: Co-Founder)`,
+      projectId: payload.projectId,
+      clientId: payload.clientId,
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.PROJECT_UPDATED, 'Timeline_ProjectUpdated', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Project milestone and schedule were updated`,
+      projectId: payload.projectId,
+      metadata: payload
+    });
+  });
+
   EventBus.subscribe(WorkflowEvent.SHOOT_SCHEDULED, 'Timeline_ShootScheduled', async (payload) => {
     const shoot = await prisma.shoot.findUnique({ where: { id: payload.shootId } });
     if (!shoot) return;
     await logActivity({
       type: "SYSTEM",
-      description: `Shoot '${shoot.title}' was scheduled`,
+      description: `Shoot '${shoot.title}' was scheduled (Creative Owner: Founder)`,
       shootId: payload.shootId,
+      projectId: payload.projectId,
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.SHOOT_COMPLETED, 'Timeline_ShootCompleted', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Shoot production was marked completed`,
+      shootId: payload.shootId,
+      projectId: payload.projectId,
+      metadata: payload
+    });
+  });
+
+  // --- Content & Delivery Timeline Events ---
+  EventBus.subscribe(WorkflowEvent.DELIVERABLE_CREATED, 'Timeline_DeliverableCreated', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Media deliverable uploaded to content pipeline for review`,
+      shootId: payload.shootId,
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.DELIVERY_COMPLETED, 'Timeline_DeliveryCompleted', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Client delivery bundle confirmed completed and approved`,
       projectId: payload.projectId,
       metadata: payload
     });
@@ -43,7 +101,7 @@ export function registerTimelineHandlers() {
   EventBus.subscribe(WorkflowEvent.FOLDER_CREATED, 'Timeline_FolderCreated', async (payload) => {
     await logActivity({
       type: "SYSTEM",
-      description: `Google Drive folder was created automatically`,
+      description: `Google Drive folder structure created automatically`,
       projectId: payload.entityType === 'Project' ? payload.entityId : undefined,
       clientId: payload.entityType === 'Client' ? payload.entityId : undefined,
       shootId: payload.entityType === 'Shoot' ? payload.entityId : undefined,
@@ -51,11 +109,11 @@ export function registerTimelineHandlers() {
     });
   });
 
-  // --- Finance Events ---
+  // --- Finance Timeline Events ---
   EventBus.subscribe(WorkflowEvent.QUOTATION_CREATED, 'Timeline_QuotationCreated', async (payload) => {
     await logActivity({
       type: "SYSTEM",
-      description: `Quotation was created`,
+      description: `Quotation was drafted and shared with pipeline`,
       projectId: payload.projectId,
       clientId: payload.clientId,
       metadata: payload
@@ -65,7 +123,7 @@ export function registerTimelineHandlers() {
   EventBus.subscribe(WorkflowEvent.QUOTATION_APPROVED, 'Timeline_QuotationApproved', async (payload) => {
     await logActivity({
       type: "SYSTEM",
-      description: `Quotation was approved`,
+      description: `Quotation was formally approved by client`,
       projectId: payload.projectId,
       clientId: payload.clientId,
       metadata: payload
@@ -75,7 +133,7 @@ export function registerTimelineHandlers() {
   EventBus.subscribe(WorkflowEvent.INVOICE_CREATED, 'Timeline_InvoiceCreated', async (payload) => {
     await logActivity({
       type: "SYSTEM",
-      description: `Invoice was created`,
+      description: `Invoice generated by Finance team`,
       projectId: payload.projectId,
       clientId: payload.clientId,
       metadata: payload
@@ -85,9 +143,17 @@ export function registerTimelineHandlers() {
   EventBus.subscribe(WorkflowEvent.INVOICE_SENT, 'Timeline_InvoiceSent', async (payload) => {
     await logActivity({
       type: "SYSTEM",
-      description: `Invoice was sent to client`,
+      description: `Invoice transmitted to client relationship owner`,
       projectId: payload.projectId,
       clientId: payload.clientId,
+      metadata: payload
+    });
+  });
+
+  EventBus.subscribe(WorkflowEvent.INVOICE_PAID, 'Timeline_InvoicePaid', async (payload) => {
+    await logActivity({
+      type: "SYSTEM",
+      description: `Invoice marked paid and reconciled in ledger`,
       metadata: payload
     });
   });
@@ -95,9 +161,7 @@ export function registerTimelineHandlers() {
   EventBus.subscribe(WorkflowEvent.PAYMENT_RECEIVED, 'Timeline_PaymentReceived', async (payload) => {
     await logActivity({
       type: "SYSTEM",
-      description: `Payment of ${payload.amount} was received`,
-      projectId: payload.projectId,
-      clientId: payload.clientId,
+      description: `Payment of ${payload.amount} received into bank account`,
       metadata: payload
     });
   });
@@ -105,7 +169,7 @@ export function registerTimelineHandlers() {
   EventBus.subscribe(WorkflowEvent.EXPENSE_LOGGED, 'Timeline_ExpenseLogged', async (payload) => {
     await logActivity({
       type: "SYSTEM",
-      description: `Expense of ${payload.amount} was logged`,
+      description: `Expense of ${payload.amount} logged against operations`,
       projectId: payload.projectId,
       clientId: payload.clientId,
       metadata: payload

@@ -18,6 +18,8 @@ export enum WorkflowEvent {
   PROJECT_ARCHIVED = 'project.archived',
   SHOOT_SCHEDULED = 'shoot.scheduled',
   SHOOT_COMPLETED = 'shoot.completed',
+  WHATSAPP_MESSAGE_SENT = 'whatsapp.message.sent',
+  WHATSAPP_DELIVERY_UPDATE = 'whatsapp.delivery.update',
 
   // Storage & Upload Events
   UPLOAD_STARTED = 'upload.started',
@@ -76,6 +78,8 @@ export interface WorkflowEventPayloads {
   
   [WorkflowEvent.SHOOT_SCHEDULED]: { shootId: string; projectId: string; userId?: string };
   [WorkflowEvent.SHOOT_COMPLETED]: { shootId: string; projectId: string; userId?: string };
+  [WorkflowEvent.WHATSAPP_MESSAGE_SENT]: { logId: string; templateName: string; recipientPhone: string };
+  [WorkflowEvent.WHATSAPP_DELIVERY_UPDATE]: { logId: string; status: string };
 
   [WorkflowEvent.UPLOAD_STARTED]: { fileId: string; userId?: string };
   [WorkflowEvent.UPLOAD_COMPLETED]: { fileId: string; folderId: string; url: string; userId?: string };
@@ -100,9 +104,9 @@ export interface WorkflowEventPayloads {
   [WorkflowEvent.TASK_COMPLETED]: { taskId: string; userId?: string };
   
   [WorkflowEvent.EVENT_CREATED]: { eventId: string; userId?: string };
-  [WorkflowEvent.EVENT_UPDATED]: { eventId: string; updates: any; userId?: string };
-  [WorkflowEvent.EVENT_CANCELLED]: { eventId: string; userId?: string };
-  [WorkflowEvent.REMINDER_TRIGGERED]: { reminderId: string; type: string };
+  [WorkflowEvent.EVENT_UPDATED]: { eventId: string; updates?: any; userId?: string };
+  [WorkflowEvent.EVENT_CANCELLED]: { eventId: string; googleEventId?: string; userId?: string };
+  [WorkflowEvent.REMINDER_TRIGGERED]: { reminderId?: string; shootId?: string; type?: string };
   
   [WorkflowEvent.MESSAGE_SENT]: { communicationId: string; projectId?: string; clientId?: string; userId?: string };
   [WorkflowEvent.EMAIL_SENT]: { communicationId: string; projectId?: string; clientId?: string; userId?: string };

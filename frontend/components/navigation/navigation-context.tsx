@@ -47,11 +47,11 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDrawerOpen(false);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMoreSheetOpen(false);
   }, [pathname]);
 
   const closeAll = () => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDrawerOpen(false);
     setMoreSheetOpen(false);
   };
