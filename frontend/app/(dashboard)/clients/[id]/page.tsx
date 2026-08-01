@@ -28,6 +28,7 @@ import { WhatsAppButton } from "@/components/shared/whatsapp-button";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
 import { updateClientPhone } from "@/app/actions/client";
 import ClientDriveWidget from "@/components/clients/client-drive-widget";
+import { WhatsAppConversationWidget } from "@/components/shared/whatsapp-conversation-widget";
 
 export const dynamic = "force-dynamic";
 
@@ -283,6 +284,15 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                   <span className="text-white text-sm">{new Date(client.createdAt).toLocaleDateString()}</span>
                 </div>
             </div>
+          </ModuleDetailsSection>
+
+          <ModuleDetailsSection>
+            <div className="text-white text-lg font-medium mb-4">WhatsApp Cloud API</div>
+            <WhatsAppConversationWidget
+              clientId={client.id}
+              phone={client.phone}
+              recipientName={client.contactPerson || client.businessName}
+            />
           </ModuleDetailsSection>
 
           <ModuleDetailsSection>

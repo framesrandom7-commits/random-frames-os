@@ -406,6 +406,7 @@ model Shoot {
   droneFolderUrl        String?
   activities            Activity[]
   calendarEvents        CalendarEvent[]
+  communications        Communication[]
   deliverables          Deliverable[]
   notifications         Notification[]
   client                Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -854,20 +855,27 @@ model Communication {
   clientId    String?
   projectId   String?
   invoiceId   String?
-  quotationId String?
-  paymentId   String?
-  eventId     String?
-  sentAt      DateTime                  @default(now())
-  createdBy   String?
-  client      Client?                   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  event       CalendarEvent?            @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  invoice     Invoice?                  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  lead        Lead?                     @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  payment     Payment?                  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-  project     Project?                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  quotation   Quotation?                @relation(fields: [quotationId], references: [id], onDelete: Cascade)
-  attachments CommunicationAttachment[]
-  followUps   FollowUp[]
+  quotationId  String?
+  paymentId    String?
+  eventId      String?
+  shootId      String?
+  wamid        String?
+  templateUsed String?
+  replyToId    String?
+  assignedUser String?
+  scheduledAt  DateTime?
+  sentAt       DateTime                  @default(now())
+  createdBy    String?
+  client       Client?                   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  event        CalendarEvent?            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  invoice      Invoice?                  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  lead         Lead?                     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  payment      Payment?                  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  project      Project?                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  quotation    Quotation?                @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  shoot        Shoot?                    @relation(fields: [shootId], references: [id], onDelete: Cascade)
+  attachments  CommunicationAttachment[]
+  followUps    FollowUp[]
 }
 
 model CommunicationAttachment {
@@ -993,6 +1001,7 @@ enum PreferredContact {
   PHONE
   EMAIL
   WHATSAPP
+  SMS
 }
 
 enum LostReason {
@@ -1125,6 +1134,8 @@ enum CommunicationType {
   CALL
   MEETING
   MESSAGE
+  WHATSAPP
+  SMS
 }
 
 enum ReminderType {
@@ -1239,6 +1250,7 @@ enum JobStatus {
   FAILED
   RETRYING
   CANCELLED
+  DEAD_LETTER
 }
 
 enum TaskStatus {
@@ -1339,11 +1351,22 @@ model WhatsAppTemplate {
 
 model WhatsAppLog {
   id             String   @id @default(cuid())
-  templateName   String
+  messageId      String?
+  templateName   String?
+  messageType    String?  @default("TEMPLATE")
+  direction      CommunicationDirection @default(OUTBOUND)
   recipientPhone String
   status         WhatsAppDeliveryStatus @default(PENDING)
   retryCount     Int      @default(0)
   errorMessage   String?
+  scheduledFor   DateTime?
+  leadId         String?
+  clientId       String?
+  projectId      String?
+  shootId        String?
+  replyToId      String?
+  assignedUserId String?
+  metadata       Json?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

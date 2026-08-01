@@ -53,9 +53,8 @@ export async function GET(request: Request) {
           }
         } else if (job.provider === 'WHATSAPP') {
           const { WhatsAppDomainService } = await import('@/domain/whatsapp/service');
-          if (job.action === 'SEND_TEMPLATE') {
-            success = await WhatsAppDomainService.sendTemplateMessage(payload.to || payload.recipientPhone, payload.templateName, payload.components || payload.dynamicVariables);
-          }
+          await WhatsAppDomainService.executeQueuedJob(job.action, payload, job.id);
+          success = true;
         } else if (job.provider === 'EMAIL') {
           const { EmailDomainService } = await import('@/domain/email/service');
           if (job.action === 'SEND_EMAIL') {

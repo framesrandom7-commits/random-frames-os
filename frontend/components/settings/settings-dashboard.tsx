@@ -13,6 +13,7 @@ import CalendarTab from "./tabs/calendar-tab";
 import BackupTab from "./tabs/backup-tab";
 import IntegrationsTab from "./tabs/integrations-tab";
 import SecurityTab from "./tabs/security-tab";
+import WorkflowAutomationTab from "./tabs/workflow-automation-tab";
 
 import { FEATURES } from "@/lib/features";
 import { RbacDomainService } from "@/domain/rbac/service";
@@ -81,6 +82,11 @@ export default function SettingsDashboard({
               Integrations
             </TabsTrigger>
           )}
+          {canAccess(SettingsTabId.WORKFLOW_AUTOMATION) && (
+            <TabsTrigger value="workflow_automation" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
+              Workflow Automation
+            </TabsTrigger>
+          )}
           {canAccess(SettingsTabId.SECURITY) && (
             <TabsTrigger value="security" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
               Security
@@ -128,6 +134,11 @@ export default function SettingsDashboard({
           {canAccess(SettingsTabId.INTEGRATIONS) && (
             <TabsContent value="integrations" className="m-0 h-full">
               <IntegrationsTab />
+            </TabsContent>
+          )}
+          {canAccess(SettingsTabId.WORKFLOW_AUTOMATION) && (
+            <TabsContent value="workflow_automation" className="m-0 h-full">
+              <WorkflowAutomationTab />
             </TabsContent>
           )}
           {canAccess(SettingsTabId.SECURITY) && (

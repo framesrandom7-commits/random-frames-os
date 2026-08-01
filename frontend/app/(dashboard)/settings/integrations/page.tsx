@@ -66,16 +66,36 @@ export default async function IntegrationsHubPage() {
               </p>
               
               <div className="flex justify-end border-t border-white/5 pt-4">
-                {provider.id === "GOOGLE_DRIVE" ? (
-                  <div className="flex w-full justify-between items-center">
-                    {provider.isConfigured && (
-                      <span className="text-xs text-zinc-500">
-                        {provider.healthStatus === "HEALTHY" ? "Operational" : "Unknown Status"}
-                      </span>
-                    )}
-                    <Link href="/settings/integrations/google-drive" className="w-full">
-                      <Button variant="outline" size="sm" className="border-white/10 text-white w-full hover:bg-white/5">
+                {provider.id === "GOOGLE_DRIVE" || provider.id === "google_drive" ? (
+                  <div className="flex w-full justify-between items-center gap-2">
+                    <span className="text-xs text-zinc-500">
+                      {provider.isConfigured ? (provider.healthStatus === "HEALTHY" ? "Operational" : "Active") : "Not Configured"}
+                    </span>
+                    <Link href="/settings/integrations/google-drive">
+                      <Button variant="outline" size="sm" className="border-white/10 text-white hover:bg-white/5">
                         Manage
+                      </Button>
+                    </Link>
+                  </div>
+                ) : provider.id === "GOOGLE_CALENDAR" || provider.id === "google_calendar" ? (
+                  <div className="flex w-full justify-between items-center gap-2">
+                    <span className="text-xs text-zinc-500">
+                      {provider.isConfigured ? (provider.healthStatus === "HEALTHY" ? "Operational" : "Active") : "Not Configured"}
+                    </span>
+                    <Link href="/settings/integrations/google-calendar">
+                      <Button variant="outline" size="sm" className="border-white/10 text-white hover:bg-white/5">
+                        Manage
+                      </Button>
+                    </Link>
+                  </div>
+                ) : provider.id === "WHATSAPP" || provider.id === "whatsapp" ? (
+                  <div className="flex w-full justify-between items-center gap-2">
+                    <span className="text-xs text-zinc-500">
+                      {provider.isConfigured ? (provider.healthStatus === "HEALTHY" ? "Operational" : "Active") : "Not Configured"}
+                    </span>
+                    <Link href="/settings/integrations/whatsapp">
+                      <Button variant="outline" size="sm" className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10">
+                        Manage Cloud API
                       </Button>
                     </Link>
                   </div>
@@ -87,32 +107,6 @@ export default async function IntegrationsHubPage() {
                     <Button variant="outline" size="sm" className="border-rose-500/50 text-rose-500 hover:bg-rose-500/10">
                       Disconnect
                     </Button>
-                  </div>
-                ) : provider.id === "GOOGLE_CALENDAR" ? (
-                  <div className="flex w-full justify-between items-center">
-                    {provider.isConfigured && (
-                      <span className="text-xs text-zinc-500">
-                        {provider.healthStatus === "HEALTHY" ? "Operational" : "Unknown Status"}
-                      </span>
-                    )}
-                    <Link href="/settings/integrations/google-calendar" className="w-full">
-                      <Button variant="outline" size="sm" className="border-white/10 text-white w-full hover:bg-white/5">
-                        Manage
-                      </Button>
-                    </Link>
-                  </div>
-                ) : provider.id === "WHATSAPP" ? (
-                  <div className="flex w-full justify-between items-center">
-                    {provider.isConfigured && (
-                      <span className="text-xs text-zinc-500">
-                        {provider.healthStatus === "HEALTHY" ? "Operational" : "Unknown Status"}
-                      </span>
-                    )}
-                    <Link href="/settings/integrations/whatsapp" className="w-full">
-                      <Button variant="outline" size="sm" className="border-white/10 text-white w-full hover:bg-white/5">
-                        Manage
-                      </Button>
-                    </Link>
                   </div>
                 ) : (
                   <Button variant="outline" size="sm" className="border-white/10 text-white w-full">
