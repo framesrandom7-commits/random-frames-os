@@ -49,12 +49,6 @@ export function WhatsAppConversationWidget({
   const [content, setContent] = useState("");
   const [customPhone, setCustomPhone] = useState(phone || "");
 
-  useEffect(() => {
-    if (activeTab === "history") {
-      fetchHistory();
-    }
-  }, [activeTab]);
-
   const fetchHistory = async () => {
     setLoadingHistory(true);
     const res: any = await getConversationHistory({ clientId, leadId, projectId, shootId, limit: 15 });
@@ -63,6 +57,14 @@ export function WhatsAppConversationWidget({
     }
     setLoadingHistory(false);
   };
+
+  useEffect(() => {
+    if (activeTab === "history") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchHistory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const handleSend = async () => {
     const targetPhone = phone || customPhone;

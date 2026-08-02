@@ -33,38 +33,34 @@ export async function GET(request: Request) {
       try {
         const payload = job.payload as any;
         if (job.provider === 'GOOGLE_DRIVE') {
-          if (job.action === 'CREATE_CLIENT_FOLDERS') {
-            const { DriveDomainService } = await import('@/domain/drive/service');
-            await DriveDomainService.createClientFolders(payload.clientId, payload.clientName);
+          const { WorkspaceDriveService } = await import('@/domain/google/drive/service');
+          if (job.action === 'CREATE_CLIENT_FOLDERS' || job.action === 'REPAIR_CLIENT') {
+            await WorkspaceDriveService.repairFolderHierarchy('CLIENT', payload.clientId || payload.entityId);
             success = true;
-          } else if (job.action === 'CREATE_PROJECT_FOLDERS') {
-            const { DriveDomainService } = await import('@/domain/drive/service');
-            await DriveDomainService.createProjectFolders(payload.projectId, payload.projectName, payload.clientFolderId || payload.clientDriveFolderId);
+          } else if (job.action === 'CREATE_PROJECT_FOLDERS' || job.action === 'REPAIR_PROJECT') {
+            await WorkspaceDriveService.repairFolderHierarchy('PROJECT', payload.projectId || payload.entityId);
             success = true;
           }
         } else if (job.provider === 'GOOGLE_CALENDAR') {
-          const { CalendarDomainService } = await import('@/domain/calendar/service');
-          if (job.action === 'SYNC_GOOGLE_CALENDAR') {
-            await CalendarDomainService.syncEventToGoogle(payload.crmEventId);
+          const { WorkspaceCalendarService } = await import('@/domain/google/calendar/service');
+          await WorkspaceCalendarService.executeQueuedJob(job.action, payload);
+          success = true;
+        } else if (job.provider === 'GMAIL' || job.provider === 'EMAIL') {
+          const { GmailDomainService } = await import('@/domain/google/gmail/service');
+          if (job.action === 'SEND_EMAIL') {
+            await GmailDomainService.executeQueuedJob(job.action, payload, job.id);
             success = true;
-          } else if (job.action === 'DELETE_GOOGLE_CALENDAR_EVENT') {
-            await CalendarDomainService.deleteGoogleEvent(payload.googleEventId);
+          }
+        } else if (job.provider === 'GOOGLE_CONTACTS') {
+          const { WorkspaceContactsService } = await import('@/domain/google/contacts/service');
+          if (job.action === 'SYNC_CONTACT') {
+            await WorkspaceContactsService.syncContact(payload);
             success = true;
           }
         } else if (job.provider === 'WHATSAPP') {
           const { WhatsAppDomainService } = await import('@/domain/whatsapp/service');
           await WhatsAppDomainService.executeQueuedJob(job.action, payload, job.id);
           success = true;
-        } else if (job.provider === 'EMAIL') {
-          const { EmailDomainService } = await import('@/domain/email/service');
-          if (job.action === 'SEND_EMAIL') {
-            const result = await EmailDomainService.sendEmail({
-              to: payload.to,
-              subject: payload.subject,
-              body: payload.body
-            });
-            success = result.success;
-          }
         }
       } catch (err: any) {
         lastError = err.message;

@@ -29,6 +29,7 @@ import { whatsappLinks } from "@/lib/integrations/whatsapp";
 import { updateClientPhone } from "@/app/actions/client";
 import ClientDriveWidget from "@/components/clients/client-drive-widget";
 import { WhatsAppConversationWidget } from "@/components/shared/whatsapp-conversation-widget";
+import { ClientWorkspaceWidget } from "@/components/clients/client-workspace-widget";
 
 export const dynamic = "force-dynamic";
 
@@ -284,6 +285,16 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                   <span className="text-white text-sm">{new Date(client.createdAt).toLocaleDateString()}</span>
                 </div>
             </div>
+          </ModuleDetailsSection>
+
+          <ModuleDetailsSection>
+            <ClientWorkspaceWidget
+              clientId={client.id}
+              email={client.email}
+              phone={client.phone}
+              businessName={client.businessName}
+              driveUrl={client.driveFolderUrl}
+            />
           </ModuleDetailsSection>
 
           <ModuleDetailsSection>

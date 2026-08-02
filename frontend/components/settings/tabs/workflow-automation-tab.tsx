@@ -15,10 +15,6 @@ export default function WorkflowAutomationTab() {
   const [enabled, setEnabled] = useState(true);
   const [timingHoursBefore, setTimingHoursBefore] = useState(24);
 
-  useEffect(() => {
-    loadPolicy();
-  }, []);
-
   const loadPolicy = async () => {
     setLoading(true);
     const res: any = await getWhatsAppSettings();
@@ -28,6 +24,11 @@ export default function WorkflowAutomationTab() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadPolicy();
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);

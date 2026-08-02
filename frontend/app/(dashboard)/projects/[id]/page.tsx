@@ -22,6 +22,7 @@ import {
   ModuleDetailsSidebar,
   ModuleDetailsSection
 } from "@/components/ui/module";
+import { ProjectWorkspaceWidget } from "@/components/projects/project-workspace-widget";
 
 export const dynamic = "force-dynamic";
 
@@ -206,6 +207,15 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
         </ModuleDetailsContent>
 
         <ModuleDetailsSidebar>
+          <ModuleDetailsSection>
+            <ProjectWorkspaceWidget
+              projectId={project.id}
+              projectTitle={project.title}
+              driveFolderUrl={project.driveRootFolderUrl}
+              clientEmail={(project.client as any)?.email}
+            />
+          </ModuleDetailsSection>
+
           <ModuleDetailsSection>
             <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
               <Users className="w-5 h-5 text-zinc-400" />

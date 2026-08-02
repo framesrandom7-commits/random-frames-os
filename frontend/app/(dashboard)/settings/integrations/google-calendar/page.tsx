@@ -16,10 +16,6 @@ export default function GoogleCalendarSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
-  useEffect(() => {
-    loadStatus();
-  }, []);
-
   const loadStatus = async () => {
     setLoading(true);
     const data: any = await getCalendarSettings();
@@ -37,6 +33,11 @@ export default function GoogleCalendarSettingsPage() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadStatus();
+  }, []);
 
   const handleConnect = () => {
     window.location.href = "/api/auth/google";

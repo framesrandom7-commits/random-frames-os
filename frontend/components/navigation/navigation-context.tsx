@@ -51,7 +51,6 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   }, [pathname]);
 
   const closeAll = () => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDrawerOpen(false);
     setMoreSheetOpen(false);
   };

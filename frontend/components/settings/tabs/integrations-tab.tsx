@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Calendar, Mail, MessageCircle, HardDrive, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { syncWeb3FormsEmails } from "@/app/actions/integrations";
+import { GoogleWorkspaceSettingsCard } from "./google-workspace-settings";
 
 interface IntegrationState {
   connected: boolean;
@@ -142,6 +143,8 @@ export default function IntegrationsTab() {
         <h3 className="text-xl font-semibold text-white tracking-tight">Integrations</h3>
         <p className="text-sm text-zinc-400 mt-1">Connect Random Frames OS with your external tools for automation.</p>
       </div>
+
+      <GoogleWorkspaceSettingsCard />
 
       <div className="space-y-4">
         {renderIntegrationCard(

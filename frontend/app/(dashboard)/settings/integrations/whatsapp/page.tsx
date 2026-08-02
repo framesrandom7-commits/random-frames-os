@@ -45,10 +45,6 @@ export default function WhatsAppSettingsPage() {
   const [businessAccountId, setBusinessAccountId] = useState("");
   const [testPhone, setTestPhone] = useState("");
 
-  useEffect(() => {
-    loadStatus();
-  }, []);
-
   const loadStatus = async () => {
     setLoading(true);
     const data: any = await getWhatsAppSettings();
@@ -60,6 +56,11 @@ export default function WhatsAppSettingsPage() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadStatus();
+  }, []);
 
   const handleSave = async () => {
     if (!accessToken || !phoneNumberId) {

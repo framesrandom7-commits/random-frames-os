@@ -19,8 +19,17 @@ export class RbacDomainService {
       roleName === RoleName.FOUNDER ||
       roleName.toLowerCase() === "founder" ||
       roleName === RoleName.OWNER ||
-      roleName.toLowerCase() === "owner"
+      roleName.toLowerCase() === "owner" ||
+      roleName.toUpperCase() === "SUPER_ADMIN" ||
+      roleName.toLowerCase() === "super admin"
     );
+  }
+
+  /**
+   * Alias for isFounder for Super Admin checks across integrations
+   */
+  static isSuperAdmin(roleName?: string | null): boolean {
+    return this.isFounder(roleName);
   }
 
   /**
