@@ -55,10 +55,15 @@ export const UpdateLeadSchema = CreateLeadSchema.partial();
 export const CreateProjectSchema = z.object({
   title: z.string().min(2, "Project title is required"),
   description: OptionalString,
-  clientId: z.string().uuid("Invalid client ID"),
+  clientId: z.string().min(1, "Client ID is required"),
+  quotationId: z.string().min(1, "A valid Approved Quotation ID is required"),
   status: z.string().optional(),
   category: z.string().optional(),
   priority: z.string().optional(),
+  additionalServicesAmount: z.number().optional().nullable(),
+  additionalChargesAmount: z.number().optional().nullable(),
+  assignedUserIds: z.array(z.string()).optional(),
+  deliveryDate: z.date().optional().nullable(),
 });
 
 export const UpdateProjectSchema = CreateProjectSchema.partial();

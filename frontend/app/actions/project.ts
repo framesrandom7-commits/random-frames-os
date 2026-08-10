@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { ProjectCategory, ProjectStatus, ProjectPriority, PaymentStatus } from "@prisma/client";
 import { ProjectService } from "@/domain/services/ProjectService";
 import { GetProjectsParams } from "@/domain/repositories/ProjectRepository";
+import { CreateProjectSchema, UpdateProjectSchema } from "@/lib/validations";
 
 export type CreateProjectData = {
   clientId: string;
@@ -16,11 +17,8 @@ export type CreateProjectData = {
   startDate?: Date | null;
   endDate?: Date | null;
   deliveryDate?: Date | null;
-  quotationAmount?: number | null;
   additionalServicesAmount?: number | null;
   additionalChargesAmount?: number | null;
-  discountAmount?: number | null;
-  taxAmount?: number | null;
   advanceAmount?: number | null;
   totalAmount?: number | null;
   balanceAmount?: number | null;
@@ -35,13 +33,14 @@ export async function generateProjectCode(): Promise<string> {
 
 export async function createProject(data: CreateProjectData) {
   try {
-    const project = await ProjectService.create(data);
+    const parsedData = CreateProjectSchema.parse(data);
+    const project = await ProjectService.create(parsedData as any);
     revalidatePath("/projects");
     revalidatePath(`/clients/${data.clientId}`);
     return { success: true, project };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating project:", error);
-    return { success: false, error: "Failed to create project" };
+    return { success: false, error: error.message || "Failed to create project" };
   }
 }
 
@@ -55,16 +54,17 @@ export async function syncProjectFinancials(projectId: string) {
 
 export async function updateProject(id: string, data: Partial<CreateProjectData>) {
   try {
-    const project = await ProjectService.update(id, data);
+    const parsedData = UpdateProjectSchema.parse(data);
+    const project = await ProjectService.update(id, parsedData as any);
     
     revalidatePath("/projects");
     revalidatePath(`/projects/${id}`);
     revalidatePath(`/clients/${project.clientId}`);
     revalidatePath("/calendar");
     return { success: true, project };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating project:", error);
-    return { success: false, error: "Failed to update project" };
+    return { success: false, error: error.message || "Failed to update project" };
   }
 }
 

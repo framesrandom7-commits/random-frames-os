@@ -31,6 +31,7 @@ export enum WorkflowEvent {
 
   // Finance Events
   QUOTATION_CREATED = 'quotation.created',
+  QUOTATION_UPDATED = 'quotation.updated',
   QUOTATION_APPROVED = 'quotation.approved',
   QUOTATION_REJECTED = 'quotation.rejected',
   INVOICE_CREATED = 'invoice.created',
@@ -91,6 +92,7 @@ export interface WorkflowEventPayloads {
   [WorkflowEvent.DELIVERABLE_CREATED]: { deliverableId: string; shootId: string; userId?: string };
 
   [WorkflowEvent.QUOTATION_CREATED]: { quotationId: string; projectId: string; clientId: string; userId?: string };
+  [WorkflowEvent.QUOTATION_UPDATED]: { quotationId: string; projectId: string; clientId: string; userId?: string };
   [WorkflowEvent.QUOTATION_APPROVED]: { quotationId: string; projectId: string; clientId: string; userId?: string };
   [WorkflowEvent.QUOTATION_REJECTED]: { quotationId: string; projectId: string; clientId: string; userId?: string };
   [WorkflowEvent.INVOICE_CREATED]: { invoiceId: string; projectId: string; clientId: string; userId?: string };

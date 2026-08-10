@@ -309,11 +309,8 @@ model Project {
   startDate            DateTime?
   endDate              DateTime?
   deliveryDate         DateTime?
-  quotationAmount          Decimal?        @db.Decimal(10, 2)
   additionalServicesAmount Decimal?        @db.Decimal(10, 2)
   additionalChargesAmount  Decimal?        @db.Decimal(10, 2)
-  discountAmount           Decimal?        @db.Decimal(10, 2)
-  taxAmount                Decimal?        @db.Decimal(10, 2)
   advanceAmount            Decimal?        @db.Decimal(10, 2)
   totalAmount              Decimal?        @db.Decimal(10, 2)
   balanceAmount            Decimal?        @db.Decimal(10, 2)
