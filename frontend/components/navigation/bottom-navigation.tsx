@@ -8,9 +8,16 @@ import { cn } from "@/lib/utils";
 import { BOTTOM_NAV_ITEMS } from "@/lib/navigation-config";
 import { useNavigation } from "./navigation-context";
 
-export function BottomNavigation() {
+export function BottomNavigation({ user }: { user?: { name: string, roleName: string } }) {
   const pathname = usePathname();
   const { setMoreSheetOpen } = useNavigation();
+
+  const filteredBottomItems = BOTTOM_NAV_ITEMS.filter(
+    (item) => !item.allowedRoles || item.allowedRoles.includes(user?.roleName || "Founder")
+  );
+
+  // We can show up to 4 items max. If more exist, the rest go into "More" (MobileMoreSheet)
+  const displayItems = filteredBottomItems.slice(0, 4);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0F1115]/90 backdrop-blur-xl border-t border-white/10 pb-[env(safe-area-inset-bottom)]">

@@ -129,7 +129,6 @@ export class ProjectRepository {
         invoices: { where: { status: { not: "CANCELLED" } } },
         payments: true,
         expenses: true,
-        originQuotation: true,
       }
     });
   }

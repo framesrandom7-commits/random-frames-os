@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { NAVIGATION_CONFIG } from "@/lib/navigation-config";
 import { useNavigation } from "./navigation-context";
 
-export function MobileDrawer() {
+export function MobileDrawer({ user }: { user?: { name: string, roleName: string } }) {
   const pathname = usePathname();
   const { isDrawerOpen, setDrawerOpen } = useNavigation();
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -76,7 +76,7 @@ export function MobileDrawer() {
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
           <nav className="flex flex-col gap-1">
-            {NAVIGATION_CONFIG.map((item) => {
+            {NAVIGATION_CONFIG.filter(item => !item.allowedRoles || item.allowedRoles.includes(user?.roleName || "Founder")).map((item) => {
               const isActive = pathname === item.route || (item.route !== "/" && pathname?.startsWith(item.route));
               return (
                 <Link

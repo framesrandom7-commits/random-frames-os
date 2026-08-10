@@ -22,6 +22,9 @@ export interface NavigationItem {
   category: NavigationCategory;
   sortOrder: number;
   
+  // RBAC
+  allowedRoles?: string[];
+  
   // Visibility flags
   showOnMobile: boolean; // Should it appear in the mobile "More" sheet
   showInBottomNav: boolean; // Should it be one of the primary bottom tabs
@@ -39,6 +42,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: LayoutDashboard,
     category: "main",
     sortOrder: 0,
+    allowedRoles: ["Founder", "Co-Founder"],
     showOnMobile: true,
     showInBottomNav: false,
   },
@@ -49,6 +53,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: PieChart,
     category: "main",
     sortOrder: 1,
+    allowedRoles: ["Founder", "Co-Founder"],
     showOnMobile: true,
     showInBottomNav: true,
   },
@@ -59,6 +64,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: Users,
     category: "main",
     sortOrder: 2,
+    allowedRoles: ["Founder", "Co-Founder"],
     showOnMobile: true,
     showInBottomNav: false,
   },
@@ -69,6 +75,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: UserCircle,
     category: "main",
     sortOrder: 3,
+    allowedRoles: ["Founder", "Co-Founder"],
     showOnMobile: true,
     showInBottomNav: true,
   },
@@ -79,6 +86,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: Briefcase,
     category: "main",
     sortOrder: 4,
+    allowedRoles: ["Founder", "Co-Founder"],
     showOnMobile: true,
     showInBottomNav: true,
   },
@@ -89,6 +97,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: Camera,
     category: "main",
     sortOrder: 5,
+    allowedRoles: ["Founder", "Co-Founder"],
     showOnMobile: true,
     showInBottomNav: false,
   },
@@ -99,6 +108,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: Calendar,
     category: "main",
     sortOrder: 6,
+    allowedRoles: ["Founder", "Co-Founder"],
     showOnMobile: true,
     showInBottomNav: false,
   },
@@ -109,6 +119,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: DollarSign,
     category: "main",
     sortOrder: 7,
+    allowedRoles: ["Founder", "Co-Founder"], // Finance restricted to Founder and Co-Founder
     showOnMobile: true,
     showInBottomNav: true,
   },
@@ -119,6 +130,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: Aperture,
     category: "secondary",
     sortOrder: 8,
+    allowedRoles: ["Founder", "Co-Founder"],
     showOnMobile: true,
     showInBottomNav: false,
   },
@@ -129,6 +141,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     icon: BarChart,
     category: "secondary",
     sortOrder: 9,
+    allowedRoles: ["Founder"], // Reports restricted to Founder
     showOnMobile: true,
     showInBottomNav: false,
   }

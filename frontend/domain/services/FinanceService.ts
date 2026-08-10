@@ -401,15 +401,6 @@ export class FinanceService {
       });
     }
 
-    // Always emit QUOTATION_UPDATED to allow sync
-    if (quotation.projectId) {
-      EventBus.emit(WorkflowEvent.QUOTATION_UPDATED, {
-        quotationId: quotation.id,
-        projectId: quotation.projectId,
-        clientId: quotation.clientId,
-      });
-    }
-
     return quotation;
   }
 

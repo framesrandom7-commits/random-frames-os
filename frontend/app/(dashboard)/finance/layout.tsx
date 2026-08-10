@@ -1,11 +1,15 @@
 import React from "react";
 import FinanceNav from "@/components/finance/finance-nav";
+import { verifySession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
-export default function FinanceLayout({
+export default async function FinanceLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Access granted via RBAC routing config
   return (
     <div className="flex flex-col h-full overflow-hidden p-8 gap-6">
       <div className="flex items-center justify-between">

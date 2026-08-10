@@ -2,7 +2,6 @@ import { WorkflowEvent } from "../events";
 import { EventBus } from "../event-bus";
 import { prisma } from "@/lib/prisma";
 import { FinanceService } from "@/lib/finance/finance.service";
-import { ProjectService } from "@/domain/services/ProjectService";
 
 /**
  * Finance Workflow Handlers
@@ -22,13 +21,6 @@ export function registerFinanceHandlers() {
         data: { status: 'PLANNING' }
       });
       // Optionally emit a project updated event here, but we'll avoid cascading events for now to keep it simple.
-    }
-  });
-
-  // When a quotation is updated, sync project financials
-  EventBus.subscribe(WorkflowEvent.QUOTATION_UPDATED, 'Finance_SyncProjectFinancials', async (payload) => {
-    if (payload.projectId) {
-      await ProjectService.syncFinancials(payload.projectId);
     }
   });
 

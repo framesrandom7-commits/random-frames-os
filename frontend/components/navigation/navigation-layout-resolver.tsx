@@ -9,7 +9,7 @@ import { BottomNavigation } from "./bottom-navigation";
 import { MobileMoreSheet } from "./mobile-more-sheet";
 import { NavigationProvider } from "./navigation-context";
 
-export function NavigationLayoutResolver() {
+export function NavigationLayoutResolver({ user }: { user?: { name: string, roleName: string } }) {
   const deviceType = useDeviceType();
 
   // If unknown (during SSR), render nothing or a skeleton to prevent layout shift.
@@ -17,31 +17,31 @@ export function NavigationLayoutResolver() {
   // A safe approach for SSR is to render the Desktop Sidebar hidden, but we'll 
   // just return null or the Desktop sidebar for now.
   if (deviceType === "unknown") {
-    return <DesktopSidebar />; 
+    return <DesktopSidebar user={user} />; 
   }
 
   if (deviceType === "desktop") {
-    return <DesktopSidebar />;
+    return <DesktopSidebar user={user} />;
   }
 
   if (deviceType === "laptop") {
-    return <CompactSidebar />;
+    return <CompactSidebar user={user} />;
   }
 
   if (deviceType === "tablet") {
-    return <MobileDrawer />;
+    return <MobileDrawer user={user} />;
   }
 
   if (deviceType === "mobile") {
     return (
       <>
-        <BottomNavigation />
-        <MobileMoreSheet />
+        <BottomNavigation user={user} />
+        <MobileMoreSheet user={user} />
       </>
     );
   }
 
-  return <DesktopSidebar />;
+  return <DesktopSidebar user={user} />;
 }
 
 export function AdaptiveNavigation() {

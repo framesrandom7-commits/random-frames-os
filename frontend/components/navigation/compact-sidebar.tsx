@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { NAVIGATION_CONFIG } from "@/lib/navigation-config";
 import { useNavigation } from "./navigation-context";
 
-export function CompactSidebar() {
+export function CompactSidebar({ user }: { user?: { name: string, roleName: string } }) {
   const pathname = usePathname();
   const { isSidebarPinned, setSidebarPinned } = useNavigation();
   const [isHovered, setIsHovered] = useState(false);
@@ -47,7 +47,7 @@ export function CompactSidebar() {
       {/* Navigation */}
       <div className="flex flex-1 flex-col overflow-y-auto custom-scrollbar pb-4 transition-all duration-300">
         <nav className="flex-1 space-y-2 px-3">
-          {NAVIGATION_CONFIG.map((item) => {
+          {NAVIGATION_CONFIG.filter(item => !item.allowedRoles || item.allowedRoles.includes(user?.roleName || "Founder")).map((item) => {
             const isActive = pathname === item.route || (item.route !== "/" && pathname?.startsWith(item.route));
             
             return (

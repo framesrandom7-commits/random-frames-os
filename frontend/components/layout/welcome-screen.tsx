@@ -14,17 +14,16 @@ export function WelcomeScreen({ user }: { user?: { name: string } }) {
     if (!hasSeenWelcome) {
       setShow(true);
       sessionStorage.setItem('hasSeenWelcome', 'true');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (show) {
+      
       const timer = setTimeout(() => {
         setShow(false);
       }, 1500);
+      
       return () => clearTimeout(timer);
+    } else {
+      setShow(false);
     }
-  }, [show]);
+  }, []);
 
   if (!isClient) {
     // Render the initial overlay for SSR to prevent hydration issues,
@@ -34,8 +33,8 @@ export function WelcomeScreen({ user }: { user?: { name: string } }) {
     );
   }
 
-  // If client-side and they shouldn't see it, render nothing to avoid exit animations
-  if (!show && sessionStorage.getItem('hasSeenWelcome') === 'true') {
+  // If client-side and show is false, render nothing to avoid exit animations
+  if (!show && isClient) {
     return null;
   }
 

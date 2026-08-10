@@ -324,6 +324,11 @@ export const ADMIN_SETTINGS_TABS: string[] = [
   SettingsTabId.BACKUP,
   SettingsTabId.INTEGRATIONS,
   SettingsTabId.SECURITY,
+  SettingsTabId.BUSINESS,
+  SettingsTabId.BRANDING,
+  SettingsTabId.INVOICE,
+  SettingsTabId.PAYMENT,
+  SettingsTabId.WORKFLOW_AUTOMATION,
 ];
 
 /**

@@ -30,38 +30,18 @@ export class ProjectService {
   static async create(data: CreateProjectData) {
     const projectCode = await ProjectService.generateCode();
     
-    const { assignedUserIds, clientId, quotationId, ...projectData } = data;
+    const { assignedUserIds, clientId, ...projectData } = data;
 
-    if (!quotationId) {
-      throw new Error("A valid approved quotation is required to create a project.");
-    }
-
-    const quotation = await prisma.quotation.findUnique({
-      where: { id: quotationId }
-    });
-
-    if (!quotation) {
-      throw new Error("Quotation not found.");
-    }
-
-    if (quotation.status !== "APPROVED") {
-      throw new Error("Project can only be created from an APPROVED quotation.");
-    }
-
-    if (quotation.clientId !== clientId) {
-      throw new Error("Quotation client does not match the project client.");
-    }
-
+    const quotationAmount = Number(data.quotationAmount || 0);
     const additionalServicesAmount = Number(data.additionalServicesAmount || 0);
     const additionalChargesAmount = Number(data.additionalChargesAmount || 0);
+    const discountAmount = Number(data.discountAmount || 0);
+    const taxAmount = Number(data.taxAmount || 0);
 
-    const computedTotalAmount = Number(quotation.total) + additionalServicesAmount + additionalChargesAmount;
-
-    // Clean up fields from projectData that shouldn't be passed to Prisma anymore
-    const { quotationAmount: _qA, discountAmount: _dA, taxAmount: _tA, ...cleanProjectData } = projectData as any;
+    const computedTotalAmount = quotationAmount + additionalServicesAmount + additionalChargesAmount - discountAmount + taxAmount;
 
     const project = await ProjectRepository.create({
-      ...cleanProjectData,
+      ...projectData,
       totalAmount: computedTotalAmount,
       projectCode,
       client: { connect: { id: clientId } },
@@ -80,11 +60,6 @@ export class ProjectService {
             status: data.status === "DELIVERED" || data.status === "COMPLETED" ? "COMPLETED" : (data.status === "CANCELLED" ? "CANCELLED" : "SCHEDULED"),
             clientId: data.clientId,
           }
-        }
-      } : {}),
-      ...(quotationId ? {
-        originQuotation: {
-          connect: { id: quotationId }
         }
       } : {})
     });
@@ -111,11 +86,14 @@ export class ProjectService {
     const project = await ProjectRepository.findById(projectId);
     if (!project) return;
 
-    const quotationTotal = project.originQuotation ? Number(project.originQuotation.total) : 0;
+    // Calculate total amount based on the new architecture
+    const quotationAmount = Number(project.quotationAmount || 0);
     const additionalServicesAmount = Number(project.additionalServicesAmount || 0);
     const additionalChargesAmount = Number(project.additionalChargesAmount || 0);
+    const discountAmount = Number(project.discountAmount || 0);
+    const taxAmount = Number(project.taxAmount || 0);
 
-    const computedTotalAmount = quotationTotal + additionalServicesAmount + additionalChargesAmount;
+    const computedTotalAmount = quotationAmount + additionalServicesAmount + additionalChargesAmount - discountAmount + taxAmount;
 
     // Calculate financials
     const totalInvoiced = project.invoices.reduce((sum, inv) => sum + Number(inv.total), 0);

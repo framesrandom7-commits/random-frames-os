@@ -109,4 +109,5 @@ export enum SettingsTabId {
   INTEGRATIONS = "integrations",
   SECURITY = "security",
   WORKFLOW_AUTOMATION = "workflow_automation",
+  FORMS = "forms",
 }

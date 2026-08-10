@@ -97,13 +97,13 @@ async function main() {
   const coFounderRole = await prisma.role.findUnique({ where: { name: RoleName.CO_FOUNDER } });
   if (!coFounderRole) throw new Error("Co-Founder role not found after seeding.");
 
-  const coFounderEmail = "pooja@randomframes.local";
+  const coFounderEmail = "hbpooja04@gmail.com";
   const existingCoFounder = await prisma.user.findUnique({
     where: { email: coFounderEmail },
   });
 
   if (!existingCoFounder) {
-    const defaultPasswordHash = await bcrypt.hash("ChangeMe@123", 10);
+    const defaultPasswordHash = await bcrypt.hash("Pooja@04", 10);
     await prisma.user.create({
       data: {
         email: coFounderEmail,

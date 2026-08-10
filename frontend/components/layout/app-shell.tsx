@@ -14,7 +14,7 @@ export default function AppShell({ children, user }: { children: React.ReactNode
       <WelcomeScreen user={user} />
       <NavigationProvider>
         <AppLayoutWindow>
-          <NavigationLayoutResolver />
+          <NavigationLayoutResolver user={user} />
           <AppLayoutContent>
             <TopBar user={user} />
             <PageContainer>

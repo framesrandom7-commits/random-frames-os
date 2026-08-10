@@ -38,17 +38,22 @@ export default function SettingsDashboard({
   userRoleName,
 }: SettingsDashboardProps) {
   const canAccess = (tab: string) => RbacDomainService.canAccessSettingsTab(userRoleName, tab);
+  const defaultTab = canAccess(SettingsTabId.BUSINESS) ? "business" : "calendar";
 
   return (
     <div className="w-full h-full flex flex-col md:flex-row gap-6">
-      <Tabs defaultValue="business" className="flex flex-col md:flex-row w-full gap-6" orientation="vertical">
+      <Tabs defaultValue={defaultTab} className="flex flex-col md:flex-row w-full gap-6" orientation="vertical">
         <TabsList className="flex flex-row md:flex-col h-auto w-full md:w-64 bg-white/5 border border-white/10 p-2 justify-start items-stretch gap-1 overflow-x-auto">
-          <TabsTrigger value="business" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
-            Business
-          </TabsTrigger>
-          <TabsTrigger value="branding" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
-            Branding
-          </TabsTrigger>
+          {canAccess(SettingsTabId.BUSINESS) && (
+            <TabsTrigger value="business" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
+              Business
+            </TabsTrigger>
+          )}
+          {canAccess(SettingsTabId.BRANDING) && (
+            <TabsTrigger value="branding" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
+              Branding
+            </TabsTrigger>
+          )}
 
           {FEATURES.ENABLE_TEAM_MANAGEMENT && canAccess(SettingsTabId.USERS) && (
             <TabsTrigger value="users" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
@@ -62,22 +67,34 @@ export default function SettingsDashboard({
             </TabsTrigger>
           )}
 
-          <TabsTrigger value="invoice" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
-            Invoice Settings
-          </TabsTrigger>
-          <TabsTrigger value="payment" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
-            Payment Methods
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger value="calendar" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
-            Calendar
-          </TabsTrigger>
+          {canAccess(SettingsTabId.INVOICE) && (
+            <TabsTrigger value="invoice" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
+              Invoice Settings
+            </TabsTrigger>
+          )}
+          {canAccess(SettingsTabId.PAYMENT) && (
+            <TabsTrigger value="payment" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
+              Payment Methods
+            </TabsTrigger>
+          )}
+          
+          {canAccess(SettingsTabId.NOTIFICATIONS) && (
+            <TabsTrigger value="notifications" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
+              Notifications
+            </TabsTrigger>
+          )}
+          
+          {canAccess(SettingsTabId.CALENDAR) && (
+            <TabsTrigger value="calendar" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
+              Calendar
+            </TabsTrigger>
+          )}
 
-          <TabsTrigger value="forms" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
-            Form Manager
-          </TabsTrigger>
+          {canAccess(SettingsTabId.FORMS) && (
+            <TabsTrigger value="forms" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
+              Form Manager
+            </TabsTrigger>
+          )}
 
           {canAccess(SettingsTabId.BACKUP) && (
             <TabsTrigger value="backup" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
@@ -102,12 +119,16 @@ export default function SettingsDashboard({
         </TabsList>
 
         <div className="flex-1 bg-white/5 border border-white/10 rounded-lg p-6 backdrop-blur-md overflow-y-auto">
-          <TabsContent value="business" className="m-0 h-full">
-            <BusinessTab settings={initialSettings} />
-          </TabsContent>
-          <TabsContent value="branding" className="m-0 h-full">
-            <BrandingTab settings={initialSettings} />
-          </TabsContent>
+          {canAccess(SettingsTabId.BUSINESS) && (
+            <TabsContent value="business" className="m-0 h-full">
+              <BusinessTab settings={initialSettings} />
+            </TabsContent>
+          )}
+          {canAccess(SettingsTabId.BRANDING) && (
+            <TabsContent value="branding" className="m-0 h-full">
+              <BrandingTab settings={initialSettings} />
+            </TabsContent>
+          )}
 
           {FEATURES.ENABLE_TEAM_MANAGEMENT && canAccess(SettingsTabId.USERS) && (
             <TabsContent value="users" className="m-0 h-full">
@@ -120,22 +141,36 @@ export default function SettingsDashboard({
               <RolesTab roles={initialRoles} />
             </TabsContent>
           )}
-          <TabsContent value="invoice" className="m-0 h-full">
-            <InvoiceTab settings={initialSettings} />
-          </TabsContent>
-          <TabsContent value="payment" className="m-0 h-full">
-            <PaymentTab settings={initialSettings} />
-          </TabsContent>
-          <TabsContent value="notifications" className="m-0 h-full">
-            <NotificationsTab settings={initialSettings} />
-          </TabsContent>
-          <TabsContent value="calendar" className="m-0 h-full">
-            <CalendarTab settings={initialSettings} />
-          </TabsContent>
+          
+          {canAccess(SettingsTabId.INVOICE) && (
+            <TabsContent value="invoice" className="m-0 h-full">
+              <InvoiceTab settings={initialSettings} />
+            </TabsContent>
+          )}
+          
+          {canAccess(SettingsTabId.PAYMENT) && (
+            <TabsContent value="payment" className="m-0 h-full">
+              <PaymentTab settings={initialSettings} />
+            </TabsContent>
+          )}
+          
+          {canAccess(SettingsTabId.NOTIFICATIONS) && (
+            <TabsContent value="notifications" className="m-0 h-full">
+              <NotificationsTab settings={initialSettings} />
+            </TabsContent>
+          )}
+          
+          {canAccess(SettingsTabId.CALENDAR) && (
+            <TabsContent value="calendar" className="m-0 h-full">
+              <CalendarTab settings={initialSettings} />
+            </TabsContent>
+          )}
 
-          <TabsContent value="forms" className="m-0 h-full">
-            <FormsManagerTab initialFields={initialCustomFields} />
-          </TabsContent>
+          {canAccess(SettingsTabId.FORMS) && (
+            <TabsContent value="forms" className="m-0 h-full">
+              <FormsManagerTab initialFields={initialCustomFields} />
+            </TabsContent>
+          )}
 
           {canAccess(SettingsTabId.BACKUP) && (
             <TabsContent value="backup" className="m-0 h-full">

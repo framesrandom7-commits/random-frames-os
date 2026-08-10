@@ -5,10 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NAVIGATION_CONFIG } from "@/lib/navigation-config";
+import { NAVIGATION_CONFIG, BOTTOM_NAV_ITEMS } from "@/lib/navigation-config";
 import { useNavigation } from "./navigation-context";
 
-export function MobileMoreSheet() {
+export function MobileMoreSheet({ user }: { user?: { name: string, roleName: string } }) {
   const pathname = usePathname();
   const { isMoreSheetOpen, setMoreSheetOpen } = useNavigation();
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -47,7 +47,19 @@ export function MobileMoreSheet() {
     setDragY(0);
   };
 
-  const remainingItems = NAVIGATION_CONFIG.filter(item => item.showOnMobile && !item.showInBottomNav);
+  const allFilteredNavItems = NAVIGATION_CONFIG.filter(
+    (item) => !item.allowedRoles || item.allowedRoles.includes(user?.roleName || "Founder")
+  );
+
+  const bottomFilteredNavItems = BOTTOM_NAV_ITEMS.filter(
+    (item) => !item.allowedRoles || item.allowedRoles.includes(user?.roleName || "Founder")
+  );
+
+  // Items that are shown in the BottomNavigation (up to 4)
+  const bottomNavIds = new Set(bottomFilteredNavItems.slice(0, 4).map(item => item.id));
+  
+  // The rest of the items that should appear in the "More" menu
+  const overflowItems = allFilteredNavItems.filter(item => !bottomNavIds.has(item.id) && item.showOnMobile);
 
   return (
     <>
@@ -91,7 +103,7 @@ export function MobileMoreSheet() {
           <div className="mb-6">
             <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Modules</h3>
             <div className="space-y-1 bg-white/5 rounded-2xl p-2 border border-white/5">
-              {remainingItems.map((item) => {
+              {overflowItems.map((item) => {
                 const isActive = pathname === item.route || (item.route !== "/" && pathname?.startsWith(item.route));
                 return (
                   <Link

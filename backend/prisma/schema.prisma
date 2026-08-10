@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  FOUNDER
+  CO_FOUNDER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+  LOST
+}
+
+enum ProjectStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum ApprovalType {
+  PROJECT
+  INVOICE
+  EXPENSE
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ApprovalMethod {
+  WHATSAPP
+  CALL
+  EMAIL
+  IN_PERSON
+  OTHER
+}
+
+enum QuotationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id                 String        @id @default(uuid())
+  name               String
+  email              String        @unique
+  password           String
+  role               Role          @default(CO_FOUNDER)
+  createdAt          DateTime      @default(now())
+  
+  leads              Lead[]        @relation("UserLeads")
+  projects           Project[]     @relation("UserProjects")
+  tasks              Task[]        @relation("UserTasks")
+  requestedApprovals Approval[]    @relation("RequestedApprovals")
+  approvedApprovals  Approval[]    @relation("ApprovedApprovals")
+  activities         ActivityLog[] @relation("UserActivities")
+}
+
+model Lead {
+  id           String      @id @default(uuid())
+  name         String
+  status       LeadStatus  @default(NEW)
+  assignedToId String?
+  assignedTo   User?       @relation("UserLeads", fields: [assignedToId], references: [id])
+  quotations   Quotation[]
+  createdAt    DateTime    @default(now())
+}
+
+model Client {
+  id             String          @id @default(uuid())
+  name           String
+  email          String
+  quotedAmount   Float?
+  approved       Boolean         @default(false)
+  approvalMethod ApprovalMethod?
+  approvedAt     DateTime?
+  projects       Project[]
+  quotations     Quotation[]
+  createdAt      DateTime        @default(now())
+}
+
+model Quotation {
+  id        String          @id @default(uuid())
+  status    QuotationStatus @default(PENDING)
+  total     Float
+  clientId  String?
+  client    Client?         @relation(fields: [clientId], references: [id])
+  leadId    String?
+  lead      Lead?           @relation(fields: [leadId], references: [id])
+  projects  Project[]       @relation("OriginQuotation")
+  createdAt DateTime        @default(now())
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  title       String
+  status      ProjectStatus @default(PLANNED)
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id])
+  quotationId String
+  originQuotation Quotation @relation("OriginQuotation", fields: [quotationId], references: [id])
+  tasks       Task[]
+  invoices    Invoice[]
+  users       User[]        @relation("UserProjects")
+  createdAt   DateTime      @default(now())
+}
+
+model Task {
+  id           String     @id @default(uuid())
+  title        String
+  status       TaskStatus @default(TODO)
+  projectId    String
+  project      Project    @relation(fields: [projectId], references: [id])
+  assignedToId String?
+  assignedTo   User?      @relation("UserTasks", fields: [assignedToId], references: [id])
+  createdAt    DateTime   @default(now())
+}
+
+model Invoice {
+  id        String        @id @default(uuid())
+  amount    Float
+  status    InvoiceStatus @default(PENDING)
+  projectId String
+  project   Project       @relation(fields: [projectId], references: [id])
+  payments  Payment[]
+  createdAt DateTime      @default(now())
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  amount    Float
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Approval {
+  id            String         @id @default(uuid())
+  type          ApprovalType
+  referenceId   String
+  requestedById String
+  requestedBy   User           @relation("RequestedApprovals", fields: [requestedById], references: [id])
+  approvedById  String?
+  approvedBy    User?          @relation("ApprovedApprovals", fields: [approvedById], references: [id])
+  status        ApprovalStatus @default(PENDING)
+  comment       String?
+  createdAt     DateTime       @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  userId    String
+  user      User     @relation("UserActivities", fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}

@@ -7,7 +7,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { NAVIGATION_CONFIG } from "@/lib/navigation-config";
 
-export function DesktopSidebar() {
+export function DesktopSidebar({ user }: { user?: { name: string, roleName: string } }) {
   const pathname = usePathname();
 
   return (
@@ -29,7 +29,7 @@ export function DesktopSidebar() {
       {/* Navigation */}
       <div className="flex flex-1 flex-col overflow-y-auto custom-scrollbar px-4 pb-4">
         <nav className="flex-1 space-y-1">
-          {NAVIGATION_CONFIG.map((item) => {
+            {NAVIGATION_CONFIG.filter(item => !item.allowedRoles || item.allowedRoles.includes(user?.roleName || "Founder")).map((item) => {
             const isActive = pathname === item.route || (item.route !== "/" && pathname?.startsWith(item.route));
 
             return (
