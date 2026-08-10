@@ -28,7 +28,9 @@ export async function getDashboardData(range?: DateRangeFilter) {
     leadsBySource,
     projectsByPayment,
     invoices,
-    expenses
+    expenses,
+    totalContentPlans,
+    teamMembers
   ]: any[] = await ReportsRepository.getDashboardMetrics(createdAtFilter, dateFilter);
 
   // Metrics processing
@@ -92,6 +94,12 @@ export async function getDashboardData(range?: DateRangeFilter) {
     };
   });
 
+  const teamPerformance = teamMembers ? teamMembers.map((member: any) => ({
+    name: member.name,
+    role: member.role,
+    projectsCount: member.assignedProjects?.length || 0
+  })).sort((a: any, b: any) => b.projectsCount - a.projectsCount) : [];
+
   return {
     metrics: {
       totalLeads, wonLeads, lostLeads, conversionRate,
@@ -99,7 +107,7 @@ export async function getDashboardData(range?: DateRangeFilter) {
       totalRevenue, totalExpenses, netProfit, outstandingPayments
     },
     chartData: {
-      sourceDistribution, leadFunnel, projectDistribution, paymentDistribution, revenueTrend
+      sourceDistribution, leadFunnel, projectDistribution, paymentDistribution, revenueTrend, teamPerformance
     }
   };
 }
