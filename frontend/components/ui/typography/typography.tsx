@@ -41,7 +41,7 @@ const typographyVariants = cva("transition-colors duration-200", {
   compoundVariants: [
     // Provide adaptive defaults based on variant when responsive=true
     { variant: "display", responsive: true, className: "text-5xl md:text-6xl" },
-    { variant: "pageTitle", responsive: true, className: "text-2xl md:text-3xl" },
+    { variant: "pageTitle", responsive: true, className: "text-3xl md:text-4xl font-extrabold" },
     { variant: "sectionTitle", responsive: true, className: "text-xl md:text-2xl" },
     { variant: "widgetTitle", responsive: true, className: "text-lg md:text-xl" },
     { variant: "cardTitle", responsive: true, className: "text-base md:text-lg" },

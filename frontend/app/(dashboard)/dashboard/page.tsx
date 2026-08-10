@@ -21,10 +21,10 @@ export default async function DashboardPage() {
   const formatCurr = (val: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
 
   const quickActions: QuickActionDef[] = [
-    { id: "create-lead", title: "Create Lead", description: "Add a new prospective client", icon: UserPlus, href: "/leads/new", shortcut: "L" },
-    { id: "add-client", title: "Add Client", description: "Onboard a new client", icon: Users, href: "/clients/new", shortcut: "C" },
-    { id: "create-project", title: "Create Project", description: "Start a new project workflow", icon: Briefcase, href: "/projects/new", shortcut: "P" },
-    { id: "schedule-shoot", title: "Schedule Shoot", description: "Add a shoot to the calendar", icon: CalendarPlus, href: "/shoots/new", shortcut: "S" },
+    { id: "create-lead", title: "Create Lead", description: "Add a new prospective client", icon: UserPlus, href: "?new=lead", shortcut: "L" },
+    { id: "add-client", title: "Add Client", description: "Onboard a new client", icon: Users, href: "?new=client", shortcut: "C" },
+    { id: "create-project", title: "Create Project", description: "Start a new project workflow", icon: Briefcase, href: "?new=project", shortcut: "P" },
+    { id: "schedule-shoot", title: "Schedule Shoot", description: "Add a shoot to the calendar", icon: CalendarPlus, href: "?new=shoot", shortcut: "S" },
     { id: "create-invoice", title: "Create Invoice", description: "Draft a new invoice", icon: CreditCard, href: "/finance/invoices/new", shortcut: "I" },
     { id: "view-calendar", title: "View Calendar", description: "Open the master schedule", icon: Calendar, href: "/calendar" },
   ];
@@ -32,9 +32,7 @@ export default async function DashboardPage() {
   return (
     <DashboardLayout>
       <DashboardHeader 
-        title="Dashboard" 
-        subtitle="Business Analytics & Insights" 
-        primaryAction={<Button variant="primary">Generate Report</Button>}
+        title="Dashboard" primaryAction={<Button variant="primary">Generate Report</Button>}
       />
       
       <DashboardContent>

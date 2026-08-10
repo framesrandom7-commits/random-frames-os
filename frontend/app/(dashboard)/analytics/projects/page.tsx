@@ -27,9 +27,7 @@ export default async function ProjectAnalyticsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Project & Productivity Analytics" 
-        subtitle="Track project efficiency and task completion"
-        action={
+        title="Project & Productivity Analytics" action={
           <Link href="/analytics">
             <Button variant="outline" className="border-white/10 text-white">
               Back to Overview

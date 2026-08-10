@@ -66,6 +66,7 @@ export function LeadViewManager({ leads, isArchived, total }: LeadViewManagerPro
         bulkActions={(selectedIds, onClearSelection) => (
           <LeadBulkActions selectedIds={selectedIds} onClearSelection={onClearSelection} />
         )}
+        onRowClick={(lead) => router.push(`/leads/${lead.id}`)}
       />
 
       <LeadForm 

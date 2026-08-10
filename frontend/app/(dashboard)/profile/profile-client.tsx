@@ -57,9 +57,7 @@ export default function ProfileClient({ profile }: ProfileProps) {
   return (
     <form onSubmit={handleSave} className="flex h-full w-full flex-col p-8 overflow-y-auto">
       <PageHeader 
-        title="My Profile" 
-        subtitle="Manage your personal information and account security."
-        action={
+        title="My Profile" action={
           <button 
             type="submit"
             disabled={isSaving}

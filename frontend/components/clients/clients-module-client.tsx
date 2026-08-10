@@ -39,7 +39,7 @@ export function ClientsModuleClient({
       title="Clients"
       subtitle="Manage your client relationships"
       primaryAction={
-        <Link href="/clients/new">
+        <Link href="?new=client">
           <Button className="bg-[#C1121F] text-white hover:bg-[#a00f1a]">
             <Plus className="w-4 h-4 mr-2" />
             Add Client
@@ -56,6 +56,7 @@ export function ClientsModuleClient({
         cardRender={clientConfig.cardRender}
         getRowId={(client) => client.id}
         bulkActions={clientConfig.bulkActions}
+        onRowClick={(client) => router.push(`/clients/${client.id}`)}
       />
       {totalPages > 1 && (
         <div className="mt-4">

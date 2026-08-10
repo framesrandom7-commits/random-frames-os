@@ -2,20 +2,22 @@ import React from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { NewLeadForm } from "@/components/leads/new-lead-form";
 
+import { getCustomFields } from "@/app/actions/custom-fields";
+
 export const metadata = {
   title: "New Lead - Random Frames",
   description: "Create a new lead inquiry",
 };
 
-export default function NewLeadPage() {
+export default async function NewLeadPage() {
+  const customFields = await getCustomFields("LEAD");
+
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full">
       <PageHeader 
-        title="Create New Lead"
-        subtitle="Enter the details of the new inquiry. Required fields are marked with an asterisk (*)."
-      />
+        title="Create New Lead" />
       
-      <NewLeadForm />
+      <NewLeadForm customFields={customFields} />
     </div>
   );
 }

@@ -40,10 +40,10 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
       state: "",
       country: "",
       postalCode: "",
-      businessType: BusinessType.OTHER,
-      leadSource: LeadSource.OTHER,
-      status: LeadStatus.NEW,
-      priority: LeadPriority.MEDIUM,
+      businessType: undefined,
+      leadSource: undefined,
+      status: undefined,
+      priority: undefined,
       budget: null,
       currency: "USD",
       leadScore: 0,
@@ -249,7 +249,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger className="bg-zinc-900/50 border-white/10 focus:ring-[#C1121F]">
-                      <SelectValue placeholder="Select Business Type" />
+                      <SelectValue placeholder="- - -" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(BusinessType).map(s => (
@@ -270,7 +270,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger className="bg-zinc-900/50 border-white/10 focus:ring-[#C1121F]">
-                      <SelectValue placeholder="Select Source" />
+                      <SelectValue placeholder="- - -" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(LeadSource).map(s => (
@@ -291,7 +291,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger className="bg-zinc-900/50 border-white/10 focus:ring-[#C1121F]">
-                      <SelectValue placeholder="Select Status" />
+                      <SelectValue placeholder="- - -" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(LeadStatus).map(s => (
@@ -312,7 +312,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger className="bg-zinc-900/50 border-white/10 focus:ring-[#C1121F]">
-                      <SelectValue placeholder="Select Priority" />
+                      <SelectValue placeholder="- - -" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(LeadPriority).map(s => (
@@ -334,7 +334,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger className="bg-zinc-900/50 border-white/10 focus:ring-[#C1121F] w-[100px]">
-                        <SelectValue placeholder="Cur" />
+                        <SelectValue placeholder="- - -" />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-white/10 text-white">
                         <SelectItem value="USD">USD</SelectItem>
@@ -393,7 +393,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value || undefined}>
                     <SelectTrigger className="bg-zinc-900/50 border-white/10 focus:ring-[#C1121F]">
-                      <SelectValue placeholder="Select Type" />
+                      <SelectValue placeholder="- - -" />
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(ReminderType).map(s => (

@@ -9,7 +9,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await verifySession();
-  
+
   let user = { name: "User", roleName: "Viewer" };
   if (session) {
     const userRecord = await prisma.user.findUnique({
@@ -24,5 +24,9 @@ export default async function DashboardLayout({
     }
   }
 
-  return <AppShell user={user}>{children}</AppShell>;
+  return (
+    <AppShell user={user}>
+      {children}
+    </AppShell>
+  );
 }

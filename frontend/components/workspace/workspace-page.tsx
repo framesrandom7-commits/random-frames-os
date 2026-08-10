@@ -16,7 +16,7 @@ export default function WorkspacePage({
   metrics?: { activeProjectsCount: number, openLeadsCount: number, pendingInvoicesAmount: number, shootsTodayCount: number };
 }) {
   return (
-    <AppShell>
+    <AppShell user={user}>
       <div className="space-y-10">
         <Suspense fallback={<Skeleton className="h-24 w-full rounded-2xl bg-white/5" />}>
           <GreetingWidget user={user} metrics={metrics} />

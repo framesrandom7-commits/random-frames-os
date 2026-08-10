@@ -47,6 +47,8 @@ export const leadSchema = z.object({
   reminderDate: z.date().optional().nullable(),
   reminderTime: z.string().optional().nullable(),
   reminderType: ReminderTypeEnum.optional().nullable(),
+  
+  customFields: z.record(z.any()).optional().nullable(),
 });
 
 export const leadUpdateSchema = leadSchema.partial().extend({

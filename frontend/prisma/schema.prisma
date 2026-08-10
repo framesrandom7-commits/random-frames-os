@@ -164,6 +164,7 @@ model Lead {
   closingRemarks         String?
   sourceEmailId          String?             @unique
   convertedToClientId    String?             @unique
+  customFields           Json?
   createdAt              DateTime            @default(now())
   updatedAt              DateTime            @updatedAt
   archivedAt             DateTime?
@@ -272,6 +273,7 @@ model Client {
   ownerNotes           String?
   preferredContactMethod PreferredContact?
   notes                String?
+  customFields         Json?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
   archivedAt           DateTime?
@@ -307,13 +309,20 @@ model Project {
   startDate            DateTime?
   endDate              DateTime?
   deliveryDate         DateTime?
-  quotationAmount      Decimal?        @db.Decimal(10, 2)
-  advanceAmount        Decimal?        @db.Decimal(10, 2)
-  totalAmount          Decimal?        @db.Decimal(10, 2)
-  balanceAmount        Decimal?        @db.Decimal(10, 2)
-  profitAmount         Decimal?        @db.Decimal(10, 2)
+  quotationAmount          Decimal?        @db.Decimal(10, 2)
+  additionalServicesAmount Decimal?        @db.Decimal(10, 2)
+  additionalChargesAmount  Decimal?        @db.Decimal(10, 2)
+  discountAmount           Decimal?        @db.Decimal(10, 2)
+  taxAmount                Decimal?        @db.Decimal(10, 2)
+  advanceAmount            Decimal?        @db.Decimal(10, 2)
+  totalAmount              Decimal?        @db.Decimal(10, 2)
+  balanceAmount            Decimal?        @db.Decimal(10, 2)
+  profitAmount             Decimal?        @db.Decimal(10, 2)
   notes                String?
   clientId             String
+  quotationId          String?
+  originQuotation      Quotation?      @relation("ProjectOriginQuotation", fields: [quotationId], references: [id])
+  customFields         Json?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
   archivedAt           DateTime?
@@ -378,6 +387,7 @@ model Shoot {
   notes                 String?
   projectId             String
   clientId              String
+  customFields          Json?
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
   archivedAt            DateTime?
@@ -512,6 +522,7 @@ model CalendarEvent {
 model Invoice {
   id                   String          @id @default(cuid())
   invoiceNumber        String          @unique
+  invoiceType          InvoiceType     @default(INTERIM)
   issueDate            DateTime
   dueDate              DateTime
   subtotal             Decimal         @db.Decimal(10, 2)
@@ -520,10 +531,13 @@ model Invoice {
   total                Decimal         @db.Decimal(10, 2)
   status               InvoiceStatus   @default(DRAFT)
   notes                String?
+  termsAndConditions   String?
+  paymentLinks         Json?
   projectId            String
   clientId             String
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
+  archivedAt           DateTime?
   activities           Activity[]
   communicationsCenter Communication[]
   internalNotes        InternalNote[]
@@ -532,6 +546,8 @@ model Invoice {
   items                InvoiceItem[]
   notifications        Notification[]
   payments             Payment[]
+  allocations          PaymentAllocation[]
+  ledgerEntries        FinancialLedger[]
 }
 
 model Payment {
@@ -539,12 +555,16 @@ model Payment {
   amount               Decimal         @db.Decimal(10, 2)
   paymentDate          DateTime
   paymentMethod        PaymentMethod   @default(OTHER)
+  paymentType          PaymentType     @default(PARTIAL)
+  receiptNumber        String?         @unique
   referenceNumber      String?
   notes                String?
   invoiceId            String?
   projectId            String
   clientId             String
+  financialAccountId   String?
   createdAt            DateTime        @default(now())
+  archivedAt           DateTime?
   bankReference        String?
   paymentScreenshotUrl String?
   upiTransactionId     String?
@@ -554,36 +574,50 @@ model Payment {
   client               Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
   invoice              Invoice?        @relation(fields: [invoiceId], references: [id])
   project              Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  financialAccount     FinancialAccount? @relation(fields: [financialAccountId], references: [id])
+  allocations          PaymentAllocation[]
+  ledgerEntries        FinancialLedger[]
 }
 
 model Expense {
-  id            String          @id @default(cuid())
-  title         String
-  amount        Decimal         @db.Decimal(10, 2)
-  date          DateTime
-  paymentMethod PaymentMethod   @default(OTHER)
-  notes         String?
-  clientId      String?
-  projectId     String
-  createdAt     DateTime        @default(now())
-  categoryId    String
-  receiptUrl    String?
-  vendor        String?
-  activities    Activity[]
-  category      ExpenseCategory @relation(fields: [categoryId], references: [id])
-  client        Client?         @relation(fields: [clientId], references: [id])
-  project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id                 String                @id @default(cuid())
+  title              String
+  amount             Decimal               @db.Decimal(10, 2)
+  date               DateTime
+  paymentMethod      PaymentMethod         @default(OTHER)
+  approvalStatus     ExpenseApprovalStatus @default(APPROVED)
+  notes              String?
+  clientId           String?
+  projectId          String?
+  financialAccountId String?
+  vendorId           String?
+  department         String?               @default("Operations")
+  recurringId        String?
+  createdAt          DateTime              @default(now())
+  archivedAt         DateTime?
+  categoryId         String
+  receiptUrl         String?
+  vendor             String?
+  activities         Activity[]
+  category           ExpenseCategory       @relation(fields: [categoryId], references: [id])
+  client             Client?               @relation(fields: [clientId], references: [id])
+  project            Project?              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  financialAccount   FinancialAccount?     @relation(fields: [financialAccountId], references: [id])
+  vendorRecord       Vendor?               @relation(fields: [vendorId], references: [id])
+  recurringExpense   RecurringExpense?     @relation(fields: [recurringId], references: [id])
+  ledgerEntries      FinancialLedger[]
 }
 
 model ExpenseCategory {
-  id          String    @id @default(cuid())
-  name        String    @unique
+  id          String             @id @default(cuid())
+  name        String             @unique
   description String?
-  color       String?   @default("#888888")
-  isDefault   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  color       String?            @default("#888888")
+  isDefault   Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
   expenses    Expense[]
+  recurring   RecurringExpense[]
 }
 
 model Quotation {
@@ -600,17 +634,26 @@ model Quotation {
   termsAndConditions   String?
   version              Int             @default(1)
   parentQuotationId    String?
-  projectId            String
+  projectId            String?
   clientId             String
+  approvalMethod       String?
+  approvalUserId       String?
+  viewedAt             DateTime?
+  approvedAt           DateTime?
+  rejectedAt           DateTime?
+  founderOverride      Boolean         @default(false)
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
+  archivedAt           DateTime?
   communicationsCenter Communication[]
   internalNotes        InternalNote[]
   client               Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
   parentQuotation      Quotation?      @relation("QuotationVersions", fields: [parentQuotationId], references: [id])
   childQuotations      Quotation[]     @relation("QuotationVersions")
-  project              Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project              Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  originatingProjects  Project[]       @relation("ProjectOriginQuotation")
   items                QuotationItem[]
+  ledgerEntries        FinancialLedger[]
 }
 
 model QuotationItem {
@@ -1073,11 +1116,13 @@ enum PaymentMethod {
   CARD
   OTHER
   CHEQUE
+  ONLINE_GATEWAY
 }
 
 enum QuotationStatus {
   DRAFT
   SENT
+  VIEWED
   APPROVED
   REJECTED
   EXPIRED
@@ -1389,4 +1434,194 @@ model IntegrationJobQueue {
   lastError       String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+}
+
+enum InvoiceType {
+  ADVANCE
+  INTERIM
+  FINAL
+  CREDIT_NOTE
+}
+
+enum PaymentType {
+  ADVANCE
+  PARTIAL
+  FINAL
+}
+
+enum ExpenseApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum FinancialAccountType {
+  CURRENT
+  SAVINGS
+  UPI
+  CASH
+  PETTY_CASH
+  ONLINE_GATEWAY
+  OTHER
+}
+
+enum LedgerActivityType {
+  QUOTATION_ISSUED
+  QUOTATION_APPROVED
+  INVOICE_GENERATED
+  PAYMENT_RECEIVED
+  PAYMENT_ALLOCATED
+  EXPENSE_RECORDED
+  REFUND_PROCESSED
+  CREDIT_NOTE_ISSUED
+  WRITE_OFF
+  ADJUSTMENT
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+model BusinessFinanceSetting {
+  id                 String   @id @default("default")
+  businessName       String   @default("Random Frames Studio")
+  businessLogoUrl    String?
+  gstEnabled         Boolean  @default(true)
+  gstNumber          String?  @default("29ABCDE1234F1Z5")
+  hsnSacCode         String?  @default("9983")
+  taxPercentage      Decimal  @db.Decimal(5, 2) @default(18.00)
+  currency           String   @default("INR")
+  financialYear      String   @default("2025-2026")
+  invoicePrefix      String   @default("INV-")
+  quotationPrefix    String   @default("QTN-")
+  receiptPrefix      String   @default("REC-")
+  creditNotePrefix   String   @default("CN-")
+  lateFeeRules       Json?
+  defaultTerms       String?  @default("1. Advance payment is non-refundable.\n2. Balance due prior to final delivery.\n3. All deliverables subject to copyright agreements.")
+  defaultNotes       String?
+  bankAccounts       Json?
+  upiIds             Json?
+  paymentGateways    Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model FinancialAccount {
+  id              String               @id @default(cuid())
+  accountName     String               
+  accountType     FinancialAccountType @default(CURRENT)
+  accountNumber   String?
+  bankName        String?
+  ifscCode        String?
+  upiId           String?
+  currentBalance  Decimal              @db.Decimal(12, 2) @default(0.00)
+  currency        String               @default("INR")
+  isActive        Boolean              @default(true)
+  isDefault       Boolean              @default(false)
+  notes           String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  archivedAt      DateTime?
+  payments        Payment[]
+  expenses        Expense[]
+  ledgerEntries   FinancialLedger[]
+}
+
+model PaymentAllocation {
+  id              String   @id @default(cuid())
+  paymentId       String
+  invoiceId       String
+  amount          Decimal  @db.Decimal(10, 2)
+  notes           String?
+  allocatedAt     DateTime @default(now())
+  payment         Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentId, invoiceId])
+}
+
+model FinancialLedger {
+  id                 String              @id @default(cuid())
+  transactionHash    String              @unique
+  activityType       LedgerActivityType
+  description        String
+  debit              Decimal             @db.Decimal(12, 2) @default(0.00)
+  credit             Decimal             @db.Decimal(12, 2) @default(0.00)
+  balanceSnapshot    Decimal?            @db.Decimal(12, 2)
+  currency           String              @default("INR")
+  referenceId        String?
+  quotationId        String?
+  invoiceId          String?
+  paymentId          String?
+  expenseId          String?
+  financialAccountId String?
+  clientId           String?
+  projectId          String?
+  performedById      String?
+  notes              String?
+  metadata           Json?
+  createdAt          DateTime            @default(now())
+  quotation          Quotation?          @relation(fields: [quotationId], references: [id])
+  invoice            Invoice?            @relation(fields: [invoiceId], references: [id])
+  payment            Payment?            @relation(fields: [paymentId], references: [id])
+  expense            Expense?            @relation(fields: [expenseId], references: [id])
+  financialAccount   FinancialAccount?   @relation(fields: [financialAccountId], references: [id])
+}
+
+model Vendor {
+  id              String    @id @default(cuid())
+  name            String    
+  vendorType      String    @default("GENERAL")
+  contactPerson   String?
+  email           String?
+  phone           String?
+  gstNumber       String?
+  address         String?
+  bankDetails     Json?
+  defaultNotes    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  archivedAt      DateTime?
+  expenses        Expense[]
+  recurring       RecurringExpense[]
+}
+
+model RecurringExpense {
+  id                 String              @id @default(cuid())
+  title              String
+  amount             Decimal             @db.Decimal(10, 2)
+  categoryId         String
+  frequency          RecurrenceFrequency @default(MONTHLY)
+  nextDueDate        DateTime
+  lastProcessedDate  DateTime?
+  vendorId           String?
+  financialAccountId String?
+  department         String?             @default("Operations")
+  isActive           Boolean             @default(true)
+  notes              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  archivedAt         DateTime?
+  category           ExpenseCategory     @relation(fields: [categoryId], references: [id])
+  vendor             Vendor?             @relation(fields: [vendorId], references: [id])
+  expenses           Expense[]
+}
+
+model CustomFieldDefinition {
+  id          String   @id @default(cuid())
+  entityType  String   // "LEAD", "CLIENT", "PROJECT", "SHOOT"
+  name        String   // Internal key, e.g. "referred_by"
+  label       String   // UI Label, e.g. "Referred By"
+  fieldType   String   // "TEXT", "NUMBER", "DROPDOWN", "DATE", "BOOLEAN"
+  options     Json?    // Array of string for DROPDOWN
+  isRequired  Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([entityType, name])
 }

@@ -8,9 +8,7 @@ export default function FinanceReportsPage() {
   return (
     <div className="flex flex-col gap-6 pb-8 h-full">
       <PageHeader 
-        title="Financial Reports"
-        subtitle="Generate Profit & Loss statements"
-      />
+        title="Financial Reports" />
       <div className="flex-1 overflow-hidden">
         <FinanceReportsGenerator />
       </div>

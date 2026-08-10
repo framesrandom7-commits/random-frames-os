@@ -27,7 +27,6 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
     <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full">
       <PageHeader 
         title="Edit Project"
-        subtitle={`Update details for ${project.title}`}
       />
       
       <ProjectForm 

@@ -147,9 +147,7 @@ export default function WhatsAppSettingsPage() {
   return (
     <div className="flex flex-col gap-6 p-6 max-w-5xl mx-auto">
       <PageHeader
-        title="WhatsApp Business Cloud API Integration"
-        subtitle="Manage Meta Cloud API infrastructure, webhook synchronizations, rate limit telemetry, and production message templates."
-      />
+        title="WhatsApp Business Cloud API Integration" />
 
       {/* Overview Status Telemetry Dashboard */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

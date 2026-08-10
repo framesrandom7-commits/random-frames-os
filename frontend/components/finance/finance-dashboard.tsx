@@ -152,10 +152,10 @@ export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
               <Link href="/finance/invoices" className="text-xs text-[#C1121F] hover:text-white transition-colors">View All</Link>
             </CardHeader>
             <CardContent className="space-y-4">
-              {stats.recentInvoices.length === 0 ? (
+              {(stats?.recentInvoices || []).length === 0 ? (
                 <div className="text-sm text-zinc-500 italic text-center py-4">No recent invoices</div>
               ) : (
-                stats.recentInvoices.map((inv) => (
+                (stats?.recentInvoices || []).map((inv) => (
                   <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-black/20 hover:bg-black/40 transition-colors border border-white/5">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
@@ -195,10 +195,10 @@ export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
               <Link href="/finance/quotations" className="text-xs text-[#C1121F] hover:text-white transition-colors">View All</Link>
             </CardHeader>
             <CardContent className="space-y-4">
-              {stats.recentQuotations.length === 0 ? (
+              {(stats?.recentQuotations || []).length === 0 ? (
                 <div className="text-sm text-zinc-500 italic text-center py-4">No recent quotations</div>
               ) : (
-                stats.recentQuotations.map((quo) => (
+                (stats?.recentQuotations || []).map((quo) => (
                   <div key={quo.id} className="flex items-center justify-between p-3 rounded-lg bg-black/20 hover:bg-black/40 transition-colors border border-white/5">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
@@ -238,10 +238,10 @@ export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
               <Link href="/finance/expenses" className="text-xs text-[#C1121F] hover:text-white transition-colors">View All</Link>
             </CardHeader>
             <CardContent className="space-y-4">
-              {stats.recentExpenses.length === 0 ? (
+              {(stats?.recentExpenses || []).length === 0 ? (
                 <div className="text-sm text-zinc-500 italic text-center py-4">No recent expenses</div>
               ) : (
-                stats.recentExpenses.map(expense => (
+                (stats?.recentExpenses || []).map(expense => (
                   <div key={expense.id} className="flex items-center justify-between p-2">
                     <div>
                       <div className="font-medium text-white text-sm">{expense.title}</div>

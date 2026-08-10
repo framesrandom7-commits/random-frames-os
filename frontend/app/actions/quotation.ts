@@ -23,7 +23,7 @@ export type CreateQuotationData = {
   status?: QuotationStatus;
   notes?: string;
   termsAndConditions?: string;
-  projectId: string;
+  projectId?: string;
   clientId: string;
   items: QuotationItemData[];
 };
@@ -98,5 +98,67 @@ export async function getQuotationById(id: string) {
   } catch (error) {
     console.error("Error fetching quotation:", error);
     throw new Error("Failed to fetch quotation");
+  }
+}
+
+export async function getLatestApprovedQuotation(clientId: string) {
+  try {
+    const { prisma } = await import("@/lib/prisma");
+    const quotation = await prisma.quotation.findFirst({
+      where: {
+        clientId,
+        status: "APPROVED"
+      },
+      orderBy: {
+        approvedAt: "desc"
+      }
+    });
+    return quotation;
+  } catch (error) {
+    console.error("Error fetching latest approved quotation:", error);
+    return null;
+  }
+}
+
+export async function createQuickApprovedQuotation(data: { clientId: string, discount: number, notes: string, items: QuotationItemData[] }) {
+  try {
+    const quoNum = await NumberGenerator.generateQuotationNumber();
+    
+    // Calculate subtotal
+    const subtotal = data.items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.unitPrice)), 0);
+    const total = subtotal - (data.discount || 0);
+
+    // Force recompile to pick up FinanceService changes v3
+    const quotation = await FinanceService.createQuotation({
+      quotationNumber: quoNum,
+      issueDate: new Date(),
+      validUntil: new Date(new Date().setDate(new Date().getDate() + 30)),
+      subtotal,
+      discount: data.discount || 0,
+      tax: 0,
+      total,
+      status: "APPROVED",
+      notes: data.notes,
+      clientId: data.clientId,
+      items: data.items,
+    });
+    
+    // Auto-approve it right after creation to set approval fields
+    const { prisma } = await import("@/lib/prisma");
+    await prisma.quotation.update({
+      where: { id: quotation.id },
+      data: {
+        approvedAt: new Date(),
+        approvalMethod: "VERBAL", // Pre-approved via quick creation
+      }
+    });
+
+    revalidatePath("/finance/quotations");
+    revalidatePath(`/clients/${data.clientId}`);
+    
+    return { success: true, quotation };
+  } catch (error: any) {
+    console.error("Error creating quick quotation:", error);
+    return { success: false, error: "Failed to create quick quotation" };
   }
 }

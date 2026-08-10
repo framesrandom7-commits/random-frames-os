@@ -50,7 +50,7 @@ export default function CalendarTab({ settings }: { settings: Record<string, any
           <Label>Time Zone</Label>
           <Select value={formData.timeZone} onValueChange={(v) => handleSelectChange('timeZone', v)}>
             <SelectTrigger className="bg-black/50 border-white/10">
-              <SelectValue placeholder="Select Timezone" />
+              <SelectValue placeholder="- - -" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-white/10 text-white">
               <SelectItem value="Asia/Kolkata">IST (Asia/Kolkata)</SelectItem>
@@ -78,7 +78,7 @@ export default function CalendarTab({ settings }: { settings: Record<string, any
 
         <div className="space-y-2">
           <Label>Default Event Duration (minutes)</Label>
-          <Input type="number" name="defaultEventDuration" value={formData.defaultEventDuration} onChange={handleChange} className="bg-black/50 border-white/10" />
+          <Input type="number" name="defaultEventDuration" value={formData.defaultEventDuration || ""} onChange={handleChange} className="bg-black/50 border-white/10" />
         </div>
       </div>
 

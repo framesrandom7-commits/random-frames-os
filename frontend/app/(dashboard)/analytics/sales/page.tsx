@@ -37,9 +37,7 @@ export default async function SalesAnalyticsPage({ searchParams }: { searchParam
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Sales Analytics" 
-        subtitle="Track lead sources and conversion rates"
-        action={
+        title="Sales Analytics" action={
           <Link href="/analytics">
             <Button variant="outline" className="border-white/10 text-white">
               Back to Overview

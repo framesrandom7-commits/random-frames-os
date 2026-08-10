@@ -16,9 +16,7 @@ export default async function WebhooksPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Webhooks" 
-        subtitle="Manage outgoing event subscriptions"
-        action={
+        title="Webhooks" action={
           <Button className="bg-[#E53935] hover:bg-[#D32F2F] text-white">
             <Plus size={16} className="mr-2" /> Add Webhook
           </Button>

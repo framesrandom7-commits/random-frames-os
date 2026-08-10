@@ -175,7 +175,7 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
                 onValueChange={(v) => setFormData({ ...formData, clientId: v || "" })}
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="Select client" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-40">
                   {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.businessName}</SelectItem>)}
@@ -190,7 +190,7 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
                 onValueChange={(v) => setFormData({ ...formData, projectId: v || "none" })}
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="None" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-40">
                   <SelectItem value="none">None</SelectItem>
@@ -208,7 +208,7 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
                 onValueChange={(v) => setFormData({ ...formData, status: (v || "DRAFT") as QuotationStatus })}
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white">
                   {Object.values(QuotationStatus).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -223,7 +223,7 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
               <Label>Discount</Label>
               <Input 
                 type="number"
-                value={formData.discount} 
+                value={formData.discount || ""} 
                 onChange={e => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0})}
                 className="bg-black/40 border-white/10"
               />
@@ -328,7 +328,7 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
                     <td className="py-3 px-2 w-20 text-right">
                       <Input 
                         type="number"
-                        value={item.quantity} 
+                        value={item.quantity || ""} 
                         onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
                         className="text-right border-transparent bg-transparent hover:border-zinc-300 focus:border-zinc-300 focus:bg-white transition-all shadow-none h-8 print:border-none print:p-0 print:pointer-events-none text-black"
                       />
@@ -336,7 +336,7 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
                     <td className="py-3 px-2 w-32 text-right">
                       <Input 
                         type="number"
-                        value={item.unitPrice} 
+                        value={item.unitPrice || ""} 
                         onChange={(e) => handleItemChange(idx, 'unitPrice', e.target.value)}
                         className="text-right border-transparent bg-transparent hover:border-zinc-300 focus:border-zinc-300 focus:bg-white transition-all shadow-none h-8 print:border-none print:p-0 print:pointer-events-none text-black"
                       />
@@ -372,10 +372,12 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
                     <span className="text-red-500">-{CurrencyService.format(discount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm text-zinc-600">
-                  <span>GST/Tax (18%)</span>
-                  <span>{CurrencyService.format(tax)}</span>
-                </div>
+                {tax > 0 && (
+                  <div className="flex justify-between text-sm text-zinc-600">
+                    <span>GST/Tax</span>
+                    <span>{CurrencyService.format(tax)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-lg font-bold text-zinc-900 border-t-2 border-zinc-900 pt-2">
                   <span>Total</span>
                   <span>{CurrencyService.format(total)}</span>

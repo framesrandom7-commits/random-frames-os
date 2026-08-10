@@ -221,7 +221,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
                 onValueChange={(v) => setFormData({ ...formData, clientId: v || "" })}
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="Select client" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-40">
                   {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.businessName}</SelectItem>)}
@@ -236,7 +236,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
                 onValueChange={(v) => setFormData({ ...formData, projectId: v || "none" })}
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="None" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-40">
                   <SelectItem value="none">None</SelectItem>
@@ -254,7 +254,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
                 onValueChange={(v) => setFormData({ ...formData, status: (v || "DRAFT") as InvoiceStatus })}
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white">
                   {Object.values(InvoiceStatus).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -295,7 +295,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
                       <Label className="text-xs">Quantity</Label>
                       <Input 
                         type="number"
-                        value={item.quantity} 
+                        value={item.quantity || ""} 
                         onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
                         className="bg-black/40 border-white/10 h-8"
                       />
@@ -304,7 +304,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
                       <Label className="text-xs">Unit Price</Label>
                       <Input 
                         type="number"
-                        value={item.unitPrice} 
+                        value={item.unitPrice || ""} 
                         onChange={(e) => handleItemChange(idx, 'unitPrice', e.target.value)}
                         className="bg-black/40 border-white/10 h-8"
                       />
@@ -319,7 +319,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
               <Label>Discount</Label>
               <Input 
                 type="number"
-                value={formData.discount} 
+                value={formData.discount || ""} 
                 onChange={e => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0})}
                 className="bg-black/40 border-white/10"
               />
@@ -349,7 +349,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
                 <Input 
                   type="number"
                   max={balanceDue}
-                  value={paymentData.amount} 
+                  value={paymentData.amount || ""} 
                   onChange={e => setPaymentData({...paymentData, amount: parseFloat(e.target.value) || 0})}
                   className="bg-black/40 border-white/10"
                 />
@@ -361,7 +361,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
                   onValueChange={(v) => setPaymentData({ ...paymentData, paymentMethod: (v || "BANK_TRANSFER") as PaymentMethod })}
                 >
                   <SelectTrigger className="bg-black/40 border-white/10">
-                    <SelectValue />
+                    <SelectValue placeholder="- - -" />
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10 text-white">
                     {Object.values(PaymentMethod).map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}

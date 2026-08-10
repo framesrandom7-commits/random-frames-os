@@ -33,9 +33,7 @@ export default function BackupCenterPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Backups & Data" 
-        subtitle="Manage your database exports and restorations"
-      />
+        title="Backups & Data" />
 
       <div className="flex gap-2 mb-4">
         <Link href="/settings/integrations" className="px-4 py-2 text-zinc-400 hover:bg-white/5 hover:text-white rounded-md text-sm font-medium transition-colors">Providers</Link>

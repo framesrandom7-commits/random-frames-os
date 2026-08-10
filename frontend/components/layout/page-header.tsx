@@ -1,5 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { PageTitle, PageSubtitle } from "@/components/ui/typography";
 
 interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title: React.ReactNode;
@@ -8,20 +12,34 @@ interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "ti
   children?: React.ReactNode;
 }
 
-import { PageTitle, PageSubtitle } from "@/components/ui/typography";
-
 export function PageHeader({ title, subtitle, action, children, className, ...props }: PageHeaderProps) {
-  return (
-    <div className={cn("flex flex-col gap-4 md:flex-row md:items-center justify-between pb-8", className)} {...props}>
-      <div className="flex flex-col gap-1">
-        <PageTitle>{title}</PageTitle>
-        {subtitle && <PageSubtitle>{subtitle}</PageSubtitle>}
+  const [mounted, setMounted] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    setPortalTarget(document.getElementById("topbar-title-portal"));
+  }, []);
+
+  const content = (
+    <div className={cn("flex flex-1 items-center gap-6 min-w-0", className)} {...props}>
+      <div className="flex flex-col gap-0.5 min-w-0">
+        <div className="flex items-center gap-3">
+          <PageTitle className="truncate">{title}</PageTitle>
+          {subtitle && <PageSubtitle className="truncate mt-1">{subtitle}</PageSubtitle>}
+        </div>
       </div>
       
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0 ml-auto">
         {children}
         {action}
       </div>
     </div>
   );
+
+  if (mounted && portalTarget) {
+    return createPortal(content, portalTarget);
+  }
+
+  return null;
 }

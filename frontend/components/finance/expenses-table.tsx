@@ -146,7 +146,7 @@ export default function ExpensesTable({ data, categories }: ExpensesTableProps) 
                 <div className="space-y-2">
                   <Label>Category</Label>
                   <Select value={formData.categoryId || ""} onValueChange={(v) => setFormData({...formData, categoryId: v || ""})}>
-                    <SelectTrigger className="bg-white/5 border-white/10"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="bg-white/5 border-white/10"><SelectValue placeholder="- - -" /></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                     </SelectContent>
@@ -155,7 +155,7 @@ export default function ExpensesTable({ data, categories }: ExpensesTableProps) 
                 <div className="space-y-2">
                   <Label>Payment Method</Label>
                   <Select value={formData.paymentMethod} onValueChange={(v) => setFormData({...formData, paymentMethod: (v || "CARD") as PaymentMethod})}>
-                    <SelectTrigger className="bg-white/5 border-white/10"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="bg-white/5 border-white/10"><SelectValue placeholder="- - -" /></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(PaymentMethod).map(c => <SelectItem key={c} value={c}>{c.replace("_", " ")}</SelectItem>)}
                     </SelectContent>

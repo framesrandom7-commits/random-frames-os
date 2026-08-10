@@ -75,7 +75,7 @@ export default function AddReminderModal({ isOpen, onClose, onSuccess }: AddRemi
               <Label>Type</Label>
               <Select value={formData.type} onValueChange={(v) => handleSelectChange('type', v)}>
                 <SelectTrigger className="bg-black/50 border-white/10">
-                  <SelectValue />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white">
                   {Object.values(NotificationType).map(t => (
@@ -88,7 +88,7 @@ export default function AddReminderModal({ isOpen, onClose, onSuccess }: AddRemi
               <Label>Priority</Label>
               <Select value={formData.priority} onValueChange={(v) => handleSelectChange('priority', v)}>
                 <SelectTrigger className="bg-black/50 border-white/10">
-                  <SelectValue />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white">
                   <SelectItem value="LOW">Low</SelectItem>

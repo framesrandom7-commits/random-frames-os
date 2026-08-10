@@ -19,9 +19,7 @@ export default async function FinancePage() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <PageHeader 
-        title="Finance"
-        subtitle="Manage invoices, payments, and expenses"
-      />
+        title="Finance" />
       <FinanceDashboard stats={stats as any} />
     </div>
   );

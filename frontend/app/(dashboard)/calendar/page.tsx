@@ -67,9 +67,7 @@ export default async function CalendarPage(props: {
   return (
     <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] gap-6">
       <PageHeader 
-        title="Calendar"
-        subtitle="Your upcoming schedule"
-      />
+        title="Calendar" />
       
       <div className="flex flex-col md:flex-row gap-4 h-full overflow-hidden">
         <div className="w-full md:w-64 flex-shrink-0 overflow-y-auto custom-scrollbar pb-4 pr-1">

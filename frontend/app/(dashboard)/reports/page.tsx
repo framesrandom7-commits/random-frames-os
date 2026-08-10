@@ -8,9 +8,7 @@ export default function ReportsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Reports"
-        subtitle="Business performance insights"
-      />
+        title="Reports" />
       
       <ReportsDashboard />
     </div>

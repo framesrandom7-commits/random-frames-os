@@ -25,9 +25,7 @@ export default async function IntegrationsHubPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Integration Hub" 
-        subtitle="Manage connections to external services and APIs"
-      />
+        title="Integration Hub" />
 
       <div className="flex gap-2 mb-4">
         <Link href="/settings/integrations" className="px-4 py-2 bg-white/10 text-white rounded-md text-sm font-medium">Providers</Link>

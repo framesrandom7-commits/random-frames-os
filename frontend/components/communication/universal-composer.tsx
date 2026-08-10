@@ -74,7 +74,7 @@ export function UniversalComposer({ clientId, projectId, templates }: UniversalC
             <span className="text-sm text-white/50 w-20">Template:</span>
             <Select value={selectedTemplateId} onValueChange={handleTemplateChange as any}>
               <SelectTrigger className="bg-black/20 border-white/10 flex-1">
-                <SelectValue placeholder="Select a template..." />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10 text-white">
                 <SelectItem value="none">Blank Message</SelectItem>

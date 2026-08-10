@@ -31,8 +31,7 @@ export default async function FinanceAnalyticsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Financial Analytics" 
-        subtitle={`Revenue and cash flow trends for ${currentYear}`}
+        title="Financial Analytics"
         action={
           <Link href="/analytics">
             <Button variant="outline" className="border-white/10 text-white">

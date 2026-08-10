@@ -84,7 +84,7 @@ export default function ReportsDashboard() {
         <div className="flex items-center gap-2">
           <Select value={filter} onValueChange={(v) => setFilter(v || "all")}>
             <SelectTrigger className="w-[180px] bg-black/40 border-white/10 text-white">
-              <SelectValue placeholder="Select timeframe" />
+              <SelectValue placeholder="- - -" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-white/10 text-white">
               <SelectItem value="all">All Time</SelectItem>

@@ -197,7 +197,7 @@ export default function LeadTable({ leads, page = 1, totalPages = 1, total = 0 }
             <div className="flex items-center gap-2">
               <Select onValueChange={(val) => handleBulkStatusUpdate(val as LeadStatus)}>
                 <SelectTrigger className="h-8 w-[150px] bg-black/40 border-white/10 text-xs">
-                  <SelectValue placeholder="Update Status" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#111] border-white/10">
                   {Object.values(LeadStatus).map(status => (

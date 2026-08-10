@@ -32,9 +32,7 @@ export default async function StoragePage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Storage & DAM" 
-        subtitle="Manage your connected cloud storage and digital assets" 
-      />
+        title="Storage & DAM" />
       <StorageDashboardView settings={settings} quota={quota} />
     </div>
   );

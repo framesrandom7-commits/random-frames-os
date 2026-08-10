@@ -49,7 +49,7 @@ export default async function TodaysFocusWidget() {
   const reviews = await DeliverableService.getForReview(3);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 auto-rows-fr">
       
       {/* Card 1: Action Required */}
       <div className="flex flex-col p-5 bg-[#171A21]/80 backdrop-blur-md rounded-[24px] border border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(229,57,53,0.1)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group cursor-pointer">

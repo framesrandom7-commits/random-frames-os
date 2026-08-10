@@ -9,20 +9,28 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createProject, updateProject } from "@/app/actions/project";
+import { getLatestApprovedQuotation } from "@/app/actions/quotation";
 import { toast } from "sonner";
 import { Project, ProjectCategory, ProjectStatus, ProjectPriority, PaymentStatus } from "@prisma/client";
+import { cn } from "@/lib/utils";
+import QuickQuotationModal from "./quick-quotation-modal";
 
 interface ProjectFormProps {
-  project?: Project;
+  project?: any;
   prefilledClientId?: string;
-  clients: { id: string; businessName: string }[];
-  users: { id: string; name: string | null; email: string }[];
+  clients?: any[];
+  users?: any[];
+  className?: string;
 }
 
-export default function ProjectForm({ project, prefilledClientId, clients, users }: ProjectFormProps) {
+export default function ProjectForm({ project, prefilledClientId, clients = [], users = [], className }: ProjectFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [formData, setFormData] = useState<Partial<Project> & { assignedUserIds?: string[] }>({});
+  const [formData, setFormData] = useState<Partial<any> & { assignedUserIds?: string[] }>({});
+  const [approvedQuotation, setApprovedQuotation] = useState<any>(null);
+  const [isFetchingQuotation, setIsFetchingQuotation] = useState(false);
+  const [noQuotationError, setNoQuotationError] = useState(false);
+  const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -42,6 +50,30 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
       });
     }
   }, [project, prefilledClientId]);
+
+  useEffect(() => {
+    async function fetchQuotation() {
+      if (formData.clientId && !project) {
+        setIsFetchingQuotation(true);
+        setNoQuotationError(false);
+        const quotation = await getLatestApprovedQuotation(formData.clientId);
+        if (quotation) {
+          setApprovedQuotation(quotation);
+          setFormData(prev => ({ 
+            ...prev, 
+            quotationId: quotation.id,
+            quotationAmount: Number(quotation.total)
+          }));
+        } else {
+          setApprovedQuotation(null);
+          setNoQuotationError(true);
+          setFormData(prev => ({ ...prev, quotationId: null, quotationAmount: 0 }));
+        }
+        setIsFetchingQuotation(false);
+      }
+    }
+    fetchQuotation();
+  }, [formData.clientId, project]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -76,7 +108,21 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
       return;
     }
 
+    if (!project && noQuotationError) {
+      toast.error("An approved quotation is required to create a project.");
+      return;
+    }
+
     startTransition(async () => {
+      const quotationAmount = Number(formData.quotationAmount) || 0;
+      const additionalServicesAmount = Number(formData.additionalServicesAmount) || 0;
+      const additionalChargesAmount = Number(formData.additionalChargesAmount) || 0;
+      const discountAmount = Number(formData.discountAmount) || 0;
+      const advanceAmount = Number(formData.advanceAmount) || 0;
+      
+      const totalAmount = quotationAmount + additionalServicesAmount + additionalChargesAmount - discountAmount;
+      const balanceAmount = totalAmount - advanceAmount;
+
       const dataToSubmit = {
         title: formData.title!,
         clientId: formData.clientId!,
@@ -85,15 +131,20 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
         status: formData.status as ProjectStatus,
         priority: formData.priority as ProjectPriority,
         paymentStatus: formData.paymentStatus as PaymentStatus,
-        startDate: formData.startDate ? new Date(formData.startDate) : null,
-        endDate: formData.endDate ? new Date(formData.endDate) : null,
-        deliveryDate: formData.deliveryDate ? new Date(formData.deliveryDate) : null,
-        quotationAmount: formData.quotationAmount ? Number(formData.quotationAmount) : null,
-        advanceAmount: formData.advanceAmount ? Number(formData.advanceAmount) : null,
-        totalAmount: formData.totalAmount ? Number(formData.totalAmount) : null,
-        balanceAmount: formData.balanceAmount ? Number(formData.balanceAmount) : null,
-        notes: formData.notes,
-        assignedUserIds: formData.assignedUserIds,
+        quotationId: formData.quotationId,
+        startDate: formData.startDate || null,
+        endDate: formData.endDate || null,
+        deliveryDate: formData.deliveryDate || null,
+        quotationAmount,
+        additionalServicesAmount,
+        additionalChargesAmount,
+        discountAmount,
+        taxAmount: null,
+        advanceAmount,
+        totalAmount,
+        balanceAmount,
+        notes: formData.notes || null,
+        assignedUserIds: formData.assignedUserIds || [],
       };
 
       if (project?.id) {
@@ -126,16 +177,9 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
   };
 
   return (
-    <div className="bg-[#111] border border-white/10 rounded-xl p-6 text-white max-w-4xl mx-auto w-full">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold">{project ? "Edit Project" : "Create New Project"}</h2>
-        <p className="text-zinc-400 text-sm mt-1">
-          {project ? "Update the details of your project." : "Fill in the details to start a new project."}
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-          <ResponsiveFormGrid>
+    <form onSubmit={handleSubmit} className={cn("flex flex-col h-full", className)}>
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Core Info */}
             <div className="space-y-2 md:col-span-2">
@@ -159,7 +203,9 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
                 disabled={!!prefilledClientId && !project} // Lock if creating directly from a client page
               >
                 <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                  <SelectValue placeholder="Select a client" />
+                  <SelectValue placeholder="- - -">
+                    {formData.clientId ? clients.find(c => c.id === formData.clientId)?.businessName || "Loading..." : "Select Client"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white max-h-60">
                   {clients.map(client => (
@@ -186,7 +232,7 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
               <Label className="text-zinc-300">Category</Label>
               <Select value={formData.category || ""} onValueChange={(val) => handleSelectChange("category", val || "")}>
                 <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                   {Object.values(ProjectCategory).map((cat) => (
@@ -200,7 +246,7 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
               <Label className="text-zinc-300">Status</Label>
               <Select value={formData.status || ""} onValueChange={(val) => handleSelectChange("status", val || "")}>
                 <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                   {Object.values(ProjectStatus).map((status) => (
@@ -214,7 +260,7 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
               <Label className="text-zinc-300">Priority</Label>
               <Select value={formData.priority || ""} onValueChange={(val) => handleSelectChange("priority", val || "")}>
                 <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                  <SelectValue placeholder="Select priority" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                   {Object.values(ProjectPriority).map((priority) => (
@@ -228,7 +274,7 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
               <Label className="text-zinc-300">Payment Status</Label>
               <Select value={formData.paymentStatus || ""} onValueChange={(val) => handleSelectChange("paymentStatus", val || "")}>
                 <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                  <SelectValue placeholder="Select payment status" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                   {Object.values(PaymentStatus).map((ps) => (
@@ -284,36 +330,126 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
 
             {/* Finances */}
             <div className="col-span-1 md:col-span-2 mt-4">
-              <h4 className="text-sm font-semibold text-zinc-400 border-b border-white/10 pb-2 mb-4">Finances</h4>
+              <h4 className="text-sm font-semibold text-zinc-400 border-b border-white/10 pb-2 mb-4">Finances & Origin</h4>
             </div>
 
+            {/* Warning Overlay if No Quotation */}
+            {!project && noQuotationError && formData.clientId && (
+              <div className="col-span-1 md:col-span-2 bg-red-900/30 border border-red-500/50 rounded-lg p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <p className="text-red-400 font-semibold mb-1">No Approved Quotation Found</p>
+                  <p className="text-zinc-300 text-sm">Every project requires an approved quotation. Please create and approve a quotation for this client first.</p>
+                </div>
+                <Button 
+                  type="button" 
+                  onClick={() => setIsQuotationModalOpen(true)}
+                  className="bg-red-500 hover:bg-red-600 text-white shrink-0"
+                >
+                  Create Quotation
+                </Button>
+              </div>
+            )}
+
+            <QuickQuotationModal
+              open={isQuotationModalOpen}
+              onOpenChange={setIsQuotationModalOpen}
+              clientId={formData.clientId}
+              onSuccess={(quotationId, total) => {
+                setIsQuotationModalOpen(false);
+                setNoQuotationError(false);
+                setApprovedQuotation({ quotationNumber: "NEW (Just Created)", version: 1, approvedAt: new Date(), approvalMethod: "VERBAL" });
+                setFormData(prev => ({ ...prev, quotationId, quotationAmount: total }));
+              }}
+            />
+
+            {/* Approved Quotation Read-Only Block */}
+            {approvedQuotation && !project && (
+              <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-900/50 p-4 rounded-lg border border-white/5 mb-4">
+                <div className="space-y-1">
+                  <p className="text-xs text-zinc-500">Quotation Number</p>
+                  <p className="text-sm font-medium text-white">{approvedQuotation.quotationNumber}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-zinc-500">Revision Number</p>
+                  <p className="text-sm font-medium text-white">v{approvedQuotation.version}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-zinc-500">Approval Date</p>
+                  <p className="text-sm font-medium text-white">{new Date(approvedQuotation.approvedAt).toLocaleDateString()}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-zinc-500">Approval Method</p>
+                  <p className="text-sm font-medium text-white">{approvedQuotation.approvalMethod || "N/A"}</p>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="totalAmount" className="text-zinc-300">Total Amount</Label>
-              <Input
-                id="totalAmount"
-                name="totalAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.totalAmount?.toString() || ""}
-                onChange={handleChange}
-                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="quotationAmount" className="text-zinc-300">Quotation Amount</Label>
+              <Label htmlFor="quotationAmount" className="text-zinc-300">Quotation Value (Base)</Label>
               <Input
                 id="quotationAmount"
                 name="quotationAmount"
                 type="number"
+                disabled
+                value={formData.quotationAmount || ""}
+                className="bg-black/20 border-white/5 text-zinc-500 cursor-not-allowed"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="additionalServicesAmount" className="text-zinc-300">Additional Services / Change Orders</Label>
+              <Input
+                id="additionalServicesAmount"
+                name="additionalServicesAmount"
+                type="number"
                 min="0"
                 step="0.01"
-                placeholder="0.00"
-                value={formData.quotationAmount?.toString() || ""}
+                value={formData.additionalServicesAmount || ""}
                 onChange={handleChange}
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="additionalChargesAmount" className="text-zinc-300">Billable Expenses / Charges</Label>
+              <Input
+                id="additionalChargesAmount"
+                name="additionalChargesAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.additionalChargesAmount || ""}
+                onChange={handleChange}
+                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="discountAmount" className="text-zinc-300">Discounts (-)</Label>
+              <Input
+                id="discountAmount"
+                name="discountAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.discountAmount || ""}
+                onChange={handleChange}
+                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="totalAmount" className="text-zinc-300">Project Total (Calculated)</Label>
+              <Input
+                id="totalAmount"
+                name="totalAmount"
+                type="number"
+                disabled
+                value={(() => {
+                  const sum = (Number(formData.quotationAmount) || 0) + (Number(formData.additionalServicesAmount) || 0) + (Number(formData.additionalChargesAmount) || 0) - (Number(formData.discountAmount) || 0);
+                  return sum === 0 ? "" : sum.toFixed(2);
+                })()}
+                className="bg-black/20 border-white/5 text-zinc-400 font-bold cursor-not-allowed"
               />
             </div>
 
@@ -325,8 +461,7 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="0.00"
-                value={formData.advanceAmount?.toString() || ""}
+                value={formData.advanceAmount || ""}
                 onChange={handleChange}
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
               />
@@ -338,12 +473,12 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
                 id="balanceAmount"
                 name="balanceAmount"
                 type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.balanceAmount?.toString() || ""}
-                onChange={handleChange}
-                className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
+                disabled
+                value={(() => {
+                  const sum = (Number(formData.quotationAmount) || 0) + (Number(formData.additionalServicesAmount) || 0) + (Number(formData.additionalChargesAmount) || 0) - (Number(formData.discountAmount) || 0) - (Number(formData.advanceAmount) || 0);
+                  return sum === 0 ? "" : sum.toFixed(2);
+                })()}
+                className="bg-black/20 border-white/5 text-zinc-400 font-bold cursor-not-allowed"
               />
             </div>
 
@@ -359,7 +494,7 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F] min-h-[100px]"
               />
             </div>
-          </ResponsiveFormGrid>
+          </div>
 
           <div className="space-y-2 mt-4">
             <Label className="text-zinc-300">Assigned Team Members</Label>
@@ -367,7 +502,7 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
               {users.map((user) => (
                 <label 
                   key={user.id} 
-                  className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors ${
+                  className={`relative flex items-center gap-2 p-2 rounded-md border cursor-pointer transition-colors ${
                     formData.assignedUserIds?.includes(user.id) 
                       ? "bg-white/10 border-white/20" 
                       : "bg-black/20 border-white/5 hover:bg-white/5"
@@ -395,8 +530,10 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
               ))}
             </div>
           </div>
+          </div>
 
-          <div className="pt-4 border-t border-white/10 mt-6 flex justify-end gap-2">
+          {/* Footer */}
+          <div className="shrink-0 p-4 bg-zinc-900 border-t border-white/10 flex justify-end gap-2 z-50">
             <Button type="button" variant="outline" onClick={() => router.back()} className="bg-transparent border-white/20 text-white hover:bg-white/10">
               Cancel
             </Button>
@@ -405,6 +542,5 @@ export default function ProjectForm({ project, prefilledClientId, clients, users
             </Button>
           </div>
         </form>
-    </div>
   );
 }

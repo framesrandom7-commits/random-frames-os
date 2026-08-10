@@ -26,21 +26,48 @@ export default function NotificationButton() {
   const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    await markAsRead(id);
-    fetchNotifications();
+    
+    // Optimistic UI update
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    
+    try {
+      await markAsRead(id);
+    } catch (error) {
+      // Revert on failure (or simply re-fetch)
+      fetchNotifications();
+    }
   };
 
   const handleMarkAllAsRead = async () => {
-    await markAllAsRead();
-    fetchNotifications();
+    // Optimistic UI update
+    setNotifications([]);
+    setUnreadCount(0);
+    
+    try {
+      await markAllAsRead();
+    } catch (error) {
+      fetchNotifications();
+    }
+  };
+
+  const getNotificationLink = (n: any) => {
+    if (n.invoiceId) return `/finance/invoices/${n.invoiceId}`;
+    if (n.shootId) return `/shoots/${n.shootId}`;
+    if (n.projectId) return `/projects/${n.projectId}`;
+    if (n.clientId) return `/clients/${n.clientId}`;
+    if (n.leadId) return `/leads/${n.leadId}`;
+    return `/notifications`;
   };
 
   return (
     <Popover onOpenChange={(open) => { if(open) fetchNotifications(); }}>
-      <PopoverTrigger className="relative text-zinc-400 hover:bg-white/10 hover:text-white rounded-full p-2 inline-flex items-center justify-center">
+      <PopoverTrigger className="flex h-10 w-10 items-center justify-center rounded-full text-zinc-400 transition-all hover:bg-white/10 hover:text-white hover:shadow-sm relative outline-none focus:outline-none focus-visible:outline-none focus:ring-0 focus-visible:ring-0 border-none">
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-[#C1121F] border border-black"></span>
+          <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#E53935] shadow-[0_0_8px_rgba(229,57,53,0.8)]">
+            <span className="text-[10px] font-bold text-white leading-none pb-[1px]">{unreadCount > 9 ? '9+' : unreadCount}</span>
+          </span>
         )}
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0 bg-zinc-900 border-white/10 text-white shadow-2xl" align="end" alignOffset={-10}>
@@ -61,9 +88,9 @@ export default function NotificationButton() {
           ) : (
             <div className="flex flex-col">
               {notifications.slice(0, 5).map(n => (
-                <div key={n.id} className="p-4 border-b border-white/5 hover:bg-white/5 flex gap-3 group relative">
+                <Link key={n.id} href={getNotificationLink(n)} className="p-4 border-b border-white/5 hover:bg-white/5 flex gap-3 group relative cursor-pointer block">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{n.title}</p>
+                    <p className="text-sm font-medium text-white truncate group-hover:text-[#E53935] transition-colors">{n.title}</p>
                     {n.message && <p className="text-xs text-zinc-400 line-clamp-2 mt-0.5">{n.message}</p>}
                     <p className="text-[10px] text-zinc-500 mt-2 flex items-center">
                       <Clock className="w-3 h-3 mr-1" />
@@ -74,12 +101,12 @@ export default function NotificationButton() {
                     variant="ghost" 
                     size="icon" 
                     onClick={(e) => handleMarkAsRead(n.id, e)}
-                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500 hover:text-emerald-400 shrink-0"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500 hover:text-emerald-400 shrink-0 z-10 relative"
                     title="Mark as read"
                   >
                     <Check className="h-3 w-3" />
                   </Button>
-                </div>
+                </Link>
               ))}
             </div>
           )}

@@ -17,9 +17,7 @@ export default async function NewProjectPage() {
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full">
       <PageHeader 
-        title="Create New Project"
-        subtitle="Enter the details of the new project. Required fields are marked with an asterisk (*)."
-      />
+        title="Create New Project" />
       
       <ProjectForm 
         clients={clients} 

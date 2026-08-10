@@ -26,9 +26,10 @@ export function getQuotationStatusMetadata(status: QuotationStatus): StatusMetad
   const metadata: Record<QuotationStatus, StatusMetadata> = {
     [QuotationStatus.DRAFT]: { label: "Draft", color: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20", icon: "FileEdit", description: "Quotation drafted", order: 1, variant: "outline" },
     [QuotationStatus.SENT]: { label: "Sent", color: "bg-blue-500/10 text-blue-500 border-blue-500/20", icon: "Send", description: "Sent to client", order: 2, variant: "outline" },
-    [QuotationStatus.APPROVED]: { label: "Approved", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", icon: "CheckCircle", description: "Approved by client", order: 3, variant: "outline" },
-    [QuotationStatus.REJECTED]: { label: "Rejected", color: "bg-rose-500/10 text-rose-500 border-rose-500/20", icon: "XCircle", description: "Rejected by client", order: 4, variant: "destructive" },
-    [QuotationStatus.EXPIRED]: { label: "Expired", color: "bg-zinc-800 text-zinc-400 border-zinc-700", icon: "Clock", description: "Quotation expired", order: 5, variant: "secondary" }
+    [QuotationStatus.VIEWED]: { label: "Viewed", color: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20", icon: "Eye", description: "Viewed by client", order: 3, variant: "outline" },
+    [QuotationStatus.APPROVED]: { label: "Approved", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", icon: "CheckCircle", description: "Approved by client", order: 4, variant: "outline" },
+    [QuotationStatus.REJECTED]: { label: "Rejected", color: "bg-rose-500/10 text-rose-500 border-rose-500/20", icon: "XCircle", description: "Rejected by client", order: 5, variant: "destructive" },
+    [QuotationStatus.EXPIRED]: { label: "Expired", color: "bg-zinc-800 text-zinc-400 border-zinc-700", icon: "Clock", description: "Quotation expired", order: 6, variant: "secondary" }
   };
   return metadata[status];
 }

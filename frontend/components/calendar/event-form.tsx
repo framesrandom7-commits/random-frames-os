@@ -132,7 +132,7 @@ export default function EventForm({ open, onOpenChange, event, clients, projects
                 disabled={event?.eventType === "SHOOT" || event?.eventType === "DELIVERY"} // Prevent changing type for auto-synced events
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white">
                   {Object.values(CalendarEventType).map((type) => (
@@ -148,7 +148,7 @@ export default function EventForm({ open, onOpenChange, event, clients, projects
                 onValueChange={(v: any) => setFormData({ ...formData, status: v as CalendarEventStatus })}
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white">
                   {Object.values(CalendarEventStatus).map((status) => (
@@ -214,7 +214,7 @@ export default function EventForm({ open, onOpenChange, event, clients, projects
                 disabled={!!event?.shootId || !!event?.leadId}
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="None" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-40">
                   <SelectItem value="none">None</SelectItem>
@@ -233,7 +233,7 @@ export default function EventForm({ open, onOpenChange, event, clients, projects
                 disabled={!!event?.shootId || formData.clientId === "none"}
               >
                 <SelectTrigger className="bg-black/40 border-white/10">
-                  <SelectValue placeholder="None" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-40">
                   <SelectItem value="none">None</SelectItem>

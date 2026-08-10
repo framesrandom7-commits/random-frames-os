@@ -25,9 +25,7 @@ export default async function PaymentsPage({
   return (
     <div className="flex flex-col gap-6 pb-8 h-full">
       <PageHeader 
-        title="Payments Ledger"
-        subtitle="Track all incoming payments"
-      />
+        title="Payments Ledger" />
       <div className="flex-1 overflow-hidden">
         <PaymentsTable 
           data={paymentsResponse as any} 

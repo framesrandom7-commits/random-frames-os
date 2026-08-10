@@ -75,7 +75,7 @@ export default function LeadFilters() {
             <Label className="text-xs text-zinc-400">Status</Label>
             <Select value={status || ""} onValueChange={(val) => updateParam("status", val === "ALL" ? "" : (val || ""))}>
               <SelectTrigger className="bg-black/40 border-white/10 h-9">
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                 <SelectItem value="ALL">All Statuses</SelectItem>
@@ -90,7 +90,7 @@ export default function LeadFilters() {
             <Label className="text-xs text-zinc-400">Priority</Label>
             <Select value={priority || ""} onValueChange={(val) => updateParam("priority", val === "ALL" ? "" : (val || ""))}>
               <SelectTrigger className="bg-black/40 border-white/10 h-9">
-                <SelectValue placeholder="All Priorities" />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                 <SelectItem value="ALL">All Priorities</SelectItem>
@@ -105,7 +105,7 @@ export default function LeadFilters() {
             <Label className="text-xs text-zinc-400">Source</Label>
             <Select value={source || ""} onValueChange={(val) => updateParam("source", val === "ALL" ? "" : (val || ""))}>
               <SelectTrigger className="bg-black/40 border-white/10 h-9">
-                <SelectValue placeholder="All Sources" />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-[#1a1a1a] border-white/10 text-white max-h-48">
                 <SelectItem value="ALL">All Sources</SelectItem>

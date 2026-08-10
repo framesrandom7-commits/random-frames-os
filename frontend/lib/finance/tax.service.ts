@@ -12,7 +12,7 @@ export interface TaxRule {
 
 export class TaxService {
   private static defaultTaxRules: TaxRule[] = [
-    { name: "GST 18%", rate: 0.18 },
+    // { name: "GST 18%", rate: 0.18 }, // Hiding GST until registered
   ];
 
   /**

@@ -4,10 +4,14 @@ import { AppLayout, AppLayoutWindow, AppLayoutContent } from "./responsive/app-l
 import { PageContainer } from "./responsive/page-container";
 import { NavigationProvider } from "@/components/navigation/navigation-context";
 import { NavigationLayoutResolver } from "@/components/navigation/navigation-layout-resolver";
+import { WelcomeScreen } from "@/components/layout/welcome-screen";
+
+import { GlobalModals } from "@/components/layout/global-modals";
 
 export default function AppShell({ children, user }: { children: React.ReactNode, user?: { name: string, roleName: string } }) {
   return (
     <AppLayout>
+      <WelcomeScreen user={user} />
       <NavigationProvider>
         <AppLayoutWindow>
           <NavigationLayoutResolver />
@@ -16,6 +20,9 @@ export default function AppShell({ children, user }: { children: React.ReactNode
             <PageContainer>
               {children}
             </PageContainer>
+            <React.Suspense fallback={null}>
+              <GlobalModals />
+            </React.Suspense>
           </AppLayoutContent>
         </AppLayoutWindow>
       </NavigationProvider>

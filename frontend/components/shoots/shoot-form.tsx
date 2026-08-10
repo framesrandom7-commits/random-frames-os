@@ -143,16 +143,15 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-[#111] border-white/10 text-white">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{shoot ? "Edit Shoot" : "Schedule New Shoot"}</DialogTitle>
-          <DialogDescription className="text-zinc-400">
-            {shoot ? "Update the details of your scheduled shoot." : "Fill in the details to schedule a new shoot."}
-          </DialogDescription>
+      <DialogContent className="w-full max-w-4xl sm:max-w-4xl md:max-w-5xl max-h-[90vh] flex flex-col overflow-hidden bg-zinc-950/10 backdrop-blur-lg border-white/10 text-white p-0">
+        <DialogHeader className="px-6 py-5 border-b border-white/10 shrink-0 bg-transparent">
+          <DialogTitle className="text-2xl font-bold">{shoot ? "Edit Shoot" : "Schedule New Shoot"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="title" className="text-zinc-300">Shoot Title *</Label>
@@ -175,7 +174,9 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
                 disabled={!!prefilledClientId && !shoot} 
               >
                 <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                  <SelectValue placeholder="Select a client" />
+                  <SelectValue placeholder="- - -">
+                    {formData.clientId ? clients.find(c => c.id === formData.clientId)?.businessName || "Loading..." : "Select Client"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white max-h-60">
                   {clients.map(client => (
@@ -193,7 +194,9 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
                 disabled={!formData.clientId || (!!prefilledProjectId && !shoot)} 
               >
                 <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                  <SelectValue placeholder={formData.clientId ? "Select a project" : "Select client first"} />
+                  <SelectValue placeholder={formData.clientId ? "Select a project" : "Select client first"}>
+                    {formData.projectId ? filteredProjects.find(p => p.id === formData.projectId)?.title || "Loading..." : (formData.clientId ? "Select Project" : "Select client first")}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white max-h-60">
                   {filteredProjects.map(project => (
@@ -210,7 +213,7 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
               <Label className="text-zinc-300">Shoot Type</Label>
               <Select value={formData.shootType || ""} onValueChange={(val) => handleSelectChange("shootType", val || "")}>
                 <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                   {Object.values(ShootType).map((cat) => (
@@ -224,7 +227,7 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
               <Label className="text-zinc-300">Status</Label>
               <Select value={formData.status || ""} onValueChange={(val) => handleSelectChange("status", val || "")}>
                 <SelectTrigger className="bg-black/40 border-white/10 text-white h-9 focus:ring-[#C1121F]">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                   {Object.values(ShootStatus).map((status) => (
@@ -412,17 +415,20 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
                 className="bg-black/40 border-white/10 text-white focus-visible:ring-[#C1121F]"
               />
             </div>
-          </div>
+            </div>
+            </div>
 
-          <DialogFooter className="pt-4 border-t border-white/10 mt-6">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="bg-transparent border-white/20 text-white hover:bg-white/10">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending} className="bg-[#C1121F] text-white hover:bg-[#a00f1a]">
-              {isPending ? "Saving..." : shoot ? "Update Shoot" : "Schedule Shoot"}
-            </Button>
-          </DialogFooter>
-        </form>
+            {/* Footer */}
+            <div className="shrink-0 p-4 bg-zinc-900 border-t border-white/10 flex justify-end gap-2 z-50">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="bg-transparent border-white/20 text-white hover:bg-white/10">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending} className="bg-[#C1121F] text-white hover:bg-[#a00f1a]">
+                {isPending ? "Saving..." : shoot ? "Update Shoot" : "Schedule Shoot"}
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

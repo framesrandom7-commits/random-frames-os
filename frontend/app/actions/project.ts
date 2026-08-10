@@ -17,11 +17,16 @@ export type CreateProjectData = {
   endDate?: Date | null;
   deliveryDate?: Date | null;
   quotationAmount?: number | null;
+  additionalServicesAmount?: number | null;
+  additionalChargesAmount?: number | null;
+  discountAmount?: number | null;
+  taxAmount?: number | null;
   advanceAmount?: number | null;
   totalAmount?: number | null;
   balanceAmount?: number | null;
   notes?: string | null;
   assignedUserIds?: string[];
+  quotationId?: string | null;
 };
 
 export async function generateProjectCode(): Promise<string> {

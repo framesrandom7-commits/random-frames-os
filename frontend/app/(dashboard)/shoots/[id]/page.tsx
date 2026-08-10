@@ -58,9 +58,9 @@ export default async function ShootDetailsPage({ params }: { params: Promise<{ i
               </Badge>
             </div>
           }
-          subtitle={
-            <div className="flex flex-wrap items-center text-sm text-zinc-400 gap-x-6 gap-y-2">
-              <Link href={`/clients/${shoot.clientId}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
+          description={
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2">
+              <Link href={`/clients/${shoot.project.clientId}`} className="flex items-center gap-1.5 hover:text-white transition-colors">
                 <Building className="w-4 h-4 text-zinc-500" />
                 {shoot.project.client.businessName}
               </Link>

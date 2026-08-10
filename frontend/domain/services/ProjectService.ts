@@ -30,10 +30,19 @@ export class ProjectService {
   static async create(data: CreateProjectData) {
     const projectCode = await ProjectService.generateCode();
     
-    const { assignedUserIds, clientId, ...projectData } = data;
+    const { assignedUserIds, clientId, quotationId, ...projectData } = data;
+
+    const quotationAmount = Number(data.quotationAmount || 0);
+    const additionalServicesAmount = Number(data.additionalServicesAmount || 0);
+    const additionalChargesAmount = Number(data.additionalChargesAmount || 0);
+    const discountAmount = Number(data.discountAmount || 0);
+    const taxAmount = Number(data.taxAmount || 0);
+
+    const computedTotalAmount = quotationAmount + additionalServicesAmount + additionalChargesAmount - discountAmount + taxAmount;
 
     const project = await ProjectRepository.create({
       ...projectData,
+      totalAmount: computedTotalAmount,
       projectCode,
       client: { connect: { id: clientId } },
       ...(assignedUserIds && assignedUserIds.length > 0 ? {
@@ -51,6 +60,11 @@ export class ProjectService {
             status: data.status === "DELIVERED" || data.status === "COMPLETED" ? "COMPLETED" : (data.status === "CANCELLED" ? "CANCELLED" : "SCHEDULED"),
             clientId: data.clientId,
           }
+        }
+      } : {}),
+      ...(quotationId ? {
+        originQuotation: {
+          connect: { id: quotationId }
         }
       } : {})
     });
@@ -77,12 +91,24 @@ export class ProjectService {
     const project = await ProjectRepository.findById(projectId);
     if (!project) return;
 
+    // Calculate total amount based on the new architecture
+    const quotationAmount = Number(project.quotationAmount || 0);
+    const additionalServicesAmount = Number(project.additionalServicesAmount || 0);
+    const additionalChargesAmount = Number(project.additionalChargesAmount || 0);
+    const discountAmount = Number(project.discountAmount || 0);
+    const taxAmount = Number(project.taxAmount || 0);
+
+    const computedTotalAmount = quotationAmount + additionalServicesAmount + additionalChargesAmount - discountAmount + taxAmount;
+
+    // Calculate financials
     const totalInvoiced = project.invoices.reduce((sum, inv) => sum + Number(inv.total), 0);
     const totalPaid = project.payments.reduce((sum, pay) => sum + Number(pay.amount), 0);
     const totalExpenses = project.expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
     
-    const balanceAmount = totalInvoiced - totalPaid;
-    const profitAmount = totalInvoiced - totalExpenses; 
+    // Balance is now computed against the true project total minus what's paid
+    const balanceAmount = computedTotalAmount - totalPaid;
+    // Profit is computed against project total minus expenses
+    const profitAmount = computedTotalAmount - totalExpenses; 
     
     let paymentStatus: "PENDING" | "PARTIAL" | "PAID" = "PENDING";
     if (totalPaid > 0) {
@@ -94,7 +120,7 @@ export class ProjectService {
     }
 
     await ProjectRepository.update(projectId, {
-      totalAmount: totalInvoiced,
+      totalAmount: computedTotalAmount,
       balanceAmount: balanceAmount,
       paymentStatus: paymentStatus,
       profitAmount: profitAmount,
@@ -104,8 +130,26 @@ export class ProjectService {
   static async update(id: string, data: Partial<CreateProjectData>) {
     const { assignedUserIds, ...projectData } = data;
 
-    const project = await ProjectRepository.update(id, {
+    // Fetch existing project to combine with partial data
+    const existingProject = await ProjectRepository.findById(id);
+    
+    // Make sure totalAmount is computed based on fields passed + existing fields
+    const quotationAmount = Number(data.quotationAmount !== undefined ? data.quotationAmount : (existingProject?.quotationAmount || 0));
+    const additionalServicesAmount = Number(data.additionalServicesAmount !== undefined ? data.additionalServicesAmount : (existingProject?.additionalServicesAmount || 0));
+    const additionalChargesAmount = Number(data.additionalChargesAmount !== undefined ? data.additionalChargesAmount : (existingProject?.additionalChargesAmount || 0));
+    const discountAmount = Number(data.discountAmount !== undefined ? data.discountAmount : (existingProject?.discountAmount || 0));
+    const taxAmount = Number(data.taxAmount !== undefined ? data.taxAmount : (existingProject?.taxAmount || 0));
+
+    const computedTotalAmount = quotationAmount + additionalServicesAmount + additionalChargesAmount - discountAmount + taxAmount;
+    
+    // Merge the computed totalAmount if we are touching financial fields
+    const updatedData = {
       ...projectData,
+      totalAmount: computedTotalAmount
+    };
+
+    const project = await ProjectRepository.update(id, {
+      ...updatedData,
       ...(assignedUserIds ? {
         assignedUsers: {
           set: assignedUserIds.map(userId => ({ id: userId }))

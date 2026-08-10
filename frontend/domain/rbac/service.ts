@@ -199,8 +199,8 @@ export class RbacDomainService {
       title: `Welcome ${firstName}`,
       focusTitle: isOwner ? "Executive Decisions & Actions" : "Today's Operational Tasks",
       subtitle: isOwner
-        ? "Super Administrator • Complete Business Overview"
-        : "Head of Operations • Client & Pipeline Activities",
+        ? "Business Overview"
+        : "Client & Pipeline Activities",
       isExecutiveView: isOwner,
     };
   }

@@ -33,9 +33,7 @@ export default function BackupPage() {
   return (
     <div className="flex h-full w-full flex-col p-8 overflow-y-auto">
       <PageHeader 
-        title="Backup & Export" 
-        subtitle="Manage your data securely. Download records or run manual database backups."
-        action={
+        title="Backup & Export" action={
           <button 
             onClick={() => handleExport("Full Data")}
             disabled={isExporting}

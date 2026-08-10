@@ -15,9 +15,7 @@ export default async function FollowUpsPage() {
     <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] gap-6 text-white overflow-hidden">
       <div className="flex justify-between items-center">
         <PageHeader 
-          title="Follow-ups"
-          subtitle="Manage scheduled reminders and client follow-ups"
-        />
+          title="Follow-ups" />
         <Button className="bg-white text-black hover:bg-white/90">
           <Plus className="h-4 w-4 mr-2" />
           Add Follow-up

@@ -49,7 +49,7 @@ export default function InvoiceTab({ settings }: { settings: Record<string, any>
         </div>
         <div className="space-y-2">
           <Label>Starting Invoice Number</Label>
-          <Input name="invoiceStartingNumber" value={formData.invoiceStartingNumber} onChange={handleChange} type="number" className="bg-black/50 border-white/10" />
+          <Input name="invoiceStartingNumber" value={formData.invoiceStartingNumber || ""} onChange={handleChange} type="number" className="bg-black/50 border-white/10" />
         </div>
         <div className="space-y-2">
           <Label>Default Currency</Label>
@@ -57,7 +57,7 @@ export default function InvoiceTab({ settings }: { settings: Record<string, any>
         </div>
         <div className="space-y-2">
           <Label>Default Tax Percentage (%)</Label>
-          <Input name="taxPercentage" type="number" value={formData.taxPercentage} onChange={handleChange} className="bg-black/50 border-white/10" />
+          <Input name="taxPercentage" type="number" value={formData.taxPercentage || ""} onChange={handleChange} className="bg-black/50 border-white/10" />
         </div>
         <div className="space-y-2">
           <Label>Payment Terms</Label>

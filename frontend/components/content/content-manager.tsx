@@ -188,7 +188,7 @@ function ContentFormDialog({ open, onOpenChange, content, projects }: any) {
           <div className="space-y-2">
             <Label>Project *</Label>
             <Select value={formData.projectId || ""} onValueChange={v => setFormData({ ...formData, projectId: v })}>
-              <SelectTrigger className="bg-black/40 border-white/10"><SelectValue/></SelectTrigger>
+              <SelectTrigger className="bg-black/40 border-white/10"><SelectValue placeholder="- - -" /></SelectTrigger>
               <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                 {projects.map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
@@ -199,7 +199,7 @@ function ContentFormDialog({ open, onOpenChange, content, projects }: any) {
           <div className="space-y-2">
             <Label>Platform</Label>
             <Select value={formData.platform || "INSTAGRAM"} onValueChange={v => setFormData({ ...formData, platform: v })}>
-              <SelectTrigger className="bg-black/40 border-white/10"><SelectValue/></SelectTrigger>
+              <SelectTrigger className="bg-black/40 border-white/10"><SelectValue placeholder="- - -" /></SelectTrigger>
               <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                 {Object.values(ContentPlatform).map(p => (
                   <SelectItem key={p} value={p}>{p}</SelectItem>
@@ -213,7 +213,7 @@ function ContentFormDialog({ open, onOpenChange, content, projects }: any) {
               <div className="space-y-2">
                 <Label>Editing Status</Label>
                 <Select value={formData.editingStatus} onValueChange={v => setFormData({ ...formData, editingStatus: v })}>
-                  <SelectTrigger className="bg-black/40 border-white/10"><SelectValue/></SelectTrigger>
+                  <SelectTrigger className="bg-black/40 border-white/10"><SelectValue placeholder="- - -" /></SelectTrigger>
                   <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                     {Object.values(ContentEditingStatus).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   </SelectContent>
@@ -222,7 +222,7 @@ function ContentFormDialog({ open, onOpenChange, content, projects }: any) {
               <div className="space-y-2">
                 <Label>Approval Status</Label>
                 <Select value={formData.approvalStatus} onValueChange={v => setFormData({ ...formData, approvalStatus: v })}>
-                  <SelectTrigger className="bg-black/40 border-white/10"><SelectValue/></SelectTrigger>
+                  <SelectTrigger className="bg-black/40 border-white/10"><SelectValue placeholder="- - -" /></SelectTrigger>
                   <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                     {Object.values(ContentApprovalStatus).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   </SelectContent>
@@ -231,7 +231,7 @@ function ContentFormDialog({ open, onOpenChange, content, projects }: any) {
               <div className="space-y-2">
                 <Label>Publishing Status</Label>
                 <Select value={formData.publishingStatus} onValueChange={v => setFormData({ ...formData, publishingStatus: v })}>
-                  <SelectTrigger className="bg-black/40 border-white/10"><SelectValue/></SelectTrigger>
+                  <SelectTrigger className="bg-black/40 border-white/10"><SelectValue placeholder="- - -" /></SelectTrigger>
                   <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                     {Object.values(ContentPublishingStatus).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   </SelectContent>

@@ -11,6 +11,9 @@ This directory contains the physical, authoritative architectural specifications
 | Document Name | Scope & Description | Status | Certification Score |
 | :--- | :--- | :--- | :--- |
 | **`GOOGLE_WORKSPACE_ARCHITECTURE.md`** | Complete Phase 6.1 Enterprise Google Workspace Production Integration specification covering Gmail, Calendar, Drive, Contacts, Unified Auth, Workflow Automations, and Preference Engine. | **FROZEN** | 100/100 (17-Point Verified) |
+| **`FINANCE_OPERATIONS_ARCHITECTURE.md`** | Complete Phase 6.2 Enterprise Finance & Business Operations module covering Quotations, Invoices, Multi-Bank Accounts, Immutable Financial Ledger, Dynamic GST/Taxation, Project Profitability, and Executive RBAC Dashboards. | **FROZEN** | 100/100 (21-Point Verified) |
+| **`REPORTING_ARCHITECTURE.md`** | Complete Phase 6.3 Enterprise Reporting & Business Intelligence module covering KPI Engine, Business Snapshots, Executive Alerts, Productivity Telemetry, 4-Tier Drill-Down Navigation, and Multi-Format Exports. | **FROZEN** | 100/100 (14-Point Verified) |
+| **`CLIENT_PORTAL_ARCHITECTURE.md`** | Complete Phase 7.0 Client Portal & External Collaboration Engine covering secure onboarding invitations, magic link authentication, RBAC self-record isolation, deliverable approval workflows, brand asset library, meeting center, extended payment center with QR codes, requirement forms, automated CRM lead creation, executive analytics, and mobile-first PWA architecture. | **FROZEN** | 100/100 (15-Point Verified) |
 
 ---
 

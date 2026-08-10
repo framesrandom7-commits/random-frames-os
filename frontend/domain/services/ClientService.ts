@@ -24,12 +24,50 @@ export class ClientService {
     return `CL${year}${month}${sequential}`;
   }
 
-  static async create(data: CreateClientData) {
+  static async create(data: CreateClientData & { commercialAgreement?: any }) {
+    const { commercialAgreement, ...clientData } = data;
     const clientCode = await ClientService.generateCode();
     
-    const client = await ClientRepository.create({
-      ...data,
-      clientCode,
+    const client = await prisma.$transaction(async (tx) => {
+      const createdClient = await tx.client.create({
+        data: {
+          ...clientData,
+          clientCode,
+        }
+      });
+      
+      if (commercialAgreement) {
+         const date = new Date();
+         const qYear = date.getFullYear().toString().slice(-2);
+         const qMonth = (date.getMonth() + 1).toString().padStart(2, '0');
+         
+         const qCount = await tx.quotation.count({
+           where: {
+             createdAt: {
+               gte: new Date(date.getFullYear(), date.getMonth(), 1),
+             }
+           }
+         });
+         
+         const qSeq = (qCount + 1).toString().padStart(3, '0');
+         const quotationNumber = `QT${qYear}${qMonth}${qSeq}`;
+
+         await tx.quotation.create({
+           data: {
+             quotationNumber,
+             clientId: createdClient.id,
+             issueDate: commercialAgreement.quotationDate,
+             validUntil: new Date(commercialAgreement.quotationDate.getTime() + 30 * 24 * 60 * 60 * 1000), // Valid for 30 days
+             subtotal: commercialAgreement.agreedAmount,
+             total: commercialAgreement.agreedAmount,
+             status: "APPROVED",
+             approvedAt: new Date(),
+             approvalMethod: commercialAgreement.approvalMethod,
+             notes: commercialAgreement.notes
+           }
+         });
+      }
+      return createdClient;
     });
     
     const { logActivity } = await import('@/lib/timeline');

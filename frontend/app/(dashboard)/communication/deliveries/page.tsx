@@ -17,9 +17,7 @@ export default async function DeliveriesPage() {
     <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] gap-6 text-white overflow-hidden">
       <div className="flex justify-between items-center">
         <PageHeader 
-          title="Delivery Center"
-          subtitle="Manage asset deliveries, secure links, and confirmations"
-        />
+          title="Delivery Center" />
         <Button className="bg-white text-black hover:bg-white/90">
           <Plus className="h-4 w-4 mr-2" />
           New Delivery

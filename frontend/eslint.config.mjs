@@ -19,7 +19,10 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-empty-object-type": "off",
       "react/no-unescaped-entities": "off",
-      "prefer-const": "off"
+      "prefer-const": "off",
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/set-state-in-effect": "off"
     }
   }
 ]);

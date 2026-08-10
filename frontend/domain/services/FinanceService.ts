@@ -288,7 +288,7 @@ export class FinanceService {
     await logActivity({
       type: "SYSTEM",
       description: `Expense deleted: ${expense.title}`,
-      projectId: expense.projectId,
+      projectId: expense.projectId || undefined,
       clientId: expense.clientId || undefined,
     });
 
@@ -337,14 +337,11 @@ export class FinanceService {
         status: data.status || "DRAFT",
         notes: data.notes,
         termsAndConditions: data.termsAndConditions,
-        projectId: data.projectId,
         clientId: data.clientId,
+        projectId: data.projectId || null,
         items: {
           create: data.items,
         },
-      },
-      include: {
-        items: true
       }
     });
 

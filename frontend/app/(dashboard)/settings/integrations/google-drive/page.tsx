@@ -18,9 +18,7 @@ export default async function GoogleDriveSettingsPage() {
           ← Back to Integrations
         </Link>
         <PageHeader 
-          title="Google Drive Integration" 
-          subtitle="Manage your Google Drive connection and storage structure"
-        />
+          title="Google Drive Integration" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

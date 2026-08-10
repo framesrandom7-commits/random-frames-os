@@ -14,6 +14,7 @@ import BackupTab from "./tabs/backup-tab";
 import IntegrationsTab from "./tabs/integrations-tab";
 import SecurityTab from "./tabs/security-tab";
 import WorkflowAutomationTab from "./tabs/workflow-automation-tab";
+import FormsManagerTab from "./tabs/forms-manager-tab";
 
 import { FEATURES } from "@/lib/features";
 import { RbacDomainService } from "@/domain/rbac/service";
@@ -24,6 +25,7 @@ interface SettingsDashboardProps {
   initialUsers: any[];
   initialRoles: any[];
   integrationSettings?: any;
+  initialCustomFields?: any[];
   userRoleName?: string | null;
 }
 
@@ -32,6 +34,7 @@ export default function SettingsDashboard({
   initialUsers,
   initialRoles,
   integrationSettings,
+  initialCustomFields = [],
   userRoleName,
 }: SettingsDashboardProps) {
   const canAccess = (tab: string) => RbacDomainService.canAccessSettingsTab(userRoleName, tab);
@@ -70,6 +73,10 @@ export default function SettingsDashboard({
           </TabsTrigger>
           <TabsTrigger value="calendar" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
             Calendar
+          </TabsTrigger>
+
+          <TabsTrigger value="forms" className="justify-start data-[state=active]:bg-[#C1121F] data-[state=active]:text-white text-zinc-400">
+            Form Manager
           </TabsTrigger>
 
           {canAccess(SettingsTabId.BACKUP) && (
@@ -124,6 +131,10 @@ export default function SettingsDashboard({
           </TabsContent>
           <TabsContent value="calendar" className="m-0 h-full">
             <CalendarTab settings={initialSettings} />
+          </TabsContent>
+
+          <TabsContent value="forms" className="m-0 h-full">
+            <FormsManagerTab initialFields={initialCustomFields} />
           </TabsContent>
 
           {canAccess(SettingsTabId.BACKUP) && (

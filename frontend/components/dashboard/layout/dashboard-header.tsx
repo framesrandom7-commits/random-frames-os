@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 import { PageTitle, Typography } from "@/components/ui/typography"
 
@@ -19,32 +22,50 @@ export function DashboardHeader({
   className,
   ...props
 }: DashboardHeaderProps) {
-  return (
+  const [mounted, setMounted] = React.useState(false);
+  const [portalTarget, setPortalTarget] = React.useState<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    setMounted(true);
+    setPortalTarget(document.getElementById("topbar-title-portal"));
+  }, []);
+
+  const content = (
     <div 
       className={cn(
-        "flex flex-col gap-4 md:flex-row md:items-start md:justify-between",
+        "flex flex-1 items-center gap-6 min-w-0",
         className
       )}
       {...props}
     >
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-0.5 min-w-0">
         {breadcrumbs && (
-          <div className="mb-2 text-sm text-muted-foreground">
+          <div className="text-xs text-muted-foreground truncate">
             {breadcrumbs}
           </div>
         )}
-        <PageTitle>{title}</PageTitle>
-        {subtitle && (
-          <Typography variant="body" color="muted">{subtitle}</Typography>
-        )}
+        <div className="flex items-center gap-3">
+          <PageTitle className="truncate">{title}</PageTitle>
+          {subtitle && (
+            <Typography variant="body" color="muted" className="truncate mt-1">
+              {subtitle}
+            </Typography>
+          )}
+        </div>
       </div>
 
       {(primaryAction || secondaryActions) && (
-        <div className="flex flex-row flex-wrap items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0 ml-auto">
           {secondaryActions}
           {primaryAction}
         </div>
       )}
     </div>
-  )
+  );
+
+  if (mounted && portalTarget) {
+    return createPortal(content, portalTarget);
+  }
+
+  return null;
 }

@@ -306,7 +306,7 @@ export function QuotationPDF({ quotation }: QuotationPDFProps) {
           )}
           {Number(quotation.tax) > 0 && (
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Tax (18%)</Text>
+              <Text style={styles.summaryLabel}>Tax</Text>
               <Text style={styles.summaryValue}>₹{Number(quotation.tax).toLocaleString('en-IN')}</Text>
             </View>
           )}

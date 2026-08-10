@@ -21,7 +21,22 @@ export default async function InvoiceDetailsPage({
     getSettings(),
   ]);
 
-  if (!invoice) {
+  if (!invoice || ('error' in (invoice as any))) {
+    // If it's a Prisma error, it might be due to outdated client
+    if ((invoice as any)?.error) {
+      return (
+        <div className="h-full flex flex-col items-center justify-center text-center p-8">
+          <div className="text-[#E53935] text-xl font-bold mb-4">Database Connection Error</div>
+          <p className="text-zinc-400 mb-2">There was an issue retrieving this invoice from the database.</p>
+          <p className="text-zinc-500 text-sm bg-black/20 p-4 rounded-lg">
+            {(invoice as any).error}
+          </p>
+          <p className="text-zinc-300 mt-6 text-sm font-medium">
+            Developer Note: Please restart your Next.js server (Ctrl+C then npm run dev) to refresh the Prisma Client.
+          </p>
+        </div>
+      );
+    }
     notFound();
   }
 

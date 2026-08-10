@@ -55,10 +55,8 @@ export default async function LeadsPage(props: {
   return (
     <ModuleLayout>
       <ModuleHeader 
-        title="Leads"
-        subtitle="Manage and track your sales pipeline"
-        primaryAction={
-          <Link href="/leads/new">
+        title="Leads" primaryAction={
+          <Link href="?new=lead">
             <Button className="bg-[#C1121F] text-white hover:bg-[#a00f1a]">Add Lead</Button>
           </Link>
         }

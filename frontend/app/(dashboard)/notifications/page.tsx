@@ -8,9 +8,7 @@ export default function NotificationsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Notifications"
-        subtitle="Stay updated with your latest alerts"
-      />
+        title="Notifications" />
       
       <NotificationCenter />
     </div>

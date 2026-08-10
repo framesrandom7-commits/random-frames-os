@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { leadSchema, LeadFormData } from "@/lib/validations/lead";
-import { checkLeadDuplicates, createLead } from "@/app/actions/lead";
+import { createLead } from "@/app/actions/lead";
+import { checkUniqueContact } from "@/app/actions/validation";
 import { LeadStatus, LeadPriority, LeadSource, BusinessType, ReminderType, PreferredContact } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
@@ -19,22 +20,25 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { FileUpload } from "@/components/ui/file-upload";
 
 const SERVICES_REQUIRED = [
-  "Product Photography",
-  "Food Photography",
-  "Brand Shoot",
-  "Café Content",
-  "Real Estate",
-  "Event Coverage",
+  "Photos",
   "Reels",
-  "Brand Film",
-  "Drone",
+  "Cinematic Reel",
+  "Short Form Video",
+  "Long Form Video",
+  "Drone Footage",
+  "Raw Footage",
+  "Behind the Scenes (BTS)",
   "Editing",
-  "Social Media Content"
+  "Other"
 ];
 
 const AUTOSAVE_KEY = "new-lead-draft";
 
-export function NewLeadForm() {
+import { DynamicFieldRenderer } from "@/components/forms/dynamic-field-renderer";
+
+import { cn } from "@/lib/utils";
+
+export function NewLeadForm({ customFields = [], className }: { customFields?: any[], className?: string }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
@@ -55,18 +59,21 @@ export function NewLeadForm() {
       state: "",
       country: "",
       postalCode: "",
-      businessType: BusinessType.OTHER,
-      leadSource: LeadSource.OTHER,
-      status: LeadStatus.NEW,
-      priority: LeadPriority.MEDIUM,
+      businessType: undefined,
+      leadSource: undefined,
+      status: undefined,
+      priority: undefined,
+      reminderType: undefined,
       tags: [],
       notes: "",
       serviceInterested: "",
       preferredContactMethod: null,
+      closingRemarks: "",
+      customFields: {},
     }
   });
 
-  const { register, handleSubmit, formState: { errors, isDirty }, setValue, watch, getValues, reset } = form;
+  const { register, handleSubmit, formState: { errors, isDirty }, setValue, watch, getValues, reset, setError, clearErrors } = form;
   // eslint-disable-next-line react-hooks/incompatible-library
   const businessType = watch("businessType");
   const leadSource = watch("leadSource");
@@ -75,6 +82,7 @@ export function NewLeadForm() {
   const reminderType = watch("reminderType");
   const preferredContactMethod = watch("preferredContactMethod");
   const tags = watch("tags") || [];
+  const serviceInterested = watch("serviceInterested");
 
   // 1. Load Draft on Mount
   useEffect(() => {
@@ -117,15 +125,27 @@ export function NewLeadForm() {
   const checkDuplicates = useCallback(async () => {
     const email = getValues("email");
     const phone = getValues("phone");
-    if (email || phone) {
-      const result = await checkLeadDuplicates(email, phone);
-      if (result.duplicate) {
-        setDuplicateWarning(`Warning: A lead with this ${email && phone ? 'email or phone' : (email ? 'email' : 'phone')} already exists. You can still save it.`);
-      } else {
-        setDuplicateWarning(null);
+    
+    setDuplicateWarning(null);
+
+    if (email) {
+      const emailResult = await checkUniqueContact("email", email);
+      if (!emailResult.isUnique) {
+        setError("email", { type: "manual", message: `Email already exists in ${emailResult.conflictingEntity}` });
+      } else if (form.formState.errors.email?.type === "manual") {
+        clearErrors("email");
       }
     }
-  }, [getValues]);
+
+    if (phone) {
+      const phoneResult = await checkUniqueContact("phone", phone);
+      if (!phoneResult.isUnique) {
+        setError("phone", { type: "manual", message: `Phone already exists in ${phoneResult.conflictingEntity}` });
+      } else if (form.formState.errors.phone?.type === "manual") {
+        clearErrors("phone");
+      }
+    }
+  }, [getValues, setError, clearErrors, form.formState.errors]);
 
   const onSubmit = async (data: LeadFormData, addAnother: boolean = false) => {
     setIsSubmitting(true);
@@ -152,13 +172,23 @@ export function NewLeadForm() {
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (isDirty && !window.confirm("You have unsaved changes. Are you sure you want to cancel?")) {
       return;
     }
     localStorage.removeItem(AUTOSAVE_KEY);
     router.push("/leads");
-  };
+  }, [isDirty, router]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleCancel();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleCancel]);
 
   const saveDraft = () => {
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(getValues()));
@@ -175,7 +205,8 @@ export function NewLeadForm() {
   };
 
   return (
-    <form ref={formRef} className="space-y-8 pb-20">
+      <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col h-full", className)}>
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
       {duplicateWarning && (
         <div className="bg-amber-500/10 border border-amber-500/50 rounded-md p-4 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
@@ -226,7 +257,7 @@ export function NewLeadForm() {
             <Label className="text-zinc-300">Preferred Contact Method</Label>
             <Select onValueChange={(v) => setValue("preferredContactMethod", v as PreferredContact)} value={preferredContactMethod || undefined}>
               <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                <SelectValue placeholder="Select method" />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10">
                 {Object.values(PreferredContact).map((t) => (
@@ -246,7 +277,7 @@ export function NewLeadForm() {
             <Label className="text-zinc-300">Business Type</Label>
             <Select onValueChange={(v) => setValue("businessType", v as BusinessType)} value={businessType}>
               <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                <SelectValue placeholder="Select type" />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10">
                 {Object.values(BusinessType).map((t) => (
@@ -276,8 +307,17 @@ export function NewLeadForm() {
             <Input id="postalCode" {...register("postalCode")} className="bg-white/5 border-white/10 text-white" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="serviceInterested" className="text-zinc-300">Service Interested In</Label>
-            <Input id="serviceInterested" {...register("serviceInterested")} className="bg-white/5 border-white/10 text-white" />
+            <Label className="text-zinc-300">Service Interested In</Label>
+            <Select onValueChange={(v) => setValue("serviceInterested", v)} value={serviceInterested || ""}>
+              <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectValue placeholder="- - -" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 border-white/10">
+                {SERVICES_REQUIRED.map((s) => (
+                  <SelectItem key={s} value={s} className="text-zinc-200 focus:bg-white/10">{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </section>
@@ -290,7 +330,7 @@ export function NewLeadForm() {
             <Label className="text-zinc-300">Source</Label>
             <Select onValueChange={(v) => setValue("leadSource", v as LeadSource)} value={leadSource}>
               <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                <SelectValue placeholder="Select source" />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10">
                 {Object.values(LeadSource).map((t) => (
@@ -303,7 +343,7 @@ export function NewLeadForm() {
             <Label className="text-zinc-300">Status</Label>
             <Select onValueChange={(v) => setValue("status", v as LeadStatus)} value={status}>
               <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10">
                 {Object.values(LeadStatus).map((t) => (
@@ -316,7 +356,7 @@ export function NewLeadForm() {
             <Label className="text-zinc-300">Priority</Label>
             <Select onValueChange={(v) => setValue("priority", v as LeadPriority)} value={priority}>
               <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                <SelectValue placeholder="Select priority" />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10">
                 {Object.values(LeadPriority).map((t) => (
@@ -368,7 +408,7 @@ export function NewLeadForm() {
             <Label className="text-zinc-300">Reminder Type</Label>
             <Select onValueChange={(v) => setValue("reminderType", v as ReminderType)} value={reminderType || undefined}>
               <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                <SelectValue placeholder="None" />
+                <SelectValue placeholder="- - -" />
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10">
                 {Object.values(ReminderType).map((t) => (
@@ -396,6 +436,28 @@ export function NewLeadForm() {
             />
           </div>
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="budget" className="text-zinc-300">Budget</Label>
+          <Input placeholder="Enter amount" {...form.register("budget")} type="number" className="bg-white/5 border-white/10 text-white" />
+        </div>
+
+        {customFields.length > 0 && (
+          <div className="mt-8 pt-8 border-t border-white/10">
+            <h3 className="text-lg font-semibold text-white mb-4">Additional Details</h3>
+            <DynamicFieldRenderer
+              fields={customFields}
+              formData={form.getValues()}
+              setFormData={(data) => {
+                Object.entries(data).forEach(([key, value]) => {
+                  if (key === 'customFields') {
+                     form.setValue('customFields', value, { shouldDirty: true });
+                  }
+                });
+              }}
+              errors={form.formState.errors.customFields as any}
+            />
+          </div>
+        )}
       </section>
 
       {/* G. Attachments */}
@@ -409,9 +471,10 @@ export function NewLeadForm() {
           }} 
         />
       </section>
+      </div> {/* End scrollable area */}
 
       {/* Actions */}
-      <div className="fixed bottom-0 left-0 lg:left-64 right-0 p-4 bg-black/80 backdrop-blur-md border-t border-white/10 flex items-center justify-end gap-3 z-10">
+      <div className="shrink-0 p-4 bg-zinc-900 border-t border-white/10 flex items-center justify-end gap-3 z-50">
         <Button 
           type="button" 
           variant="ghost" 

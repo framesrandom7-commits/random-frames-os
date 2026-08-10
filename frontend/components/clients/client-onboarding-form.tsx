@@ -198,7 +198,7 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
                 <div className="space-y-2">
                   <Label>Category</Label>
                   <Select value={formData.projectCategory || ProjectCategory.ONE_TIME_SHOOT} onValueChange={(v) => handleSelectChange("projectCategory", v || "")}>
-                    <SelectTrigger className="bg-black/50 border-white/10"><SelectValue/></SelectTrigger>
+                    <SelectTrigger className="bg-black/50 border-white/10"><SelectValue placeholder="- - -" /></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(ProjectCategory).map(c => <SelectItem key={c as string} value={c as string}>{c as string}</SelectItem>)}
                     </SelectContent>
@@ -207,7 +207,7 @@ export default function ClientOnboardingForm({ open, onOpenChange, leadId }: Cli
                 <div className="space-y-2">
                   <Label>Priority</Label>
                   <Select value={formData.projectPriority || ProjectPriority.MEDIUM} onValueChange={(v) => handleSelectChange("projectPriority", v || "")}>
-                    <SelectTrigger className="bg-black/50 border-white/10"><SelectValue/></SelectTrigger>
+                    <SelectTrigger className="bg-black/50 border-white/10"><SelectValue placeholder="- - -" /></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(ProjectPriority).map(p => <SelectItem key={p as string} value={p as string}>{p as string}</SelectItem>)}
                     </SelectContent>

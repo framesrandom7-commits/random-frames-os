@@ -66,7 +66,7 @@ export default function MarkAsLostButton({ leadId, disabled }: { leadId: string,
               <Label>Reason</Label>
               <Select onValueChange={(val) => setReason(val || "")} value={reason}>
                 <SelectTrigger className="bg-white/5 border-white/10">
-                  <SelectValue placeholder="Select a reason..." />
+                  <SelectValue placeholder="- - -" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white">
                   {Object.values(LostReason).map((r) => (

@@ -39,6 +39,9 @@ export interface ModuleDataViewProps<T> extends React.HTMLAttributes<HTMLDivElem
 
   // Pagination
   pagination?: Omit<ModulePaginationProps, "className">;
+
+  // Interactions
+  onRowClick?: (row: T) => void;
 }
 
 export function ModuleDataView<T>({
@@ -55,6 +58,7 @@ export function ModuleDataView<T>({
   onSelectionChange,
   bulkActions,
   pagination,
+  onRowClick,
   className,
   ...props
 }: ModuleDataViewProps<T>) {
@@ -137,7 +141,12 @@ export function ModuleDataView<T>({
               const isSelected = selectedIds.includes(rowId);
 
               return (
-                <TableRow key={rowId} data-state={isSelected ? "selected" : undefined}>
+                <TableRow 
+                  key={rowId} 
+                  data-state={isSelected ? "selected" : undefined}
+                  onClick={() => onRowClick?.(row)}
+                  className={cn(onRowClick && "cursor-pointer hover:bg-white/5")}
+                >
                   {hasSelection && (
                     <TableCell className="px-4">
                       <input 

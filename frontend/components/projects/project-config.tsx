@@ -21,7 +21,7 @@ export const projectConfig: EntityConfig<ProjectWithRelations> = {
     icon: Folder,
     routes: {
       list: "/projects",
-      create: "/projects/new",
+      create: "?new=project",
       edit: (id) => `/projects/${id}/edit`,
       detail: (id) => `/projects/${id}`,
     },

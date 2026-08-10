@@ -71,7 +71,7 @@ export function ModulePagination({
           <Typography variant="body" color="muted" className="text-xs">Rows per page</Typography>
           <Select value={String(pageSize)} onValueChange={handleSizeChange}>
             <SelectTrigger className="h-8 w-[70px] text-xs">
-              <SelectValue />
+              <SelectValue placeholder="- - -" />
             </SelectTrigger>
             <SelectContent>
               {pageSizeOptions.map((size) => (

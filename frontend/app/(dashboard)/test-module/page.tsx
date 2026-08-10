@@ -38,9 +38,7 @@ export default function TestModulePage({
   return (
     <ModuleLayout>
       <ModuleHeader 
-        title="Test Business Module" 
-        subtitle="This is a test of the Business Module Framework"
-        primaryAction={<Button>Add Record</Button>} 
+        title="Test Business Module" primaryAction={<Button>Add Record</Button>} 
       />
       <ModuleToolbar 
         searchPlaceholder="Search records..."

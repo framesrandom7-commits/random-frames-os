@@ -45,9 +45,7 @@ export default async function ShootsPage(props: {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
-        title="Shoots"
-        subtitle="Schedule and organize production days"
-      />
+        title="Shoots" />
       
       {/* Dashboard Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
@@ -125,7 +123,7 @@ export default async function ShootsPage(props: {
             <div className="sm:hidden block">
               <ShootViewToggle />
             </div>
-            <Link href={`?new=true`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-[#C1121F] text-white hover:bg-[#a00f1a] shadow-lg w-full sm:w-auto">
+            <Link href={`?new=shoot`} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-[#C1121F] text-white hover:bg-[#a00f1a] shadow-lg w-full sm:w-auto">
                <Camera className="mr-2 h-4 w-4" /> Schedule Shoot
             </Link>
           </div>

@@ -17,9 +17,7 @@ export default async function TemplatesPage() {
     <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] gap-6 text-white overflow-hidden">
       <div className="flex justify-between items-center">
         <PageHeader 
-          title="Communication Templates"
-          subtitle="Manage reusable email and WhatsApp templates"
-        />
+          title="Communication Templates" />
         <Button className="bg-white text-black hover:bg-white/90">
           <Plus className="h-4 w-4 mr-2" />
           Create Template

@@ -12,9 +12,7 @@ export default async function AvailabilityPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] gap-6">
       <PageHeader 
-        title="Availability & Scheduling"
-        subtitle="Configure your working hours, holidays, and blocked dates"
-      />
+        title="Availability & Scheduling" />
       
       <div className="flex-1 overflow-hidden flex flex-col bg-white/5 border border-white/10 rounded-xl backdrop-blur-md p-6">
         <AvailabilitySettings 

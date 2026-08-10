@@ -27,9 +27,7 @@ export default async function CommunicationDashboard() {
   return (
     <div className="flex flex-col h-[calc(100vh-theme(spacing.16))] gap-6 text-white overflow-hidden">
       <PageHeader 
-        title="Communication Center"
-        subtitle="Manage emails, messages, follow-ups, and deliveries in one place"
-      />
+        title="Communication Center" />
       
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         

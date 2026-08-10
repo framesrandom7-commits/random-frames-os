@@ -80,9 +80,7 @@ export default function GoogleCalendarSettingsPage() {
   return (
     <div className="flex flex-col gap-6 p-6 max-w-4xl mx-auto">
       <PageHeader
-        title="Google Calendar Integration"
-        subtitle="Synchronize CRM events automatically to Google Calendar."
-      />
+        title="Google Calendar Integration" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-[#111] border-white/5 shadow-2xl">
