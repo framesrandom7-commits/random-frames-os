@@ -1,6 +1,6 @@
 import React from "react";
 import { CompanySettings } from "./types";
-import { Mail, Phone, MapPin, Instagram } from "lucide-react";
+import { Mail, Phone, MapPin, Globe } from "lucide-react";
 
 export const DocumentFooter: React.FC<{
   companyInfo: CompanySettings;
@@ -31,7 +31,7 @@ export const DocumentFooter: React.FC<{
         
         {companyInfo.website && (
           <div className="flex items-center gap-2">
-            <Instagram size={14} className="text-[#111111]" />
+            <Globe size={14} className="text-[#111111]" />
             <span>{companyInfo.website.replace('https://', '')}</span>
           </div>
         )}
