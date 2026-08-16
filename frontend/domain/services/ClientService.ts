@@ -106,11 +106,23 @@ export class ClientService {
   }
 
   static async getById(id: string) {
-    return ClientRepository.findById(id);
+    const client = await ClientRepository.findById(id);
+    if (!client) return null;
+    return {
+      ...client,
+      storageUsageBytes: client.storageUsageBytes ? Number(client.storageUsageBytes) : 0,
+    };
   }
 
   static async getMany(params: GetClientsParams) {
-    return ClientRepository.findMany(params);
+    const result = await ClientRepository.findMany(params);
+    return {
+      ...result,
+      clients: result.clients.map((c: any) => ({
+        ...c,
+        storageUsageBytes: c.storageUsageBytes ? Number(c.storageUsageBytes) : 0,
+      }))
+    };
   }
 
   static async onboard(data: OnboardClientData) {

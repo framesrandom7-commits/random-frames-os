@@ -8,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Prisma, QuotationStatus } from "@prisma/client";
 import { updateQuotation, QuotationItemData } from "@/app/actions/quotation";
-import { ArrowLeft, Plus, Trash2, Download, Send } from "lucide-react";
+import { convertQuotationToInvoice } from "@/app/actions/invoice";
+import { ArrowLeft, Plus, Trash2, Download, Send, FileText } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
@@ -30,6 +32,7 @@ interface QuotationGeneratorProps {
 
 export default function QuotationGenerator({ quotation, clients, projects }: QuotationGeneratorProps) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   
   const [formData, setFormData] = useState({
     quotationNumber: quotation.quotationNumber,
@@ -105,6 +108,19 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
         alert("Quotation updated successfully!");
       } else {
         alert("Failed to save quotation.");
+      }
+    });
+  };
+
+  const handleConvertToInvoice = () => {
+    if (!confirm("Are you sure you want to convert this quotation to an invoice? It will be marked as APPROVED.")) return;
+    
+    startTransition(async () => {
+      const result = await convertQuotationToInvoice(quotation.id);
+      if (result.success && result.invoice) {
+        router.push(`/finance/invoices/${result.invoice.id}`);
+      } else {
+        alert("Failed to convert quotation to invoice.");
       }
     });
   };
@@ -258,8 +274,13 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
       {/* RIGHT: Document Preview (Visible on Print) */}
       <div className="flex-1 overflow-y-auto custom-scrollbar lg:pr-2 xl:pr-4 pb-12 print:p-0 print:overflow-visible">
         <div className="flex items-center justify-end gap-2 mb-4 print:hidden">
-            <Button variant="outline" className="bg-white/5 border-white/10 text-white hover:bg-white/10">
-              <Download className="h-4 w-4 mr-2" /> Download PDF
+            <Button onClick={handleConvertToInvoice} disabled={isPending} className="bg-emerald-600 hover:bg-emerald-500 text-white">
+              <FileText className="h-4 w-4 mr-2" /> Convert to Invoice
+            </Button>
+            <Button asChild variant="outline" className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+              <a href={`/api/documents/quotation/${quotation.id}/pdf`} target="_blank">
+                <Download className="h-4 w-4 mr-2" /> Download PDF
+              </a>
             </Button>
             {activeClient && (
               <WhatsAppButton
@@ -273,127 +294,19 @@ export default function QuotationGenerator({ quotation, clients, projects }: Quo
                   phone,
                   activeClient.businessName,
                   total,
-                  `${window.location.origin}/api/pdf/quotation/${quotation.id}`
+                  `${window.location.origin}/api/documents/quotation/${quotation.id}/pdf`
                 )}
               >
                 <Send className="h-4 w-4 mr-2" /> Share via WhatsApp
               </WhatsAppButton>
             )}
         </div>
-        <div className="bg-white text-black min-h-[842px] max-w-[794px] w-full mx-auto p-8 md:p-12 shadow-xl print:shadow-none print:m-0 print:p-0 print:w-full print:max-w-full relative">
-          
-          <div className="flex justify-between items-start mb-12">
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight text-zinc-900 mb-2">QUOTATION</h1>
-              <div className="text-zinc-500 font-medium">#{formData.quotationNumber}</div>
-            </div>
-            <div className="text-right">
-              {/* Logo placeholder */}
-              <div className="text-2xl font-black tracking-tighter uppercase mb-4 text-zinc-800">
-                Random<span className="text-[#C1121F]">Frames</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Dynamic Line Items Table */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4 print:hidden">
-              <h3 className="font-semibold">Line Items</h3>
-              <Button onClick={handleAddItem} size="sm" variant="outline" className="text-xs">
-                <Plus className="h-3 w-3 mr-1" /> Add Row
-              </Button>
-            </div>
-            
-            <table className="w-full text-left text-sm mb-4">
-              <thead>
-                <tr className="border-b-2 border-zinc-900 text-zinc-900">
-                  <th className="py-2">Description</th>
-                  <th className="py-2 text-right">Qty</th>
-                  <th className="py-2 text-right">Unit Price</th>
-                  <th className="py-2 text-right">Total</th>
-                  <th className="print:hidden"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200">
-                {items.map((item, idx) => (
-                  <tr key={idx} className="group">
-                    <td className="py-3 pr-2">
-                      <Input 
-                        value={item.description} 
-                        onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
-                        placeholder="Item description"
-                        className="border-transparent bg-transparent hover:border-zinc-300 focus:border-zinc-300 focus:bg-white transition-all shadow-none h-8 print:border-none print:p-0 print:pointer-events-none text-black"
-                      />
-                    </td>
-                    <td className="py-3 px-2 w-20 text-right">
-                      <Input 
-                        type="number"
-                        value={item.quantity || ""} 
-                        onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
-                        className="text-right border-transparent bg-transparent hover:border-zinc-300 focus:border-zinc-300 focus:bg-white transition-all shadow-none h-8 print:border-none print:p-0 print:pointer-events-none text-black"
-                      />
-                    </td>
-                    <td className="py-3 px-2 w-32 text-right">
-                      <Input 
-                        type="number"
-                        value={item.unitPrice || ""} 
-                        onChange={(e) => handleItemChange(idx, 'unitPrice', e.target.value)}
-                        className="text-right border-transparent bg-transparent hover:border-zinc-300 focus:border-zinc-300 focus:bg-white transition-all shadow-none h-8 print:border-none print:p-0 print:pointer-events-none text-black"
-                      />
-                    </td>
-                    <td className="py-3 text-right font-medium">
-                      {CurrencyService.format(item.total)}
-                    </td>
-                    <td className="py-3 w-10 text-center print:hidden opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(idx)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-                {items.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="py-8 text-center text-zinc-500 italic">No items added yet.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            {/* Totals Section */}
-            <div className="flex justify-end mt-8">
-              <div className="w-64 space-y-3">
-                <div className="flex justify-between text-sm text-zinc-600">
-                  <span>Subtotal</span>
-                  <span>{CurrencyService.format(subtotal)}</span>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-sm text-zinc-600">
-                    <span>Discount</span>
-                    <span className="text-red-500">-{CurrencyService.format(discount)}</span>
-                  </div>
-                )}
-                {tax > 0 && (
-                  <div className="flex justify-between text-sm text-zinc-600">
-                    <span>GST/Tax</span>
-                    <span>{CurrencyService.format(tax)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-lg font-bold text-zinc-900 border-t-2 border-zinc-900 pt-2">
-                  <span>Total</span>
-                  <span>{CurrencyService.format(total)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-16 text-sm text-zinc-500 space-y-4">
-            {formData.termsAndConditions && (
-              <div>
-                <p className="font-semibold text-zinc-700">Terms & Conditions</p>
-                <p className="whitespace-pre-wrap">{formData.termsAndConditions}</p>
-              </div>
-            )}
-          </div>
+        <div className="bg-[#E6E6E6] flex items-center justify-center min-h-[842px] max-w-[794px] w-full mx-auto shadow-xl print:shadow-none print:m-0 print:p-0 print:w-full print:max-w-full relative overflow-hidden">
+          <iframe 
+            src={`/documents/quotation/${quotation.id}/preview`} 
+            className="w-[210mm] h-[297mm] bg-white border-none scale-[0.8] origin-top"
+            title="Document Preview"
+          />
         </div>
       </div>
     </div>

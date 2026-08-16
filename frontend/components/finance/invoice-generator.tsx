@@ -117,7 +117,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     try {
-      window.open(`/api/pdf/invoice/${invoice.id}`, '_blank');
+      window.open(`/api/documents/invoice/${invoice.id}/pdf`, '_blank');
     } catch (error) {
       console.error("Failed to generate PDF", error);
       alert("Failed to generate PDF. See console for details.");
@@ -314,6 +314,31 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
               ))}
             </div>
 
+            {/* Payments History */}
+            {invoice.payments.length > 0 && (
+              <div className="mb-12 border-t border-zinc-200 pt-8">
+                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Payment History</h3>
+                <div className="space-y-2">
+                  {invoice.payments.map(p => (
+                    <div key={p.id} className="flex justify-between text-sm text-zinc-300 items-center p-2 rounded bg-black/40 border border-white/5">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                        <span>{new Date(p.paymentDate).toLocaleDateString()}</span>
+                        <span className="text-xs uppercase bg-white/10 text-white px-2 py-0.5 rounded">{p.paymentMethod.replace("_", " ")}</span>
+                        {p.referenceNumber && <span className="text-xs text-zinc-400">Ref: {p.referenceNumber}</span>}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="font-medium">{formatCurrency(Number(p.amount))}</span>
+                        <a href={`/api/documents/receipt/${p.id}/pdf`} target="_blank" className="text-xs text-[#C1121F] hover:underline flex items-center print:hidden">
+                          <Download className="h-3 w-3 mr-1" /> Receipt
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider mt-6">Totals</h3>
             <div className="space-y-2">
               <Label>Discount</Label>
@@ -420,7 +445,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
             <>
               {activeClient.email && (
                 <a 
-                  href={`mailto:${activeClient.email}?subject=Invoice ${formData.invoiceNumber} from Random Frames&body=Hi ${activeClient.businessName},%0D%0A%0D%0AHere is your invoice for ${invoice.total}.%0D%0A%0D%0AView Invoice: ${window.location.origin}/api/pdf/invoice/${invoice.id}%0D%0A%0D%0AThank you!`}
+                  href={`mailto:${activeClient.email}?subject=Invoice ${formData.invoiceNumber} from Random Frames&body=Hi ${activeClient.businessName},%0D%0A%0D%0AHere is your invoice for ${invoice.total}.%0D%0A%0D%0AView Invoice: ${window.location.origin}/api/documents/invoice/${invoice.id}/pdf%0D%0A%0D%0AThank you!`}
                   className="inline-flex"
                 >
                   <Button variant="outline" className="border-white/10 text-zinc-300 hover:text-white hover:bg-white/5">
@@ -441,7 +466,7 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
                   activeClient.businessName,
                   formData.invoiceNumber,
                   total,
-                  `${window.location.origin}/api/pdf/invoice/${invoice.id}`
+                  `${window.location.origin}/api/documents/invoice/${invoice.id}/pdf`
                 )}
               >
                 <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp
@@ -469,186 +494,12 @@ export default function InvoiceGenerator({ invoice, clients, projects, settings 
         </div>
 
         {/* Invoice Canvas */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-8 flex justify-center bg-zinc-900 print:p-0 print:bg-white print:block print:overflow-visible">
-          <div 
-            ref={invoiceRef} 
-            className="bg-white text-black w-full max-w-[800px] min-h-[1056px] p-12 shadow-2xl relative print:shadow-none print:w-full print:max-w-none print:min-h-0 print:p-0"
-            style={{ boxSizing: 'border-box' }}
-          >
-            {/* Header */}
-            <div className="flex justify-between items-start border-b-2 border-zinc-200 pb-8 mb-8">
-              <div>
-                <h1 className="text-4xl font-bold text-[#C1121F] tracking-tighter mb-1">RANDOM FRAMES</h1>
-                <p className="text-zinc-500 text-sm font-medium tracking-widest uppercase">Commercial & Brand Photography</p>
-                
-                <div className="mt-6 text-sm text-zinc-600 space-y-1">
-                  <p>Bengaluru, Karnataka, India</p>
-                  <p>frames.random.7@gmail.com</p>
-                  <p>+91 8073080077</p>
-                  <p>randomframesbysavan.in</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <h2 className="text-3xl font-light text-zinc-400 mb-6">INVOICE</h2>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-zinc-600">
-                  <span className="font-semibold text-zinc-800">Invoice No:</span>
-                  <span>{formData.invoiceNumber}</span>
-                  <span className="font-semibold text-zinc-800">Issue Date:</span>
-                  <span>{new Date(formData.issueDate).toLocaleDateString()}</span>
-                  <span className="font-semibold text-zinc-800">Due Date:</span>
-                  <span>{new Date(formData.dueDate).toLocaleDateString()}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bill To */}
-            <div className="flex justify-between mb-12">
-              <div>
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Bill To</h3>
-                <p className="text-lg font-bold text-zinc-800">{activeClient?.businessName || "Client Name"}</p>
-                <div className="text-sm text-zinc-600 space-y-1 mt-2">
-                  {activeClient?.address && <p>{activeClient.address}</p>}
-                  {activeClient?.email && <p>{activeClient.email}</p>}
-                  {activeClient?.phone && <p>{activeClient.phone}</p>}
-                </div>
-              </div>
-              {activeProject && (
-                <div className="text-right">
-                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Project</h3>
-                  <p className="text-lg font-semibold text-zinc-800">{activeProject.title}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Items Table */}
-            <table className="w-full mb-8">
-              <thead>
-                <tr className="border-b-2 border-zinc-800 text-left">
-                  <th className="py-3 text-sm font-semibold text-zinc-800">Description</th>
-                  <th className="py-3 text-sm font-semibold text-zinc-800 text-right w-20">Qty</th>
-                  <th className="py-3 text-sm font-semibold text-zinc-800 text-right w-32">Unit Price</th>
-                  <th className="py-3 text-sm font-semibold text-zinc-800 text-right w-32">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200">
-                {items.map((item, idx) => (
-                  <tr key={idx}>
-                    <td className="py-4 text-sm text-zinc-700 font-medium">
-                      {item.description}
-                    </td>
-                    <td className="py-4 text-sm text-zinc-700 text-right">
-                      {item.quantity}
-                    </td>
-                    <td className="py-4 text-sm text-zinc-700 text-right">
-                      {formatCurrency(item.unitPrice)}
-                    </td>
-                    <td className="py-4 text-sm text-zinc-900 text-right font-medium">
-                      {formatCurrency(item.total)}
-                    </td>
-                  </tr>
-                ))}
-                {items.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="py-4 text-sm text-zinc-500 italic text-center">No items</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            {/* Totals */}
-            <div className="flex justify-end mb-12">
-              <div className="w-1/2 md:w-1/3">
-                <div className="flex justify-between py-2 text-sm text-zinc-600">
-                  <span>Subtotal</span>
-                  <span>{formatCurrency(subtotal)}</span>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between py-2 text-sm text-red-500">
-                    <span>Discount</span>
-                    <span>-{formatCurrency(discount)}</span>
-                  </div>
-                )}
-                {tax > 0 && (
-                  <div className="flex justify-between py-2 text-sm text-zinc-600">
-                    <span>Tax (18%)</span>
-                    <span>{formatCurrency(tax)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between py-4 mt-2 border-t-2 border-zinc-800">
-                  <span className="text-lg font-bold text-zinc-900">Total</span>
-                  <span className="text-lg font-bold text-zinc-900">{formatCurrency(total)}</span>
-                </div>
-                <div className="flex justify-between py-2 text-sm text-emerald-600">
-                  <span>Amount Paid</span>
-                  <span>-{formatCurrency(total - balanceDue)}</span>
-                </div>
-                <div className="flex justify-between py-3 mt-2 bg-zinc-100 px-4 rounded-md">
-                  <span className="font-bold text-[#C1121F]">Balance Due</span>
-                  <span className="font-bold text-[#C1121F]">{formatCurrency(balanceDue)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Payments History */}
-            {invoice.payments.length > 0 && (
-              <div className="mb-12 border-t border-zinc-200 pt-8">
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Payment History</h3>
-                <div className="space-y-2">
-                  {invoice.payments.map(p => (
-                    <div key={p.id} className="flex justify-between text-sm text-zinc-600 items-center p-2 rounded bg-zinc-50">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-500" />
-                        <span>{new Date(p.paymentDate).toLocaleDateString()}</span>
-                        <span className="text-xs uppercase bg-zinc-200 px-2 py-0.5 rounded">{p.paymentMethod.replace("_", " ")}</span>
-                        {p.referenceNumber && <span className="text-xs text-zinc-400">Ref: {p.referenceNumber}</span>}
-                      </div>
-                      <span className="font-medium">{formatCurrency(Number(p.amount))}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Footer */}
-            <div className="absolute bottom-12 left-12 right-12 border-t border-zinc-200 pt-6 flex justify-between">
-              <div className="text-xs text-zinc-500 space-y-1">
-                <p>Thank you for your business!</p>
-                <p>Payment is due within {Math.ceil((new Date(formData.dueDate).getTime() - new Date(formData.issueDate).getTime()) / (1000 * 3600 * 24))} days.</p>
-              </div>
-              
-              <div className="text-xs text-zinc-600 space-y-1 text-right">
-                {(!settings?.PAYMENT_BANK_ACCOUNT && !settings?.PAYMENT_UPI_ID) ? (
-                  <p className="italic text-zinc-400">Payment details are not configured.</p>
-                ) : (
-                  <>
-                    {settings?.PAYMENT_BANK_ACCOUNT && (
-                      <p className="font-medium mt-2">
-                        Bank Transfer: {settings.PAYMENT_BANK_HOLDER} | {settings.PAYMENT_BANK_NAME} | Acct: {settings.PAYMENT_BANK_ACCOUNT} | IFSC: {settings.PAYMENT_BANK_IFSC}
-                      </p>
-                    )}
-                    {settings?.PAYMENT_UPI_ID && (
-                      <p className="font-medium">UPI ID: {settings.PAYMENT_UPI_ID}</p>
-                    )}
-                    {settings?.PAYMENT_INSTRUCTIONS && (
-                      <p className="text-zinc-500 mt-1">{settings.PAYMENT_INSTRUCTIONS}</p>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Status Stamp overlay (Visual only) */}
-            {formData.status === "PAID" && (
-              <div className="absolute top-1/3 right-1/4 transform rotate-12 opacity-20 pointer-events-none text-emerald-500 border-8 border-emerald-500 px-8 py-4 rounded-xl text-6xl font-black uppercase tracking-widest print:opacity-30">
-                PAID
-              </div>
-            )}
-            {formData.status === "CANCELLED" && (
-              <div className="absolute top-1/3 right-1/4 transform rotate-12 opacity-20 pointer-events-none text-red-500 border-8 border-red-500 px-8 py-4 rounded-xl text-6xl font-black uppercase tracking-widest print:opacity-30">
-                VOID
-              </div>
-            )}
-          </div>
+        <div className="bg-[#E6E6E6] flex items-center justify-center min-h-[842px] max-w-[794px] w-full mx-auto shadow-xl print:shadow-none print:m-0 print:p-0 print:w-full print:max-w-full relative overflow-hidden">
+          <iframe 
+            src={`/documents/invoice/${invoice.id}/preview`} 
+            className="w-[210mm] h-[297mm] bg-white border-none scale-[0.8] origin-top"
+            title="Document Preview"
+          />
         </div>
       </div>
     </div>

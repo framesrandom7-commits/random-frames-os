@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { DocumentSequenceService } from "@/domain/document/sequence";
 
 /**
  * NumberGenerator
@@ -8,70 +8,24 @@ import { prisma } from "@/lib/prisma";
 export class NumberGenerator {
   
   /**
-   * Generates next quotation number, e.g. QUO-2026-001
+   * Generates next quotation number, e.g. RF-QT-202608_101
    */
   static async generateQuotationNumber(): Promise<string> {
-    const year = new Date().getFullYear();
-    const prefix = `QUO-${year}-`;
-    
-    // Find the latest quotation number for this year
-    const lastQuotation = await prisma.quotation.findFirst({
-      where: {
-        quotationNumber: { startsWith: prefix }
-      },
-      orderBy: {
-        quotationNumber: 'desc'
-      }
-    });
-
-    if (!lastQuotation) {
-      return `${prefix}001`;
-    }
-
-    // Extract the sequence number
-    const lastSequenceStr = lastQuotation.quotationNumber.replace(prefix, "");
-    const lastSequence = parseInt(lastSequenceStr, 10);
-    
-    if (isNaN(lastSequence)) {
-      // Fallback if formatting was manually overridden
-      const count = await prisma.quotation.count({ where: { quotationNumber: { startsWith: prefix } }});
-      return `${prefix}${(count + 1).toString().padStart(3, '0')}`;
-    }
-
-    const nextSequence = lastSequence + 1;
-    return `${prefix}${nextSequence.toString().padStart(3, '0')}`;
+    return DocumentSequenceService.getNextDocumentNumber("QUOTATION");
   }
 
   /**
-   * Generates next invoice number, e.g. INV-2026-001
+   * Generates next invoice number, e.g. RF-INV-202608_101
    */
   static async generateInvoiceNumber(): Promise<string> {
-    const year = new Date().getFullYear();
-    const prefix = `INV-${year}-`;
-    
-    const lastInvoice = await prisma.invoice.findFirst({
-      where: {
-        invoiceNumber: { startsWith: prefix }
-      },
-      orderBy: {
-        invoiceNumber: 'desc'
-      }
-    });
+    return DocumentSequenceService.getNextDocumentNumber("INVOICE");
+  }
 
-    if (!lastInvoice) {
-      return `${prefix}001`;
-    }
-
-    const lastSequenceStr = lastInvoice.invoiceNumber.replace(prefix, "");
-    const lastSequence = parseInt(lastSequenceStr, 10);
-    
-    if (isNaN(lastSequence)) {
-      const count = await prisma.invoice.count({ where: { invoiceNumber: { startsWith: prefix } }});
-      return `${prefix}${(count + 1).toString().padStart(3, '0')}`;
-    }
-
-    const nextSequence = lastSequence + 1;
-    return `${prefix}${nextSequence.toString().padStart(3, '0')}`;
+  /**
+   * Generates next receipt number, e.g. RF-RCP-202608_101
+   */
+  static async generateReceiptNumber(): Promise<string> {
+    return DocumentSequenceService.getNextDocumentNumber("RECEIPT");
   }
 
   /**

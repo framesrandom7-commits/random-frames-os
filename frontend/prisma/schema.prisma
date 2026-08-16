@@ -533,6 +533,8 @@ model Invoice {
   notes                String?
   termsAndConditions   String?
   paymentLinks         Json?
+  paymentSnapshot      Json?
+  deliverables         Json?
   projectId            String
   clientId             String
   createdAt            DateTime        @default(now())
@@ -632,6 +634,7 @@ model Quotation {
   status               QuotationStatus @default(DRAFT)
   notes                String?
   termsAndConditions   String?
+  deliverables         Json?
   version              Int             @default(1)
   parentQuotationId    String?
   projectId            String?
@@ -1623,5 +1626,14 @@ model CustomFieldDefinition {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  
   @@unique([entityType, name])
+}
+
+model DocumentSequence {
+  id           String   @id @default(cuid())
+  documentType String   @unique // "QUOTATION", "INVOICE", "RECEIPT"
+  nextSequence Int      @default(101)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
 }

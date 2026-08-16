@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { CommandProvider } from "@/components/providers/command-provider";
@@ -10,6 +10,12 @@ import { GlobalUploadCenter } from "@/components/storage/uploads/global-upload-c
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const satoshi = localFont({
@@ -32,7 +38,7 @@ export default function RootLayout({
   return (
       <html
         lang="en"
-        className={`${inter.variable} ${satoshi.variable} h-full antialiased`}
+        className={`${inter.variable} ${satoshi.variable} ${montserrat.variable} h-full antialiased`}
         suppressHydrationWarning
       >
       <body className="min-h-full flex flex-col">

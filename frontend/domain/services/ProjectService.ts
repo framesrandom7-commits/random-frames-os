@@ -30,7 +30,7 @@ export class ProjectService {
   static async create(data: CreateProjectData) {
     const projectCode = await ProjectService.generateCode();
     
-    const { assignedUserIds, clientId, ...projectData } = data;
+    const { assignedUserIds, clientId, quotationId, ...projectData } = data;
 
     const quotationAmount = Number(data.quotationAmount || 0);
     const additionalServicesAmount = Number(data.additionalServicesAmount || 0);
@@ -45,6 +45,7 @@ export class ProjectService {
       totalAmount: computedTotalAmount,
       projectCode,
       client: { connect: { id: clientId } },
+      ...(quotationId ? { originQuotation: { connect: { id: quotationId } } } : {}),
       ...(assignedUserIds && assignedUserIds.length > 0 ? {
         assignedUsers: {
           connect: assignedUserIds.map(id => ({ id }))
@@ -123,7 +124,7 @@ export class ProjectService {
   }
 
   static async update(id: string, data: Partial<CreateProjectData>) {
-    const { assignedUserIds, ...projectData } = data;
+    const { assignedUserIds, clientId, quotationId, ...projectData } = data;
 
     // Fetch existing project to combine with partial data
     const existingProject = await ProjectRepository.findById(id);
@@ -138,10 +139,22 @@ export class ProjectService {
     const computedTotalAmount = quotationAmount + additionalServicesAmount + additionalChargesAmount - discountAmount + taxAmount;
     
     // Merge the computed totalAmount if we are touching financial fields
-    const updatedData = {
+    const updatedData: any = {
       ...projectData,
       totalAmount: computedTotalAmount
     };
+
+    if (clientId) {
+      updatedData.client = { connect: { id: clientId } };
+    }
+
+    if (quotationId !== undefined) {
+      if (quotationId) {
+        updatedData.originQuotation = { connect: { id: quotationId } };
+      } else {
+        updatedData.originQuotation = { disconnect: true };
+      }
+    }
 
     const project = await ProjectRepository.update(id, {
       ...updatedData,
@@ -213,10 +226,34 @@ export class ProjectService {
     return {
       ...project,
       quotationAmount: project.quotationAmount ? Number(project.quotationAmount) : null,
+      additionalServicesAmount: project.additionalServicesAmount ? Number(project.additionalServicesAmount) : null,
+      additionalChargesAmount: project.additionalChargesAmount ? Number(project.additionalChargesAmount) : null,
+      discountAmount: project.discountAmount ? Number(project.discountAmount) : null,
+      taxAmount: project.taxAmount ? Number(project.taxAmount) : null,
       advanceAmount: project.advanceAmount ? Number(project.advanceAmount) : null,
       totalAmount: project.totalAmount ? Number(project.totalAmount) : null,
       balanceAmount: project.balanceAmount ? Number(project.balanceAmount) : null,
       profitAmount: project.profitAmount ? Number(project.profitAmount) : null,
+      storageUsageBytes: project.storageUsageBytes ? Number(project.storageUsageBytes) : 0,
+      invoices: (project as any).invoices?.map((i: any) => ({
+        ...i,
+        subtotal: i.subtotal ? Number(i.subtotal) : 0,
+        discount: i.discount ? Number(i.discount) : null,
+        tax: i.tax ? Number(i.tax) : null,
+        total: i.total ? Number(i.total) : 0,
+      })) || [],
+      payments: (project as any).payments?.map((p: any) => ({
+        ...p,
+        amount: p.amount ? Number(p.amount) : 0,
+      })) || [],
+      expenses: (project as any).expenses?.map((e: any) => ({
+        ...e,
+        amount: e.amount ? Number(e.amount) : 0,
+      })) || [],
+      client: project.client ? {
+        ...project.client,
+        storageUsageBytes: project.client.storageUsageBytes ? Number(project.client.storageUsageBytes) : 0,
+      } : null,
     };
   }
 
@@ -227,10 +264,19 @@ export class ProjectService {
       projects: result.projects.map((p: any) => ({
         ...p,
         quotationAmount: p.quotationAmount ? Number(p.quotationAmount) : null,
+        additionalServicesAmount: p.additionalServicesAmount ? Number(p.additionalServicesAmount) : null,
+        additionalChargesAmount: p.additionalChargesAmount ? Number(p.additionalChargesAmount) : null,
+        discountAmount: p.discountAmount ? Number(p.discountAmount) : null,
+        taxAmount: p.taxAmount ? Number(p.taxAmount) : null,
         advanceAmount: p.advanceAmount ? Number(p.advanceAmount) : null,
         totalAmount: p.totalAmount ? Number(p.totalAmount) : null,
         balanceAmount: p.balanceAmount ? Number(p.balanceAmount) : null,
         profitAmount: p.profitAmount ? Number(p.profitAmount) : null,
+        storageUsageBytes: p.storageUsageBytes ? Number(p.storageUsageBytes) : 0,
+        client: p.client ? {
+          ...p.client,
+          storageUsageBytes: p.client.storageUsageBytes ? Number(p.client.storageUsageBytes) : 0,
+        } : null,
       }))
     };
   }

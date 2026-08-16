@@ -28,7 +28,9 @@ export async function getDashboardData(range?: DateRangeFilter) {
     leadsBySource,
     projectsByPayment,
     invoices,
-    expenses
+    expenses,
+    contentPlans,
+    users
   ]: any[] = await ReportsRepository.getDashboardMetrics(createdAtFilter, dateFilter);
 
   // Metrics processing
@@ -92,6 +94,16 @@ export async function getDashboardData(range?: DateRangeFilter) {
     };
   });
 
+  const teamPerformance = (users || []).map((u: any) => {
+    const active = u.assignedProjects?.filter((p: any) => p.status !== "COMPLETED" && p.status !== "DELIVERED" && p.status !== "CANCELLED").length || 0;
+    const completed = u.assignedProjects?.filter((p: any) => p.status === "COMPLETED" || p.status === "DELIVERED").length || 0;
+    return {
+      name: u.name || u.email || "Unknown User",
+      activeProjects: active,
+      completedProjects: completed
+    };
+  });
+
   return {
     metrics: {
       totalLeads, wonLeads, lostLeads, conversionRate,
@@ -99,7 +111,7 @@ export async function getDashboardData(range?: DateRangeFilter) {
       totalRevenue, totalExpenses, netProfit, outstandingPayments
     },
     chartData: {
-      sourceDistribution, leadFunnel, projectDistribution, paymentDistribution, revenueTrend
+      sourceDistribution, leadFunnel, projectDistribution, paymentDistribution, revenueTrend, teamPerformance
     }
   };
 }

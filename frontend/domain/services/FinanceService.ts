@@ -59,6 +59,28 @@ export class FinanceService {
   static async createInvoice(data: CreateInvoiceData) {
     const invoiceNum = data.invoiceNumber || await FinanceService.generateInvoiceNumber();
     
+    // Capture snapshots for Document Engine
+    let deliverablesSnapshot = [];
+    if (data.projectId) {
+      const { ProjectService } = await import("./ProjectService");
+      const proj = await ProjectService.getProject(data.projectId);
+      if (proj && proj.deliverables) {
+        deliverablesSnapshot = proj.deliverables as any;
+      }
+    }
+
+    const { getSettings } = await import("@/app/actions/settings");
+    const rawSettings = await getSettings();
+    const paymentSnapshot = {
+      acceptUpi: rawSettings.acceptUpi !== false,
+      upiId: rawSettings.PAYMENT_UPI_ID || "randomframes@upi",
+      acceptBankTransfer: rawSettings.acceptBankTransfer !== false,
+      bankName: rawSettings.PAYMENT_BANK_NAME || "State Bank of India",
+      accountHolder: rawSettings.PAYMENT_BANK_HOLDER || "Random Frames",
+      accountNumber: rawSettings.PAYMENT_BANK_ACCOUNT || "123456789012",
+      ifscCode: rawSettings.PAYMENT_BANK_IFSC || "SBIN0001234",
+    };
+    
     const invoice = await prisma.invoice.create({
       data: {
         invoiceNumber: invoiceNum,
@@ -75,6 +97,8 @@ export class FinanceService {
         items: data.items ? {
           create: data.items,
         } : undefined,
+        deliverables: deliverablesSnapshot,
+        paymentSnapshot: paymentSnapshot,
       },
       include: {
         items: true
@@ -187,10 +211,13 @@ export class FinanceService {
 
   // Payment Logic
   static async createPayment(data: CreatePaymentData) {
+    const receiptNumber = await NumberGenerator.generateReceiptNumber();
+    
     const payment = await FinanceRepository.createPayment({
       amount: data.amount,
       paymentDate: data.paymentDate,
       paymentMethod: data.paymentMethod,
+      receiptNumber: receiptNumber,
       referenceNumber: data.referenceNumber || NumberGenerator.generatePaymentReference(),
       upiTransactionId: data.upiTransactionId,
       bankReference: data.bankReference,
@@ -325,6 +352,16 @@ export class FinanceService {
 
   // Quotation Logic
   static async createQuotation(data: any) {
+    // Capture deliverables snapshot
+    let deliverablesSnapshot = [];
+    if (data.projectId) {
+      const { ProjectService } = await import("./ProjectService");
+      const proj = await ProjectService.getProject(data.projectId);
+      if (proj && proj.deliverables) {
+        deliverablesSnapshot = proj.deliverables as any;
+      }
+    }
+
     const quotation = await FinanceRepository.createQuotation({
       data: {
         quotationNumber: data.quotationNumber,
@@ -342,6 +379,7 @@ export class FinanceService {
         items: {
           create: data.items,
         },
+        deliverables: deliverablesSnapshot,
       }
     });
 

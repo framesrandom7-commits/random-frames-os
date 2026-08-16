@@ -14,7 +14,7 @@ export class ReportsRepository {
         prisma.invoice.findMany({ where: dateFilter ? { issueDate: dateFilter } : undefined, select: { total: true, status: true, issueDate: true, payments: { select: { amount: true, paymentDate: true } } } }),
         prisma.expense.findMany({ where: dateFilter ? { date: dateFilter } : undefined, select: { amount: true, date: true } }),
         prisma.contentPlan.count({ where: createdAtFilter }),
-        prisma.user.findMany({ select: { name: true, role: true, assignedProjects: { select: { id: true } } } })
+        prisma.user.findMany({ select: { name: true, email: true, role: true, assignedProjects: { select: { id: true, status: true } } } })
       ]);
     } catch (e: any) {
       Logger.warn("[ReportsRepository] Offline fallback for getDashboardMetrics:", e.message);
@@ -31,7 +31,7 @@ export class ReportsRepository {
         ],
         [{ amount: 25000, date: new Date() }, { amount: 12000, date: new Date() }],
         12, // content plans
-        [{ name: "Founder", role: "ADMIN", assignedProjects: [{ id: "p1" }] }, { name: "Co-Founder", role: "MANAGER", assignedProjects: [{ id: "p2" }] }]
+        [{ name: "Founder", role: "ADMIN", assignedProjects: [{ id: "p1", status: "COMPLETED" }] }, { name: "Co-Founder", role: "MANAGER", assignedProjects: [{ id: "p2", status: "IN_PROGRESS" }] }]
       ];
     }
   }
