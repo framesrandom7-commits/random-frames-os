@@ -40,7 +40,7 @@ export async function sendOtpForPinReset(email: string) {
     });
 
     if (!user) return { success: false, error: "User not found" };
-    if (user.role?.name !== "FOUNDER") return { success: false, error: "Only Founders can manage the security PIN" };
+    if (user.role?.name?.toUpperCase() !== "FOUNDER") return { success: false, error: "Only Founders can manage the security PIN" };
 
     // 2. Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();

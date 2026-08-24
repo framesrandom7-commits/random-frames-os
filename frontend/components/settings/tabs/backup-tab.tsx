@@ -34,7 +34,7 @@ export default function BackupTab() {
     const checkRole = async () => {
       try {
         const result = await getCurrentUserSession();
-        if (result.success && result.user?.role === "FOUNDER") {
+        if (result.success && result.user?.role?.toUpperCase() === "FOUNDER") {
           setIsFounder(true);
           setUserEmail(result.user.email || "");
         }
