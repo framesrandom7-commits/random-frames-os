@@ -31,7 +31,7 @@ export const leadSchema = z.object({
   priority: LeadPriorityEnum.default("MEDIUM"),
   
   budget: z.coerce.number().optional().nullable(),
-  currency: z.string().max(10).default("USD"),
+  currency: z.string().max(10).default("INR"),
   
   leadScore: z.coerce.number().default(0),
   tags: z.array(z.string()).default([]), // Used for Services Required

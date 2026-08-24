@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { getRevenueTrends, getExecutiveDashboard } from '@/app/actions/analytics';
 import { KpiCard } from '@/components/analytics/kpi-card';
 import { TrendChart } from '@/components/analytics/trend-chart';
-import { DollarSign, BarChart3, CreditCard } from 'lucide-react';
+import { IndianRupee, BarChart3, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -46,7 +46,7 @@ export default async function FinanceAnalyticsPage() {
           title="YTD Revenue" 
           value={revenue} 
           formatter="currency"
-          icon={<DollarSign size={16} />} 
+          icon={<IndianRupee size={16} />} 
         />
         <KpiCard 
           title="YTD Profit" 

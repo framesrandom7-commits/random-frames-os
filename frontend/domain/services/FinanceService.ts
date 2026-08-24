@@ -63,9 +63,9 @@ export class FinanceService {
     let deliverablesSnapshot = [];
     if (data.projectId) {
       const { ProjectService } = await import("./ProjectService");
-      const proj = await ProjectService.getProject(data.projectId);
-      if (proj && proj.deliverables) {
-        deliverablesSnapshot = proj.deliverables as any;
+      const proj = await ProjectService.getById(data.projectId);
+      if (proj && (proj as any).deliverables) {
+        deliverablesSnapshot = (proj as any).deliverables as any;
       }
     }
 

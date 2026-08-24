@@ -4,11 +4,10 @@ import { DocumentService } from "@/domain/document/service";
 import { DocumentType } from "@/components/documents/types";
 import { notFound } from "next/navigation";
 
-export default async function DocumentPreviewPage({
-  params
-}: {
-  params: { type: string; id: string }
+export default async function DocumentPreviewPage(props: {
+  params: Promise<{ type: string; id: string }>
 }) {
+  const params = await props.params;
   const { type, id } = params;
   
   const validTypes = ["quotation", "invoice", "receipt"];

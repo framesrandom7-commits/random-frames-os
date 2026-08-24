@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { User, Camera, Mail, Lock, Shield } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { updateProfile } from "@/app/actions/user";
 
@@ -78,8 +79,8 @@ export default function ProfileClient({ profile }: ProfileProps) {
               onClick={() => document.getElementById('avatar-upload')?.click()}
             >
               {avatarPreview ? (
-                <div className="h-32 w-32 rounded-full border-4 border-[#171A21] overflow-hidden">
-                  <img src={avatarPreview} alt="Avatar Preview" className="h-full w-full object-cover" />
+                <div className="h-32 w-32 rounded-full border-4 border-[#171A21] overflow-hidden relative">
+                  <Image src={avatarPreview} alt="Avatar Preview" fill className="object-cover" unoptimized />
                 </div>
               ) : (
                 <div className="h-32 w-32 rounded-full bg-gradient-to-br from-[#E53935] to-red-800 flex items-center justify-center text-4xl font-bold text-white shadow-lg overflow-hidden border-4 border-[#171A21]">

@@ -173,7 +173,7 @@ export default function QuickQuotationModal({ open, onOpenChange, clientId, onSu
                 <h3 className="font-semibold text-sm uppercase text-zinc-300 mb-4">Summary</h3>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-zinc-400">Subtotal</span>
-                  <span className="text-white font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="text-white font-medium">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center gap-4">
                   <Label className="text-zinc-400">Discount</Label>
@@ -187,7 +187,7 @@ export default function QuickQuotationModal({ open, onOpenChange, clientId, onSu
                 </div>
                 <div className="pt-4 mt-2 border-t border-white/10 flex justify-between items-center">
                   <span className="font-semibold text-white">Final Total</span>
-                  <span className="text-2xl font-bold text-[#C1121F]">${total.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-[#C1121F]">₹{total.toFixed(2)}</span>
                 </div>
               </div>
               </div>

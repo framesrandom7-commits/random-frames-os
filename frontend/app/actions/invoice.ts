@@ -4,6 +4,8 @@ import { InvoiceStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { FinanceService } from "@/domain/services/FinanceService";
 import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
+import { checkFinanceRbac } from "./rbac";
+import { FinanceRbacEngine } from "@/domain/finance/finance-rbac";
 import { prisma } from "@/lib/prisma";
 
 export type InvoiceItemData = {
@@ -36,7 +38,28 @@ export async function generateInvoiceNumber(): Promise<string> {
 
 export async function createInvoice(data: CreateInvoiceData) {
   try {
-    const invoice = await FinanceService.createInvoice(data);
+    const user = await checkFinanceRbac();
+
+    // Recalculate totals
+    const items = data.items || [];
+    const subtotal = items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.unitPrice)), 0);
+    const discount = data.discount || 0;
+    const tax = data.tax || 0;
+    const total = subtotal - discount + tax;
+
+    if (discount > 0 && !FinanceRbacEngine.canApproveDiscount(user.role?.name, discount)) {
+      throw new Error("403 Forbidden: Discount amount exceeds Co-Founder limit.");
+    }
+
+    const payload = {
+      ...data,
+      subtotal,
+      discount,
+      tax,
+      total,
+    };
+
+    const invoice = await FinanceService.createInvoice(payload);
     
     revalidatePath("/finance/invoices");
     revalidatePath(`/clients/${data.clientId}`);
@@ -51,7 +74,24 @@ export async function createInvoice(data: CreateInvoiceData) {
 
 export async function updateInvoice(id: string, data: UpdateInvoiceData) {
   try {
-    const invoice = await FinanceService.updateInvoice(id, data);
+    const user = await checkFinanceRbac();
+
+    if (data.discount !== undefined && data.discount > 0 && !FinanceRbacEngine.canApproveDiscount(user.role?.name, data.discount)) {
+      throw new Error("403 Forbidden: Discount amount exceeds Co-Founder limit.");
+    }
+
+    let updatePayload = { ...data };
+    if (data.items) {
+      const subtotal = data.items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.unitPrice)), 0);
+      const discount = data.discount ?? 0;
+      const tax = data.tax ?? 0;
+      updatePayload.subtotal = subtotal;
+      updatePayload.total = subtotal - discount + tax;
+    } else if (data.subtotal !== undefined) {
+      throw new Error("Cannot update subtotal directly without items.");
+    }
+
+    const invoice = await FinanceService.updateInvoice(id, updatePayload);
     
     revalidatePath("/finance/invoices");
     revalidatePath(`/finance/invoices/${id}`);
@@ -67,6 +107,11 @@ export async function updateInvoice(id: string, data: UpdateInvoiceData) {
 
 export async function deleteInvoice(id: string) {
   try {
+    const user = await checkFinanceRbac();
+    if (!FinanceRbacEngine.canDeleteFinancialRecord(user.role?.name)) {
+      throw new Error("403 Forbidden: Only Founders can delete financial records.");
+    }
+
     const invoice = await FinanceService.deleteInvoice(id);
     
     revalidatePath("/finance/invoices");
@@ -132,6 +177,13 @@ export async function convertQuotationToInvoice(quotationId: string) {
       total: Number(item.total),
     }));
 
+    let pId = quotation.projectId;
+    if (!pId) {
+      const fallbackProject = await prisma.project.findFirst({ where: { clientId: quotation.clientId } }) || await prisma.project.findFirst();
+      if (!fallbackProject) throw new Error("No projects exist to link the invoice to. Please create a project first.");
+      pId = fallbackProject.id;
+    }
+
     const invoice = await FinanceService.createInvoice({
       issueDate: new Date(),
       dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // Default 15 days due
@@ -141,7 +193,7 @@ export async function convertQuotationToInvoice(quotationId: string) {
       total: Number(quotation.total),
       status: "DRAFT",
       notes: quotation.notes || undefined,
-      projectId: quotation.projectId || "",
+      projectId: pId,
       clientId: quotation.clientId,
       items: items
     });

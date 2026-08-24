@@ -19,7 +19,7 @@ export default function PricingPage() {
             <h3 className="text-xl font-bold text-white mb-2">Editorial</h3>
             <p className="text-slate-400 text-sm mb-6">For lookbooks and social campaigns.</p>
             <div className="mb-8">
-              <span className="text-4xl font-black text-white">Starts at $5k</span>
+              <span className="text-4xl font-black text-white">Starts at ₹5k</span>
             </div>
             <div className="space-y-4 mb-8 flex-grow">
               <div className="flex items-start gap-3"><Check className="h-5 w-5 text-amber-500 shrink-0" /><span className="text-slate-300 text-sm">Half-Day Studio Access</span></div>
@@ -40,7 +40,7 @@ export default function PricingPage() {
             <h3 className="text-xl font-bold text-white mb-2">Commercial</h3>
             <p className="text-slate-400 text-sm mb-6">For brand reveals and broadcast.</p>
             <div className="mb-8">
-              <span className="text-4xl font-black text-amber-400">Starts at $15k</span>
+              <span className="text-4xl font-black text-amber-400">Starts at ₹15k</span>
             </div>
             <div className="space-y-4 mb-8 flex-grow">
               <div className="flex items-start gap-3"><Check className="h-5 w-5 text-amber-500 shrink-0" /><span className="text-slate-300 text-sm">Full-Day Studio & Location</span></div>
@@ -58,7 +58,7 @@ export default function PricingPage() {
             <h3 className="text-xl font-bold text-white mb-2">Automotive Rig</h3>
             <p className="text-slate-400 text-sm mb-6">For high-speed tracking shoots.</p>
             <div className="mb-8">
-              <span className="text-4xl font-black text-white">Starts at $35k</span>
+              <span className="text-4xl font-black text-white">Starts at ₹35k</span>
             </div>
             <div className="space-y-4 mb-8 flex-grow">
               <div className="flex items-start gap-3"><Check className="h-5 w-5 text-amber-500 shrink-0" /><span className="text-slate-300 text-sm">U-Crane Pursuit Vehicle</span></div>

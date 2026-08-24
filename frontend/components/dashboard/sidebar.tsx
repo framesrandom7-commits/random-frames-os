@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, UserCircle, Briefcase, Camera, Calendar, DollarSign, BarChart, Aperture, PieChart } from "lucide-react";
+import { LayoutDashboard, Users, UserCircle, Briefcase, Camera, Calendar, IndianRupee, BarChart, Aperture, PieChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import Image from "next/image";
@@ -15,7 +15,7 @@ const navigation = [
   { name: "Projects", href: "/projects", icon: Briefcase },
   { name: "Shoots", href: "/shoots", icon: Camera },
   { name: "Calendar", href: "/calendar", icon: Calendar },
-  { name: "Finance", href: "/finance", icon: DollarSign },
+  { name: "Finance", href: "/finance", icon: IndianRupee },
   { name: "Content", href: "/content", icon: Aperture },
   { name: "Reports", href: "/reports", icon: BarChart },
 ];

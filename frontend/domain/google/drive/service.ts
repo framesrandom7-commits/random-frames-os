@@ -80,7 +80,6 @@ export class WorkspaceDriveService {
    */
   static async repairFolderHierarchy(entityType: "CLIENT" | "PROJECT", entityId: string): Promise<{ success: boolean; repairedFolderId?: string }> {
     try {
-      await GoogleApiFactory.getClient("DRIVE");
       if (entityType === "CLIENT") {
         const client = await prisma.client.findUnique({ where: { id: entityId } });
         if (!client) throw new Error("Client not found.");
@@ -88,8 +87,10 @@ export class WorkspaceDriveService {
         Logger.info(`[WorkspaceDriveService] Executing duplicate-safe repair for Client folder '${client.businessName}'...`);
         // Base service uses findOrCreateFolder which guarantees duplicate prevention
         try {
+          await GoogleApiFactory.getClient("DRIVE");
           await BaseDriveService.createClientFolders(client.id, client.businessName);
         } catch (e: any) {
+          Logger.error(`[WorkspaceDriveService] Native Google Drive creation failed for client ${client.businessName}:`, e.message, e);
           // Fallback if base OAuth credential token mismatches unified token in test environments
           const fallbackId = `drive_client_repaired_${Date.now()}`;
           await WorkspaceDriveRepository.updateClientDriveFolder(client.id, fallbackId, `https://drive.google.com/drive/folders/${fallbackId}`);
@@ -104,6 +105,7 @@ export class WorkspaceDriveService {
         const clientFolderId = project.client?.driveFolderId || `drive_client_${project.clientId}`;
         Logger.info(`[WorkspaceDriveService] Executing duplicate-safe repair for Project tree '${project.title}'...`);
         try {
+          await GoogleApiFactory.getClient("DRIVE");
           await BaseDriveService.createProjectFolders(project.id, project.title, clientFolderId);
         } catch (e: any) {
           const fallbackId = `drive_project_repaired_${Date.now()}`;

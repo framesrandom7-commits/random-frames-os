@@ -45,7 +45,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
       status: undefined,
       priority: undefined,
       budget: null,
-      currency: "USD",
+      currency: "INR",
       leadScore: 0,
       tags: [],
       notes: "",
@@ -82,7 +82,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
         status: LeadStatus.NEW,
         priority: LeadPriority.MEDIUM,
         budget: null,
-        currency: "USD",
+        currency: "INR",
         leadScore: 0,
         tags: [],
         notes: "",
@@ -337,7 +337,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
                         <SelectValue placeholder="- - -" />
                       </SelectTrigger>
                       <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="INR">INR</SelectItem>
                         <SelectItem value="EUR">EUR</SelectItem>
                         <SelectItem value="GBP">GBP</SelectItem>
                         <SelectItem value="INR">INR</SelectItem>

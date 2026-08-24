@@ -3,6 +3,8 @@
 import { PaymentMethod } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { FinanceService } from "@/domain/services/FinanceService";
+import { checkFinanceRbac } from "./rbac";
+import { FinanceRbacEngine } from "@/domain/finance/finance-rbac";
 
 export type CreatePaymentData = {
   amount: number;
@@ -22,6 +24,7 @@ export type UpdatePaymentData = Partial<CreatePaymentData>;
 
 export async function createPayment(data: CreatePaymentData) {
   try {
+    const user = await checkFinanceRbac();
     const payment = await FinanceService.createPayment(data);
     
     revalidatePath("/finance");
@@ -39,6 +42,11 @@ export async function createPayment(data: CreatePaymentData) {
 
 export async function deletePayment(id: string) {
   try {
+    const user = await checkFinanceRbac();
+    if (!FinanceRbacEngine.canDeleteFinancialRecord(user.role?.name)) {
+      throw new Error("403 Forbidden: Only Founders can delete financial records.");
+    }
+
     const payment = await FinanceService.deletePayment(id);
 
     revalidatePath("/finance");

@@ -15,9 +15,9 @@ interface KpiCardProps {
 export function KpiCard({ title, value, trend, trendLabel, icon, formatter = 'number' }: KpiCardProps) {
   const formattedValue = React.useMemo(() => {
     if (typeof value === 'number') {
-      if (formatter === 'currency') return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+      if (formatter === 'currency') return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value);
       if (formatter === 'percent') return `${value}%`;
-      return new Intl.NumberFormat('en-US').format(value);
+      return new Intl.NumberFormat('en-IN').format(value);
     }
     return value;
   }, [value, formatter]);

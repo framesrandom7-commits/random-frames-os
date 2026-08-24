@@ -32,7 +32,7 @@ export default function QuotationsTable({ data, clients }: QuotationsTableProps)
   const pathname = usePathname();
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
   };
 
 
@@ -59,7 +59,6 @@ export default function QuotationsTable({ data, clients }: QuotationsTableProps)
       total: 0,
       status: "DRAFT",
       clientId: clients[0].id,
-      projectId: "", // Needs to be handled properly in the edit form
       items: []
     });
     if (result.success && result.quotation) {
@@ -109,6 +108,7 @@ export default function QuotationsTable({ data, clients }: QuotationsTableProps)
                 <TableHead className="text-zinc-400 font-medium hidden md:table-cell">Client</TableHead>
                 <TableHead className="text-zinc-400 font-medium hidden lg:table-cell">Project</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Amount</TableHead>
+                <TableHead className="text-zinc-400 font-medium text-center">PDFs</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Status</TableHead>
                 <TableHead className="text-zinc-400 font-medium text-right">Actions</TableHead>
               </TableRow>
@@ -116,7 +116,7 @@ export default function QuotationsTable({ data, clients }: QuotationsTableProps)
             <TableBody>
               {data.quotations.length === 0 ? (
                 <TableRow className="border-white/10 hover:bg-white/5">
-                  <TableCell colSpan={6} className="text-center py-8 text-zinc-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-zinc-500">
                     No quotations found matching the current filters.
                   </TableCell>
                 </TableRow>
@@ -137,6 +137,13 @@ export default function QuotationsTable({ data, clients }: QuotationsTableProps)
                     </TableCell>
                     <TableCell onClick={() => router.push(`/finance/quotations/${quotation.id}`)}>
                       <span className="font-medium text-white">{formatCurrency(Number(quotation.total))}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <a href={`/api/pdf/quotation/${quotation.id}`} target="_blank" title="View Quotation" className="px-2 py-1 flex items-center justify-center bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-md transition-colors text-xs font-bold w-7 h-7">
+                          Q
+                        </a>
+                      </div>
                     </TableCell>
                     <TableCell onClick={() => router.push(`/finance/quotations/${quotation.id}`)}>
                       {(() => {
@@ -159,7 +166,16 @@ export default function QuotationsTable({ data, clients }: QuotationsTableProps)
                             <FileText className="mr-2 h-4 w-4" />
                             View & Edit
                           </DropdownMenuItem>
-                          {/* More actions can go here */}
+
+                          <div className="h-px bg-white/10 my-1 mx-2" />
+                          
+                          <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer focus:bg-zinc-800 focus:text-white">
+                            <a href={`/api/pdf/quotation/${quotation.id}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-blue-400 hover:text-blue-300">
+                              <FileText className="h-4 w-4 mr-2" /> Download Quotation
+                            </a>
+                          </DropdownMenuItem>
+
+                          <div className="h-px bg-white/10 my-1 mx-2" />
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

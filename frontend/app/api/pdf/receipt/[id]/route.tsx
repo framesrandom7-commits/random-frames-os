@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { renderToStream } from "@react-pdf/renderer";
 import { ReceiptPDF } from "@/components/pdf/receipt-pdf";
+import { getSettings } from "@/app/actions/settings";
 
 export async function GET(
   request: NextRequest,
@@ -23,7 +24,9 @@ export async function GET(
       return new NextResponse("Payment receipt not found", { status: 404 });
     }
 
-    const stream = await renderToStream(<ReceiptPDF payment={payment} />);
+    const { company } = await getSettings();
+
+    const stream = await renderToStream(<ReceiptPDF payment={payment} companyInfo={company as any} />);
     
     const readableStream = new ReadableStream({
       start(controller) {

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { HardDrive, Mail, Cloud, MessageSquare, Briefcase, Database, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { IntegrationsNav } from "@/components/settings/integrations-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -24,13 +25,9 @@ export default async function IntegrationsHubPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader 
-        title="Integration Hub" />
-
-      <div className="flex gap-2 mb-4">
-        <Link href="/settings/integrations" className="px-4 py-2 bg-white/10 text-white rounded-md text-sm font-medium">Providers</Link>
-        <Link href="/settings/integrations/webhooks" className="px-4 py-2 text-zinc-400 hover:bg-white/5 hover:text-white rounded-md text-sm font-medium transition-colors">Webhooks</Link>
-        <Link href="/settings/integrations/backups" className="px-4 py-2 text-zinc-400 hover:bg-white/5 hover:text-white rounded-md text-sm font-medium transition-colors">Backups & Data</Link>
+      <IntegrationsNav />
+      <div className="flex flex-col gap-2">
+        <PageHeader title="Integration Hub" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -86,14 +83,25 @@ export default async function IntegrationsHubPage() {
                       </Button>
                     </Link>
                   </div>
-                ) : provider.id === "WHATSAPP" || provider.id === "whatsapp" ? (
+                ) : provider.id.includes("WHATSAPP") || provider.id === "whatsapp" ? (
                   <div className="flex w-full justify-between items-center gap-2">
                     <span className="text-xs text-zinc-500">
                       {provider.isConfigured ? (provider.healthStatus === "HEALTHY" ? "Operational" : "Active") : "Not Configured"}
                     </span>
                     <Link href="/settings/integrations/whatsapp">
-                      <Button variant="outline" size="sm" className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10">
-                        Manage Cloud API
+                      <Button variant="outline" size="sm" className={provider.isConfigured ? "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10" : "border-white/10 text-white hover:bg-white/5"}>
+                        {provider.isConfigured ? "Manage Cloud API" : "Configure"}
+                      </Button>
+                    </Link>
+                  </div>
+                ) : provider.id === "SMTP_EMAIL" || provider.type === "EMAIL" ? (
+                  <div className="flex w-full justify-between items-center gap-2">
+                    <span className="text-xs text-zinc-500">
+                      {provider.isConfigured ? (provider.healthStatus === "HEALTHY" ? "Operational" : "Active") : "Not Configured"}
+                    </span>
+                    <Link href="/settings/integrations/email">
+                      <Button variant="outline" size="sm" className={provider.isConfigured ? "border-rose-500/30 text-rose-400 hover:bg-rose-500/10" : "border-white/10 text-white hover:bg-white/5"}>
+                        {provider.isConfigured ? "Manage Server" : "Configure"}
                       </Button>
                     </Link>
                   </div>

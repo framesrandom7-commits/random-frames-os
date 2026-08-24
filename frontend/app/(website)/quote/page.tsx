@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Camera, Calendar, DollarSign, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { Camera, Calendar, IndianRupee, Send, Loader2, CheckCircle2 } from "lucide-react";
 
 export default function QuotePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,12 +111,12 @@ export default function QuotePage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-300">Estimated Budget Range</label>
                   <div className="relative">
-                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
+                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                     <select name="budget" className="w-full bg-black/50 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none cursor-pointer">
-                      <option value="Under $5k">Under $5,000</option>
-                      <option value="$5k - $15k">$5,000 - $15,000</option>
-                      <option value="$15k - $50k">$15,000 - $50,000</option>
-                      <option value="$50k+">$50,000+</option>
+                      <option value="Under ₹5k">Under ₹5,000</option>
+                      <option value="₹5k - ₹15k">₹5,000 - ₹15,000</option>
+                      <option value="₹15k - ₹50k">₹15,000 - ₹50,000</option>
+                      <option value="₹50k+">₹50,000+</option>
                       <option value="Not Sure Yet">Not Sure Yet</option>
                     </select>
                   </div>

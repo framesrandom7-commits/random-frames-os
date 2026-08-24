@@ -65,40 +65,41 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
         </Button>
       </Link>
       
-      <ModuleDetailsHeader>
-        <div className="flex flex-col gap-1">
+      <PageHeader
+        title={
           <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold text-white tracking-tight">{client.businessName}</span>
-            <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono">
+            <span className="text-xl font-bold text-white tracking-tight">{client.businessName}</span>
+            <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-xs">
               {client.clientCode}
             </Badge>
           </div>
-          {client.contactPerson && <span className="text-lg text-zinc-400">{client.contactPerson}</span>}
-        </div>
-        
-        <div className="flex items-center gap-3 mt-4 md:mt-0">
-          <WhatsAppButton 
-            variant="outline" 
-            className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-8 text-sm px-3"
-            phone={client.phone}
-            onSavePhone={async (phone) => {
-              "use server";
-              return updateClientPhone(client.id, phone);
-            }}
-            whatsappTemplate="generalMessage"
-            whatsappArgs={[`Hi ${client.contactPerson || client.businessName},\n\n`]}
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            WhatsApp
-          </WhatsAppButton>
-          <Badge className={client.archivedAt ? "bg-red-500/20 text-red-500" : "bg-emerald-500/20 text-emerald-500"}>
-            {client.archivedAt ? "Archived" : "Active"}
-          </Badge>
-          <Badge variant="outline" className="capitalize">
-            {client.businessType.replace(/_/g, " ").toLowerCase()}
-          </Badge>
-        </div>
-      </ModuleDetailsHeader>
+        }
+        subtitle={client.contactPerson && <span className="text-sm text-zinc-400">{client.contactPerson}</span>}
+        action={
+          <div className="flex items-center gap-3">
+            <WhatsAppButton 
+              variant="outline" 
+              className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-8 text-sm px-3"
+              phone={client.phone}
+              onSavePhone={async (phone) => {
+                "use server";
+                return updateClientPhone(client.id, phone);
+              }}
+              whatsappTemplate="generalMessage"
+              whatsappArgs={[`Hi ${client.contactPerson || client.businessName},\n\n`]}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              WhatsApp
+            </WhatsAppButton>
+            <Badge className={client.archivedAt ? "bg-red-500/20 text-red-500" : "bg-emerald-500/20 text-emerald-500"}>
+              {client.archivedAt ? "Archived" : "Active"}
+            </Badge>
+            <Badge variant="outline" className="capitalize">
+              {client.businessType.replace(/_/g, " ").toLowerCase()}
+            </Badge>
+          </div>
+        }
+      />
 
       <ModuleDetailsBody>
         <ModuleDetailsContent className="space-y-6">
@@ -218,7 +219,7 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                           <p className="text-zinc-500 text-xs">{inv.project?.title || "No Project"}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-white text-sm font-semibold">${Number(inv.total).toLocaleString()}</p>
+                          <p className="text-white text-sm font-semibold">₹{Number(inv.total).toLocaleString()}</p>
                           <Badge variant="outline" className={`text-[10px] mt-1 ${inv.status === 'PAID' ? 'text-emerald-400 bg-emerald-500/10' : 'text-zinc-400 bg-zinc-500/10'}`}>
                             {inv.status}
                           </Badge>
@@ -244,20 +245,20 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                   <div className="space-y-4">
                   <div className="flex justify-between items-center border-b border-white/5 pb-2">
                     <span className="text-zinc-400 text-sm">Total Invoiced</span>
-                    <span className="text-white font-medium">${invoicesData.reduce((s, i) => s + Number(i.total), 0).toLocaleString()}</span>
+                    <span className="text-white font-medium">₹{invoicesData.reduce((s, i) => s + Number(i.total), 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-white/5 pb-2 pt-2">
                     <span className="text-zinc-400 text-sm">Total Revenue (Paid)</span>
-                    <span className="text-emerald-400 font-medium">${paymentsData.reduce((s, p) => s + Number(p.amount), 0).toLocaleString()}</span>
+                    <span className="text-emerald-400 font-medium">₹{paymentsData.reduce((s, p) => s + Number(p.amount), 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-white/5 pb-2 pt-2">
                     <span className="text-zinc-400 text-sm">Total Expenses</span>
-                    <span className="text-red-400 font-medium">${expensesData.reduce((s, e) => s + Number(e.amount), 0).toLocaleString()}</span>
+                    <span className="text-red-400 font-medium">₹{expensesData.reduce((s, e) => s + Number(e.amount), 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center border-b border-white/5 pb-2 pt-2">
                     <span className="text-zinc-400 text-sm">Net Profit</span>
                     <span className={`font-bold ${paymentsData.reduce((s, p) => s + Number(p.amount), 0) - expensesData.reduce((s, e) => s + Number(e.amount), 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      ${(paymentsData.reduce((s, p) => s + Number(p.amount), 0) - expensesData.reduce((s, e) => s + Number(e.amount), 0)).toLocaleString()}
+                      ₹{(paymentsData.reduce((s, p) => s + Number(p.amount), 0) - expensesData.reduce((s, e) => s + Number(e.amount), 0)).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pt-2">

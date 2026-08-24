@@ -26,7 +26,7 @@ export default function WorkflowAutomationTab() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     loadPolicy();
   }, []);
 

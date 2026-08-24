@@ -29,7 +29,7 @@ export function encryptToken(text: string): string {
   const key = getEncryptionKey();
   const iv = crypto.randomBytes(IV_LENGTH);
   
-  const cipher = crypto.createCipheriv(ALGORITHM, iv, key);
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
   
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
@@ -56,7 +56,7 @@ export function decryptToken(encryptedData: string): string {
   const iv = Buffer.from(ivHex, 'hex');
   const authTag = Buffer.from(authTagHex, 'hex');
   
-  const decipher = crypto.createDecipheriv(ALGORITHM, iv, key);
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(authTag);
   
   let decrypted = decipher.update(encryptedTextHex, 'hex', 'utf8');

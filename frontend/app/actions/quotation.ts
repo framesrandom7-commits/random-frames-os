@@ -4,6 +4,8 @@ import { QuotationStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { NumberGenerator } from "@/lib/finance/number-generator.service";
 import { FinanceService } from "@/domain/services/FinanceService";
+import { checkFinanceRbac, checkFounderRbac } from "./rbac";
+import { FinanceRbacEngine } from "@/domain/finance/finance-rbac";
 
 export type QuotationItemData = {
   description: string;
@@ -32,16 +34,29 @@ export type UpdateQuotationData = Partial<Omit<CreateQuotationData, "items">> & 
 
 export async function createQuotation(data: CreateQuotationData) {
   try {
+    const user = await checkFinanceRbac();
+
     const quoNum = data.quotationNumber || await NumberGenerator.generateQuotationNumber();
     
+    // Server-side recalculation of totals
+    const subtotal = data.items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.unitPrice)), 0);
+    const discount = data.discount || 0;
+    const tax = data.tax || 0;
+    const total = subtotal - discount + tax;
+
+    // Enforce discount limits via RBAC Engine
+    if (discount > 0 && !FinanceRbacEngine.canApproveDiscount(user.role?.name, discount)) {
+      throw new Error("403 Forbidden: Discount amount exceeds Co-Founder limit.");
+    }
+
     const quotation = await FinanceService.createQuotation({
       quotationNumber: quoNum,
       issueDate: data.issueDate,
       validUntil: data.validUntil,
-      subtotal: data.subtotal,
-      discount: data.discount || 0,
-      tax: data.tax || 0,
-      total: data.total,
+      subtotal: subtotal,
+      discount: discount,
+      tax: tax,
+      total: total,
       status: data.status || "DRAFT",
       notes: data.notes,
       termsAndConditions: data.termsAndConditions,
@@ -63,7 +78,29 @@ export async function createQuotation(data: CreateQuotationData) {
 
 export async function updateQuotation(id: string, data: UpdateQuotationData) {
   try {
-    const quotation = await FinanceService.updateQuotation(id, data);
+    const user = await checkFinanceRbac();
+
+    if (data.discount !== undefined && data.discount > 0) {
+      if (!FinanceRbacEngine.canApproveDiscount(user.role?.name, data.discount)) {
+        throw new Error("403 Forbidden: Discount amount exceeds Co-Founder limit.");
+      }
+    }
+
+    // Since items are optional for updates, we must rely on the existing items if they aren't provided.
+    // If they are provided, we should recalculate the total.
+    let updatePayload = { ...data };
+    if (data.items) {
+      const subtotal = data.items.reduce((acc, item) => acc + (Number(item.quantity) * Number(item.unitPrice)), 0);
+      const discount = data.discount ?? 0;
+      const tax = data.tax ?? 0;
+      updatePayload.subtotal = subtotal;
+      updatePayload.total = subtotal - discount + tax;
+    } else if (data.subtotal !== undefined) {
+      // In case the frontend tries to forge a subtotal update without items
+      throw new Error("Cannot update subtotal directly without items.");
+    }
+
+    const quotation = await FinanceService.updateQuotation(id, updatePayload);
 
     revalidatePath("/finance/quotations");
     revalidatePath(`/finance/quotations/${id}`);
@@ -122,6 +159,12 @@ export async function getLatestApprovedQuotation(clientId: string) {
 
 export async function createQuickApprovedQuotation(data: { clientId: string, discount: number, notes: string, items: QuotationItemData[] }) {
   try {
+    const user = await checkFinanceRbac();
+
+    if (data.discount > 0 && !FinanceRbacEngine.canApproveDiscount(user.role?.name, data.discount)) {
+      throw new Error("403 Forbidden: Discount amount exceeds Co-Founder limit.");
+    }
+
     const quoNum = await NumberGenerator.generateQuotationNumber();
     
     // Calculate subtotal

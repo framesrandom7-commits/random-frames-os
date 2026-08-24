@@ -33,6 +33,8 @@ model User {
   assignedProjects    Project[]             @relation("ProjectAssignments")
   role                Role?                 @relation(fields: [roleId], references: [id])
   leadsOwned          Lead[]                @relation("LeadOwner")
+  approvalRequests    Approval[]            @relation("ApprovalRequests")
+  approvalsGranted    Approval[]            @relation("ApprovalsGranted")
 }
 
 model PasswordResetToken {
@@ -153,7 +155,7 @@ model Lead {
   status                 LeadStatus          @default(NEW)
   priority               LeadPriority        @default(MEDIUM)
   budget                 Decimal?            @db.Decimal(10, 2)
-  currency               String              @default("USD")
+  currency               String              @default("INR")
   leadScore              Int                 @default(0)
   notes                  String?
   lastContactDate        DateTime?
@@ -252,63 +254,63 @@ model LeadAttachment {
 }
 
 model Client {
-  id                   String          @id @default(cuid())
-  clientCode           String          @unique
-  businessName         String
-  contactPerson        String?
-  phone                String?
-  email                String?
-  instagram            String?
-  website              String?
-  address              String?
-  city                 String?
-  state                String?
-  country              String?
-  postalCode           String?
-  businessType         BusinessType    @default(OTHER)
-  gstNumber            String?
-  whatsapp             String?
-  googleMapsLink       String?
-  serviceType          String?
-  ownerNotes           String?
+  id                     String            @id @default(cuid())
+  clientCode             String            @unique
+  businessName           String
+  contactPerson          String?
+  phone                  String?
+  email                  String?
+  instagram              String?
+  website                String?
+  address                String?
+  city                   String?
+  state                  String?
+  country                String?
+  postalCode             String?
+  businessType           BusinessType      @default(OTHER)
+  gstNumber              String?
+  whatsapp               String?
+  googleMapsLink         String?
+  serviceType            String?
+  ownerNotes             String?
   preferredContactMethod PreferredContact?
-  notes                String?
-  customFields         Json?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  archivedAt           DateTime?
-  createdBy            String?
-  updatedBy            String?
-  driveFolderId        String?
-  driveFolderUrl       String?
-  activities           Activity[]
-  calendarEvents       CalendarEvent[]
-  communicationsCenter Communication[]
-  expenses             Expense[]
-  followUps            FollowUp[]
-  internalNotes        InternalNote[]
-  invoices             Invoice[]
-  convertedFromLead    Lead?           @relation("LeadConvertedToClient")
-  notifications        Notification[]
-  payments             Payment[]
-  projects             Project[]
-  quotations           Quotation[]
-  shoots               Shoot[]
-  tasks                Task[]
+  notes                  String?
+  customFields           Json?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  archivedAt             DateTime?
+  createdBy              String?
+  updatedBy              String?
+  driveFolderId          String?
+  driveFolderUrl         String?
+  activities             Activity[]
+  calendarEvents         CalendarEvent[]
+  communicationsCenter   Communication[]
+  expenses               Expense[]
+  followUps              FollowUp[]
+  internalNotes          InternalNote[]
+  invoices               Invoice[]
+  convertedFromLead      Lead?             @relation("LeadConvertedToClient")
+  notifications          Notification[]
+  payments               Payment[]
+  projects               Project[]
+  quotations             Quotation[]
+  shoots                 Shoot[]
+  tasks                  Task[]
 }
 
 model Project {
-  id                   String          @id @default(cuid())
-  projectCode          String          @unique
-  title                String
-  description          String?
-  category             ProjectCategory @default(ONE_TIME_SHOOT)
-  status               ProjectStatus   @default(PLANNING)
-  priority             ProjectPriority @default(MEDIUM)
-  paymentStatus        PaymentStatus   @default(PENDING)
-  startDate            DateTime?
-  endDate              DateTime?
-  deliveryDate         DateTime?
+  id                       String          @id @default(cuid())
+  projectCode              String          @unique
+  title                    String
+  description              String?
+  category                 ProjectCategory @default(ONE_TIME_SHOOT)
+  status                   ProjectStatus   @default(PLANNING)
+  priority                 ProjectPriority @default(MEDIUM)
+  paymentStatus            PaymentStatus   @default(PENDING)
+  startDate                DateTime?
+  endDate                  DateTime?
+  deliveryDate             DateTime?
   quotationAmount          Decimal?        @db.Decimal(10, 2)
   additionalServicesAmount Decimal?        @db.Decimal(10, 2)
   additionalChargesAmount  Decimal?        @db.Decimal(10, 2)
@@ -318,53 +320,53 @@ model Project {
   totalAmount              Decimal?        @db.Decimal(10, 2)
   balanceAmount            Decimal?        @db.Decimal(10, 2)
   profitAmount             Decimal?        @db.Decimal(10, 2)
-  notes                String?
-  clientId             String
-  quotationId          String?
-  originQuotation      Quotation?      @relation("ProjectOriginQuotation", fields: [quotationId], references: [id])
-  customFields         Json?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  archivedAt           DateTime?
-  createdBy            String?
-  updatedBy            String?
-  backupFolderId       String?
-  backupFolderUrl      String?
-  deliveryFolderId     String?
-  deliveryFolderUrl    String?
-  documentsFolderId    String?
-  documentsFolderUrl   String?
-  driveRootFolderId    String?
-  driveRootFolderUrl   String?
-  editFolderId         String?
-  editFolderUrl        String?
-  fileCount            Int             @default(0)
-  lastSyncAt           DateTime?
-  rawFolderId          String?
-  rawFolderUrl         String?
-  referencesFolderId   String?
-  referencesFolderUrl  String?
-  socialFolderId       String?
-  socialFolderUrl      String?
-  storageUsageBytes    BigInt          @default(0)
-  syncStatus           String          @default("IDLE")
-  activities           Activity[]
-  calendarEvents       CalendarEvent[]
-  communicationsCenter Communication[]
-  deliveries           Delivery[]
-  expenses             Expense[]
-  followUps            FollowUp[]
-  internalNotes        InternalNote[]
-  invoices             Invoice[]
-  notifications        Notification[]
-  payments             Payment[]
-  client               Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  quotations           Quotation[]
-  reminders            Reminder[]
-  shoots               Shoot[]
-  tasks                Task[]
-  assignedUsers        User[]          @relation("ProjectAssignments")
-  contentPlans         ContentPlan[]
+  notes                    String?
+  clientId                 String
+  quotationId              String?
+  originQuotation          Quotation?      @relation("ProjectOriginQuotation", fields: [quotationId], references: [id])
+  customFields             Json?
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  archivedAt               DateTime?
+  createdBy                String?
+  updatedBy                String?
+  backupFolderId           String?
+  backupFolderUrl          String?
+  deliveryFolderId         String?
+  deliveryFolderUrl        String?
+  documentsFolderId        String?
+  documentsFolderUrl       String?
+  driveRootFolderId        String?
+  driveRootFolderUrl       String?
+  editFolderId             String?
+  editFolderUrl            String?
+  fileCount                Int             @default(0)
+  lastSyncAt               DateTime?
+  rawFolderId              String?
+  rawFolderUrl             String?
+  referencesFolderId       String?
+  referencesFolderUrl      String?
+  socialFolderId           String?
+  socialFolderUrl          String?
+  storageUsageBytes        BigInt          @default(0)
+  syncStatus               String          @default("IDLE")
+  activities               Activity[]
+  calendarEvents           CalendarEvent[]
+  communicationsCenter     Communication[]
+  deliveries               Delivery[]
+  expenses                 Expense[]
+  followUps                FollowUp[]
+  internalNotes            InternalNote[]
+  invoices                 Invoice[]
+  notifications            Notification[]
+  payments                 Payment[]
+  client                   Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  quotations               Quotation[]
+  reminders                Reminder[]
+  shoots                   Shoot[]
+  tasks                    Task[]
+  assignedUsers            User[]          @relation("ProjectAssignments")
+  contentPlans             ContentPlan[]
 }
 
 model Shoot {
@@ -520,31 +522,33 @@ model CalendarEvent {
 }
 
 model Invoice {
-  id                   String          @id @default(cuid())
-  invoiceNumber        String          @unique
-  invoiceType          InvoiceType     @default(INTERIM)
+  id                   String              @id @default(cuid())
+  invoiceNumber        String              @unique
+  invoiceType          InvoiceType         @default(INTERIM)
   issueDate            DateTime
   dueDate              DateTime
-  subtotal             Decimal         @db.Decimal(10, 2)
-  discount             Decimal?        @db.Decimal(10, 2)
-  tax                  Decimal?        @db.Decimal(10, 2)
-  total                Decimal         @db.Decimal(10, 2)
-  status               InvoiceStatus   @default(DRAFT)
+  subtotal             Decimal             @db.Decimal(10, 2)
+  discount             Decimal?            @db.Decimal(10, 2)
+  tax                  Decimal?            @db.Decimal(10, 2)
+  total                Decimal             @db.Decimal(10, 2)
+  status               InvoiceStatus       @default(DRAFT)
   notes                String?
   termsAndConditions   String?
   paymentLinks         Json?
   paymentSnapshot      Json?
   deliverables         Json?
+  clientSnapshot       Json?
+  companySnapshot      Json?
   projectId            String
   clientId             String
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
   archivedAt           DateTime?
   activities           Activity[]
   communicationsCenter Communication[]
   internalNotes        InternalNote[]
-  client               Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  project              Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  client               Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  project              Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
   items                InvoiceItem[]
   notifications        Notification[]
   payments             Payment[]
@@ -553,30 +557,33 @@ model Invoice {
 }
 
 model Payment {
-  id                   String          @id @default(cuid())
-  amount               Decimal         @db.Decimal(10, 2)
+  id                   String              @id @default(cuid())
+  amount               Decimal             @db.Decimal(10, 2)
   paymentDate          DateTime
-  paymentMethod        PaymentMethod   @default(OTHER)
-  paymentType          PaymentType     @default(PARTIAL)
-  receiptNumber        String?         @unique
+  paymentMethod        PaymentMethod       @default(OTHER)
+  paymentType          PaymentType         @default(PARTIAL)
+  receiptNumber        String?             @unique
   referenceNumber      String?
   notes                String?
   invoiceId            String?
   projectId            String
   clientId             String
   financialAccountId   String?
-  createdAt            DateTime        @default(now())
+  createdAt            DateTime            @default(now())
   archivedAt           DateTime?
   bankReference        String?
   paymentScreenshotUrl String?
   upiTransactionId     String?
+  clientSnapshot       Json?
+  companySnapshot      Json?
+  paymentSnapshot      Json? // To store bank details at the time of receipt generation
   activities           Activity[]
   communicationsCenter Communication[]
   internalNotes        InternalNote[]
-  client               Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  invoice              Invoice?        @relation(fields: [invoiceId], references: [id])
-  project              Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  financialAccount     FinancialAccount? @relation(fields: [financialAccountId], references: [id])
+  client               Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  invoice              Invoice?            @relation(fields: [invoiceId], references: [id])
+  project              Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  financialAccount     FinancialAccount?   @relation(fields: [financialAccountId], references: [id])
   allocations          PaymentAllocation[]
   ledgerEntries        FinancialLedger[]
 }
@@ -623,19 +630,21 @@ model ExpenseCategory {
 }
 
 model Quotation {
-  id                   String          @id @default(cuid())
-  quotationNumber      String          @unique
+  id                   String            @id @default(cuid())
+  quotationNumber      String            @unique
   issueDate            DateTime
   validUntil           DateTime
-  subtotal             Decimal         @db.Decimal(10, 2)
-  discount             Decimal?        @db.Decimal(10, 2)
-  tax                  Decimal?        @db.Decimal(10, 2)
-  total                Decimal         @db.Decimal(10, 2)
-  status               QuotationStatus @default(DRAFT)
+  subtotal             Decimal           @db.Decimal(10, 2)
+  discount             Decimal?          @db.Decimal(10, 2)
+  tax                  Decimal?          @db.Decimal(10, 2)
+  total                Decimal           @db.Decimal(10, 2)
+  status               QuotationStatus   @default(DRAFT)
   notes                String?
   termsAndConditions   String?
   deliverables         Json?
-  version              Int             @default(1)
+  clientSnapshot       Json?
+  companySnapshot      Json?
+  version              Int               @default(1)
   parentQuotationId    String?
   projectId            String?
   clientId             String
@@ -644,17 +653,17 @@ model Quotation {
   viewedAt             DateTime?
   approvedAt           DateTime?
   rejectedAt           DateTime?
-  founderOverride      Boolean         @default(false)
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  founderOverride      Boolean           @default(false)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
   archivedAt           DateTime?
   communicationsCenter Communication[]
   internalNotes        InternalNote[]
-  client               Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  parentQuotation      Quotation?      @relation("QuotationVersions", fields: [parentQuotationId], references: [id])
-  childQuotations      Quotation[]     @relation("QuotationVersions")
-  project              Project?        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  originatingProjects  Project[]       @relation("ProjectOriginQuotation")
+  client               Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  parentQuotation      Quotation?        @relation("QuotationVersions", fields: [parentQuotationId], references: [id])
+  childQuotations      Quotation[]       @relation("QuotationVersions")
+  project              Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  originatingProjects  Project[]         @relation("ProjectOriginQuotation")
   items                QuotationItem[]
   ledgerEntries        FinancialLedger[]
 }
@@ -890,17 +899,17 @@ model CommunicationTemplate {
 }
 
 model Communication {
-  id          String                    @id @default(cuid())
-  type        CommunicationType
-  direction   CommunicationDirection
-  subject     String?
-  body        String
-  status      String                    @default("SENT")
-  error       String?
-  leadId      String?
-  clientId    String?
-  projectId   String?
-  invoiceId   String?
+  id           String                    @id @default(cuid())
+  type         CommunicationType
+  direction    CommunicationDirection
+  subject      String?
+  body         String
+  status       String                    @default("SENT")
+  error        String?
+  leadId       String?
+  clientId     String?
+  projectId    String?
+  invoiceId    String?
   quotationId  String?
   paymentId    String?
   eventId      String?
@@ -1346,18 +1355,18 @@ enum ResourceType {
 }
 
 model ContentPlan {
-  id               String   @id @default(cuid())
+  id               String                  @id @default(cuid())
   title            String
   description      String?
   shootDate        DateTime?
   platform         ContentPlatform
-  editingStatus    ContentEditingStatus @default(PENDING)
-  approvalStatus   ContentApprovalStatus @default(PENDING)
+  editingStatus    ContentEditingStatus    @default(PENDING)
+  approvalStatus   ContentApprovalStatus   @default(PENDING)
   publishingStatus ContentPublishingStatus @default(DRAFT)
   projectId        String
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  project          Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 enum ContentPlatform {
@@ -1388,24 +1397,24 @@ enum ContentPublishingStatus {
 }
 
 model WhatsAppTemplate {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  isEnabled   Boolean  @default(true)
-  content     String
-  variables   String   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isEnabled Boolean  @default(true)
+  content   String
+  variables String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model WhatsAppLog {
-  id             String   @id @default(cuid())
+  id             String                 @id @default(cuid())
   messageId      String?
   templateName   String?
-  messageType    String?  @default("TEMPLATE")
+  messageType    String?                @default("TEMPLATE")
   direction      CommunicationDirection @default(OUTBOUND)
   recipientPhone String
   status         WhatsAppDeliveryStatus @default(PENDING)
-  retryCount     Int      @default(0)
+  retryCount     Int                    @default(0)
   errorMessage   String?
   scheduledFor   DateTime?
   leadId         String?
@@ -1415,8 +1424,8 @@ model WhatsAppLog {
   replyToId      String?
   assignedUserId String?
   metadata       Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
 }
 
 enum WhatsAppDeliveryStatus {
@@ -1427,16 +1436,16 @@ enum WhatsAppDeliveryStatus {
 }
 
 model IntegrationJobQueue {
-  id              String    @id @default(cuid())
-  provider        String
-  action          String
-  payload         Json
-  status          JobStatus @default(QUEUED)
-  retryCount      Int       @default(0)
-  nextRetryAt     DateTime?
-  lastError       String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  provider    String
+  action      String
+  payload     Json
+  status      JobStatus @default(QUEUED)
+  retryCount  Int       @default(0)
+  nextRetryAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 enum InvoiceType {
@@ -1490,72 +1499,72 @@ enum RecurrenceFrequency {
 }
 
 model BusinessFinanceSetting {
-  id                 String   @id @default("default")
-  businessName       String   @default("Random Frames Studio")
-  businessLogoUrl    String?
-  gstEnabled         Boolean  @default(true)
-  gstNumber          String?  @default("29ABCDE1234F1Z5")
-  hsnSacCode         String?  @default("9983")
-  taxPercentage      Decimal  @db.Decimal(5, 2) @default(18.00)
-  currency           String   @default("INR")
-  financialYear      String   @default("2025-2026")
-  invoicePrefix      String   @default("INV-")
-  quotationPrefix    String   @default("QTN-")
-  receiptPrefix      String   @default("REC-")
-  creditNotePrefix   String   @default("CN-")
-  lateFeeRules       Json?
-  defaultTerms       String?  @default("1. Advance payment is non-refundable.\n2. Balance due prior to final delivery.\n3. All deliverables subject to copyright agreements.")
-  defaultNotes       String?
-  bankAccounts       Json?
-  upiIds             Json?
-  paymentGateways    Json?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id               String   @id @default("default")
+  businessName     String   @default("Random Frames Studio")
+  businessLogoUrl  String?
+  gstEnabled       Boolean  @default(true)
+  gstNumber        String?  @default("29ABCDE1234F1Z5")
+  hsnSacCode       String?  @default("9983")
+  taxPercentage    Decimal  @default(18.00) @db.Decimal(5, 2)
+  currency         String   @default("INR")
+  financialYear    String   @default("2025-2026")
+  invoicePrefix    String   @default("INV-")
+  quotationPrefix  String   @default("QTN-")
+  receiptPrefix    String   @default("REC-")
+  creditNotePrefix String   @default("CN-")
+  lateFeeRules     Json?
+  defaultTerms     String?  @default("1. Advance payment is non-refundable.\n2. Balance due prior to final delivery.\n3. All deliverables subject to copyright agreements.")
+  defaultNotes     String?
+  bankAccounts     Json?
+  upiIds           Json?
+  paymentGateways  Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model FinancialAccount {
-  id              String               @id @default(cuid())
-  accountName     String               
-  accountType     FinancialAccountType @default(CURRENT)
-  accountNumber   String?
-  bankName        String?
-  ifscCode        String?
-  upiId           String?
-  currentBalance  Decimal              @db.Decimal(12, 2) @default(0.00)
-  currency        String               @default("INR")
-  isActive        Boolean              @default(true)
-  isDefault       Boolean              @default(false)
-  notes           String?
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  archivedAt      DateTime?
-  payments        Payment[]
-  expenses        Expense[]
-  ledgerEntries   FinancialLedger[]
+  id             String               @id @default(cuid())
+  accountName    String
+  accountType    FinancialAccountType @default(CURRENT)
+  accountNumber  String?
+  bankName       String?
+  ifscCode       String?
+  upiId          String?
+  currentBalance Decimal              @default(0.00) @db.Decimal(12, 2)
+  currency       String               @default("INR")
+  isActive       Boolean              @default(true)
+  isDefault      Boolean              @default(false)
+  notes          String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  archivedAt     DateTime?
+  payments       Payment[]
+  expenses       Expense[]
+  ledgerEntries  FinancialLedger[]
 }
 
 model PaymentAllocation {
-  id              String   @id @default(cuid())
-  paymentId       String
-  invoiceId       String
-  amount          Decimal  @db.Decimal(10, 2)
-  notes           String?
-  allocatedAt     DateTime @default(now())
-  payment         Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  paymentId   String
+  invoiceId   String
+  amount      Decimal  @db.Decimal(10, 2)
+  notes       String?
+  allocatedAt DateTime @default(now())
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@unique([paymentId, invoiceId])
 }
 
 model FinancialLedger {
-  id                 String              @id @default(cuid())
-  transactionHash    String              @unique
+  id                 String             @id @default(cuid())
+  transactionHash    String             @unique
   activityType       LedgerActivityType
   description        String
-  debit              Decimal             @db.Decimal(12, 2) @default(0.00)
-  credit             Decimal             @db.Decimal(12, 2) @default(0.00)
-  balanceSnapshot    Decimal?            @db.Decimal(12, 2)
-  currency           String              @default("INR")
+  debit              Decimal            @default(0.00) @db.Decimal(12, 2)
+  credit             Decimal            @default(0.00) @db.Decimal(12, 2)
+  balanceSnapshot    Decimal?           @db.Decimal(12, 2)
+  currency           String             @default("INR")
   referenceId        String?
   quotationId        String?
   invoiceId          String?
@@ -1567,30 +1576,30 @@ model FinancialLedger {
   performedById      String?
   notes              String?
   metadata           Json?
-  createdAt          DateTime            @default(now())
-  quotation          Quotation?          @relation(fields: [quotationId], references: [id])
-  invoice            Invoice?            @relation(fields: [invoiceId], references: [id])
-  payment            Payment?            @relation(fields: [paymentId], references: [id])
-  expense            Expense?            @relation(fields: [expenseId], references: [id])
-  financialAccount   FinancialAccount?   @relation(fields: [financialAccountId], references: [id])
+  createdAt          DateTime           @default(now())
+  quotation          Quotation?         @relation(fields: [quotationId], references: [id])
+  invoice            Invoice?           @relation(fields: [invoiceId], references: [id])
+  payment            Payment?           @relation(fields: [paymentId], references: [id])
+  expense            Expense?           @relation(fields: [expenseId], references: [id])
+  financialAccount   FinancialAccount?  @relation(fields: [financialAccountId], references: [id])
 }
 
 model Vendor {
-  id              String    @id @default(cuid())
-  name            String    
-  vendorType      String    @default("GENERAL")
-  contactPerson   String?
-  email           String?
-  phone           String?
-  gstNumber       String?
-  address         String?
-  bankDetails     Json?
-  defaultNotes    String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  archivedAt      DateTime?
-  expenses        Expense[]
-  recurring       RecurringExpense[]
+  id            String             @id @default(cuid())
+  name          String
+  vendorType    String             @default("GENERAL")
+  contactPerson String?
+  email         String?
+  phone         String?
+  gstNumber     String?
+  address       String?
+  bankDetails   Json?
+  defaultNotes  String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  archivedAt    DateTime?
+  expenses      Expense[]
+  recurring     RecurringExpense[]
 }
 
 model RecurringExpense {
@@ -1615,18 +1624,17 @@ model RecurringExpense {
 }
 
 model CustomFieldDefinition {
-  id          String   @id @default(cuid())
-  entityType  String   // "LEAD", "CLIENT", "PROJECT", "SHOOT"
-  name        String   // Internal key, e.g. "referred_by"
-  label       String   // UI Label, e.g. "Referred By"
-  fieldType   String   // "TEXT", "NUMBER", "DROPDOWN", "DATE", "BOOLEAN"
-  options     Json?    // Array of string for DROPDOWN
-  isRequired  Boolean  @default(false)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  
+  id         String   @id @default(cuid())
+  entityType String // "LEAD", "CLIENT", "PROJECT", "SHOOT"
+  name       String // Internal key, e.g. "referred_by"
+  label      String // UI Label, e.g. "Referred By"
+  fieldType  String // "TEXT", "NUMBER", "DROPDOWN", "DATE", "BOOLEAN"
+  options    Json? // Array of string for DROPDOWN
+  isRequired Boolean  @default(false)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   @@unique([entityType, name])
 }
 
@@ -1636,4 +1644,27 @@ model DocumentSequence {
   nextSequence Int      @default(101)
   updatedAt    DateTime @updatedAt
   createdAt    DateTime @default(now())
+}
+
+model Approval {
+  id            String         @id @default(cuid())
+  entityType    String // e.g., "QUOTATION", "DELIVERY"
+  entityId      String // The ID of the Quotation/Delivery
+  status        ApprovalStatus @default(PENDING)
+  requestedById String
+  approvedById  String?
+  comments      String?
+  requestedAt   DateTime       @default(now())
+  resolvedAt    DateTime?
+
+  requestedBy User  @relation("ApprovalRequests", fields: [requestedById], references: [id])
+  approvedBy  User? @relation("ApprovalsGranted", fields: [approvedById], references: [id])
+
+  @@index([entityType, entityId])
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

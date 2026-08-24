@@ -30,7 +30,7 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
 
   useEffect(() => {
     if (shoot && open) {
-      // eslint-disable-next-line
+       
       setFormData(shoot);
     } else if (open) {
       let defaultClientId = prefilledClientId || undefined;
@@ -53,7 +53,7 @@ export default function ShootForm({ open, onOpenChange, shoot, prefilledClientId
 
   useEffect(() => {
     if (formData.clientId) {
-      // eslint-disable-next-line
+       
       setFilteredProjects(projects.filter(p => p.clientId === formData.clientId));
       // If the currently selected project doesn't belong to the newly selected client, clear it
       if (formData.projectId && !projects.find(p => p.id === formData.projectId && p.clientId === formData.clientId)) {

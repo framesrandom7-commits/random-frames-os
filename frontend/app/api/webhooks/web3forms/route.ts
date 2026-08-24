@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { LeadStatus, LeadSource, LeadPriority, ActivityType } from "@prisma/client";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function POST(req: Request) {
   try {
     const data = await req.json();
@@ -11,7 +21,7 @@ export async function POST(req: Request) {
     const name = data.name || data.businessName || "Unknown Website Lead";
     const email = data.email || "";
     const phone = data.phone || data.whatsapp || "";
-    const message = data.message || data.notes || "";
+    const message = data.message || data.notes || data.requirement || "";
 
     const lead = await prisma.lead.create({
       data: {
@@ -31,7 +41,7 @@ export async function POST(req: Request) {
       data: {
         leadId: lead.id,
         type: "STATUS_CHANGE", // Valid enum value
-        description: "Lead created automatically from Website (Web3Forms)."
+        description: "Lead created automatically from Website form."
       }
     });
 
@@ -45,9 +55,17 @@ export async function POST(req: Request) {
       }
     });
 
-    return NextResponse.json({ success: true, leadId: lead.id });
+    try {
+      const { revalidatePath } = require("next/cache");
+      revalidatePath("/leads");
+      revalidatePath("/dashboard");
+    } catch (e) {
+      console.error("Cache revalidation failed", e);
+    }
+
+    return NextResponse.json({ success: true, leadId: lead.id }, { headers: corsHeaders });
   } catch (error) {
     console.error("Webhook Error:", error);
-    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500, headers: corsHeaders });
   }
 }

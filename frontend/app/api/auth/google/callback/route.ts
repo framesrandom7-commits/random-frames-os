@@ -42,6 +42,7 @@ export async function GET(request: Request) {
     // Use the framework instead of raw Prisma calls
     const { CredentialManager } = await import('@/domain/integrations/credential-manager');
     const { AuditManager } = await import('@/domain/integrations/audit-manager');
+    const { WorkspaceAuthService } = await import('@/domain/google/workspace-auth');
     
     await CredentialManager.updateCredentials(
       'GOOGLE_DRIVE',
@@ -59,9 +60,18 @@ export async function GET(request: Request) {
       session.userId
     );
 
-    await AuditManager.logIntegrationEvent('GOOGLE_DRIVE', 'OAUTH_CONNECTED', 'Successfully connected Google Drive and Calendar');
+    // Also save under the unified Workspace Auth for the new Enterprise Ecosystem
+    await WorkspaceAuthService.saveWorkspaceCredentials({
+      accessToken: tokens.access_token!,
+      refreshToken: encryptedRefreshToken || undefined,
+      tokenExpiry: tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : undefined,
+      workspaceStatus: "CONNECTED",
+      lastSyncAt: new Date().toISOString()
+    });
 
-    Logger.info('Successfully connected Google Drive and Calendar', { module: 'OAuth', operation: 'auth_callback', status: 'SUCCESS' });
+    await AuditManager.logIntegrationEvent('GOOGLE_WORKSPACE', 'OAUTH_CONNECTED', 'Successfully connected Google Workspace Ecosystem');
+
+    Logger.info('Successfully connected Google Workspace Ecosystem', { module: 'OAuth', operation: 'auth_callback', status: 'SUCCESS' });
     return NextResponse.redirect(new URL('/settings/integrations?success=GoogleAuthConnected', request.url));
   } catch (error: any) {
     Logger.error('Failed to exchange Google OAuth code', error, { module: 'OAuth', operation: 'auth_callback', status: 'ERROR' });

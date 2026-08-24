@@ -53,7 +53,7 @@ export default function InvoiceTab({ settings }: { settings: Record<string, any>
         </div>
         <div className="space-y-2">
           <Label>Default Currency</Label>
-          <Input name="currency" value={formData.currency} onChange={handleChange} className="bg-black/50 border-white/10" placeholder="e.g. USD, INR" />
+          <Input name="currency" value={formData.currency} onChange={handleChange} className="bg-black/50 border-white/10" placeholder="e.g. INR, USD" />
         </div>
         <div className="space-y-2">
           <Label>Default Tax Percentage (%)</Label>

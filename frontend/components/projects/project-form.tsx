@@ -34,7 +34,7 @@ export default function ProjectForm({ project, prefilledClientId, clients = [], 
 
   useEffect(() => {
     if (project) {
-      // eslint-disable-next-line
+       
       setFormData({
         ...project,
         assignedUserIds: (project as any).assignedUsers?.map((u: any) => u.id) || []

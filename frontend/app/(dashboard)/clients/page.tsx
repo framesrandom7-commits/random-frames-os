@@ -20,8 +20,13 @@ export default async function ClientsPage(props: {
     getClientStats(),
     getClients({ page, limit: 50, search, businessType, archived, sortBy, sortOrder })
   ]);
-  const stats = statsData as any;
-  const clientsData = clientsRaw as any;
+  const stats = JSON.parse(JSON.stringify(statsData, (key, value) => 
+    typeof value === 'bigint' ? value.toString() : value
+  )) as any;
+  // Serialize Prisma Decimal and BigInt objects before passing to Client Component
+  const clientsData = JSON.parse(JSON.stringify(clientsRaw, (key, value) => 
+    typeof value === 'bigint' ? value.toString() : value
+  ));
 
   return (
     <ClientsModuleClient

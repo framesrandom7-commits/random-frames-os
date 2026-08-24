@@ -8,6 +8,8 @@ import { completeReminder } from "@/app/actions/lead";
 import { toast } from "sonner";
 import { Prisma } from "@prisma/client";
 
+import { format } from "date-fns";
+
 type Reminder = {
   id: string;
   date: Date;
@@ -51,7 +53,7 @@ export default function ReminderCard({ reminders }: { reminders: Reminder[] }) {
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-zinc-400" />
                     <span className="text-white text-sm font-medium">
-                      {new Date(reminder.date).toLocaleDateString()}
+                      {format(new Date(reminder.date), "dd/MM/yyyy")}
                       {reminder.time && ` at ${reminder.time}`}
                     </span>
                   </div>

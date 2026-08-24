@@ -8,6 +8,7 @@ import { getDriveFolderContents } from "@/app/actions/drive";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { MediaPreview } from "@/components/storage/preview/media-preview";
+import Image from "next/image";
 
 interface DriveBrowserProps {
   rootFolderId?: string;
@@ -144,9 +145,9 @@ export function DriveBrowser({ rootFolderId, onPreview }: DriveBrowserProps) {
                       >
                         {viewMode === 'grid' ? (
                           <>
-                            <div className="flex-1 w-full bg-black/20 rounded mb-2 flex items-center justify-center overflow-hidden">
+                            <div className="flex-1 w-full bg-black/20 rounded mb-2 flex items-center justify-center overflow-hidden relative">
                               {file.thumbnailLink ? (
-                                <img src={file.thumbnailLink} alt={file.name} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                <Image src={file.thumbnailLink} alt={file.name} fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" unoptimized />
                               ) : (
                                 <FileIcon className="h-8 w-8 text-zinc-600" />
                               )}
@@ -155,9 +156,9 @@ export function DriveBrowser({ rootFolderId, onPreview }: DriveBrowserProps) {
                           </>
                         ) : (
                           <>
-                            <div className="h-8 w-8 bg-black/20 rounded flex items-center justify-center shrink-0">
+                            <div className="h-8 w-8 bg-black/20 rounded flex items-center justify-center shrink-0 relative">
                                {file.thumbnailLink ? (
-                                <img src={file.thumbnailLink} alt={file.name} className="w-full h-full object-cover rounded" />
+                                <Image src={file.thumbnailLink} alt={file.name} fill className="object-cover rounded" unoptimized />
                               ) : (
                                 <FileIcon className="h-4 w-4 text-zinc-500" />
                               )}

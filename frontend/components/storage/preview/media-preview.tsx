@@ -4,6 +4,7 @@ import React from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { X, ExternalLink, Image as ImageIcon, Film, Music, FileText, Download } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import Image from "next/image";
 
 interface MediaPreviewProps {
   file: any | null;
@@ -50,19 +51,23 @@ export function MediaPreview({ file, isOpen, onClose }: MediaPreviewProps) {
         {/* Content Area */}
         <div className="flex-1 bg-zinc-950 flex items-center justify-center overflow-hidden relative">
           {isImage ? (
-            <img 
-              src={previewUrl} 
-              alt={file.name} 
-              className="max-w-full max-h-full object-contain"
-              onError={(e) => {
-                // Fallback to iframe if direct image link fails due to CORS/auth
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                if (target.nextElementSibling) {
-                  (target.nextElementSibling as HTMLElement).style.display = 'block';
-                }
-              }}
-            />
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Image 
+                src={previewUrl} 
+                alt={file.name} 
+                fill
+                className="object-contain"
+                unoptimized
+                onError={(e) => {
+                  // Fallback to iframe if direct image link fails due to CORS/auth
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  if (target.parentElement && target.parentElement.nextElementSibling) {
+                    (target.parentElement.nextElementSibling as HTMLElement).style.display = 'block';
+                  }
+                }}
+              />
+            </div>
           ) : isVideo ? (
             <video controls className="max-w-full max-h-full" src={previewUrl}>
               Your browser does not support the video tag.

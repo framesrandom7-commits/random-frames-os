@@ -10,7 +10,8 @@ export class DriveRepository {
   static async findFolder(name: string, parentId?: string): Promise<string | null> {
     try {
       const drive = await getDriveService();
-      let query = `name='${name}' and mimeType='${DRIVE_CONSTANTS.MIME_FOLDER}' and trashed=false`;
+      const escapedName = name.replace(/'/g, "\\\\'");
+      let query = `name='${escapedName}' and mimeType='${DRIVE_CONSTANTS.MIME_FOLDER}' and trashed=false`;
       
       if (parentId) {
         query += ` and '${parentId}' in parents`;
@@ -95,10 +96,10 @@ export class DriveRepository {
         driveRootFolderId: rootId,
         driveRootFolderUrl: rootUrl,
         rawFolderId: folders["RAW"],
-        editFolderId: folders["Photos"],
-        socialFolderId: folders["Reels"],
-        deliveryFolderId: folders["Final Delivery"],
-        backupFolderId: folders["Archive"],
+        referencesFolderId: folders["Photos"],
+        editFolderId: folders["Edited Videos"],
+        deliveryFolderId: folders["Final Deliverables"],
+        documentsFolderId: folders["Documents"],
       }
     });
   }

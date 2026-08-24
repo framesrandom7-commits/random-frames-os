@@ -19,12 +19,12 @@ export default function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setLeads(initialLeads);
   }, [initialLeads]);
 

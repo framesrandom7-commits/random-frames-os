@@ -101,7 +101,7 @@ export default function ClientDriveWidget({ clientId, driveFolderId, driveFolder
           className="w-full border-white/10 text-white bg-white/5 hover:bg-white/10 gap-2"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          {loading ? "Queuing..." : driveFolderUrl ? "Force Sync Structure" : "Create Folders"}
+          {loading ? "Queuing..." : "Create Folders"}
         </Button>
       </div>
     </div>

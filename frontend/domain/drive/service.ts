@@ -17,16 +17,22 @@ export class DriveDomainService {
   }
 
   /**
-   * Ensures the base structure `Random Frames OS/Clients` exists.
+   * Enforces that the root folder (Clients) is configured.
    */
-  static async initializeRootStructure(): Promise<string> {
-    const rootId = await this.findOrCreateFolder(DRIVE_CONSTANTS.ROOT_FOLDER_NAME);
-    await DriveRepository.updateRootFolder(rootId);
+  static async getConfiguredRootFolder(): Promise<string> {
+    const settings = await CredentialManager.getCredentials(DRIVE_CONSTANTS.PROVIDER_ID);
+    if (settings && settings.rootFolderId && settings.rootFolderId !== 'root') {
+      return settings.rootFolderId;
+    }
     
-    // Ensure Clients subfolder exists
-    await this.findOrCreateFolder(DRIVE_CONSTANTS.CLIENTS_FOLDER_NAME, rootId);
+    Logger.info("Google Drive 'Clients' Root Folder ID is not explicitly configured. Creating/finding 'Client Data' master folder in root.");
+    const masterFolderId = await this.findOrCreateFolder("Client Data", "root");
     
-    return rootId;
+    if (settings && settings.rootFolderId !== masterFolderId) {
+      await DriveRepository.updateRootFolder(masterFolderId);
+    }
+    
+    return masterFolderId;
   }
 
   /**
@@ -37,19 +43,21 @@ export class DriveDomainService {
     const settings = await CredentialManager.getCredentials(DRIVE_CONSTANTS.PROVIDER_ID);
     if (!settings || !settings.accessToken) throw new Error("Drive not connected");
 
-    const rootId = await this.initializeRootStructure();
-    const clientsFolderId = await this.findOrCreateFolder(DRIVE_CONSTANTS.CLIENTS_FOLDER_NAME, rootId);
+    const rootId = await this.getConfiguredRootFolder();
 
-    // Client specific folder
-    const clientFolderId = await this.findOrCreateFolder(clientName, clientsFolderId);
+    // Client specific folder directly under the configured Clients root
+    const clientFolderId = await this.findOrCreateFolder(clientName, rootId);
     
     // Update DB
     const folderUrl = `https://drive.google.com/drive/folders/${clientFolderId}`;
     await DriveRepository.updateClientDriveFolder(clientId, clientFolderId, folderUrl);
 
     // Child folders
-    await this.findOrCreateFolder("Documents", clientFolderId);
+    await this.findOrCreateFolder("Requirements", clientFolderId);
+    await this.findOrCreateFolder("Quotations", clientFolderId);
     await this.findOrCreateFolder("Projects", clientFolderId);
+    await this.findOrCreateFolder("Invoices", clientFolderId);
+    await this.findOrCreateFolder("Other", clientFolderId);
 
     await AuditManager.logIntegrationEvent(
       DRIVE_CONSTANTS.PROVIDER_ID,

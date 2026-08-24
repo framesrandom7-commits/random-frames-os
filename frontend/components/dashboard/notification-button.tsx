@@ -18,7 +18,7 @@ export default function NotificationButton() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line
+     
     fetchNotifications();
     // Optional polling could go here
   }, []);

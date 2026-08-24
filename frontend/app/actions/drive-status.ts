@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@/lib/prisma";
 import { DRIVE_CONSTANTS } from "@/domain/drive/constants";
 

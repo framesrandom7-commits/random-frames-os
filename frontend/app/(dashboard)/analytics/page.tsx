@@ -6,7 +6,7 @@ import { KpiCard } from '@/components/analytics/kpi-card';
 import { TrendChart } from '@/components/analytics/trend-chart';
 import { ConversionFunnel } from '@/components/analytics/conversion-funnel';
 import { PieChart } from '@/components/analytics/pie-chart';
-import { DollarSign, BarChart3, Briefcase, Users, ShieldAlert, CheckCircle, Mail, MessageSquare, HardDrive, Calendar } from 'lucide-react';
+import { IndianRupee, BarChart3, Briefcase, Users, ShieldAlert, CheckCircle, Mail, MessageSquare, HardDrive, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -99,7 +99,7 @@ export default async function AnalyticsDashboardPage() {
             title="Total Revenue (YTD)" 
             value={kpis.revenue} 
             formatter="currency"
-            icon={<DollarSign size={16} />} 
+            icon={<IndianRupee size={16} />} 
           />
           <KpiCard 
             title="Net Profit" 

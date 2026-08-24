@@ -10,7 +10,9 @@ export default function FinanceNav() {
 
   const navItems = [
     { name: "Overview", href: "/finance", icon: LayoutDashboard },
+    { name: "Quotations", href: "/finance/quotations", icon: FileText },
     { name: "Invoices", href: "/finance/invoices", icon: FileText },
+    { name: "Payments", href: "/finance/payments", icon: Receipt },
     { name: "Expenses", href: "/finance/expenses", icon: Receipt },
   ];
 

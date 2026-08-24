@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, UserCircle, Briefcase, DollarSign, Camera, TrendingDown, AlertCircle, CalendarPlus, UserPlus, FilePlus, CreditCard, Calendar } from "lucide-react";
+import { Users, UserCircle, Briefcase, IndianRupee, Camera, TrendingDown, AlertCircle, CalendarPlus, UserPlus, FilePlus, CreditCard, Calendar } from "lucide-react";
 import { getDashboardData } from "@/app/actions/reports";
 import { RevenueTrendChart, LeadFunnelChart, MonthlyProfitChart } from "@/components/reports/charts";
 import UpcomingShoots from "@/components/dashboard/upcoming-shoots";
@@ -49,9 +49,9 @@ export default async function DashboardPage() {
           <KpiCard title="Projects" value={metrics.totalProjects} icon={Briefcase} trendDirection="neutral" />
           <KpiCard title="Upcoming Shoots" value={metrics.totalShoots} icon={Camera} trendDirection="neutral" />
           
-          <KpiCard title="Revenue" value={formatCurr(metrics.totalRevenue)} icon={DollarSign} trendDirection="up" trend="+15%" />
+          <KpiCard title="Revenue" value={formatCurr(metrics.totalRevenue)} icon={IndianRupee} trendDirection="up" trend="+15%" />
           <KpiCard title="Expenses" value={formatCurr(metrics.totalExpenses)} icon={TrendingDown} trendDirection="down" trend="-5%" />
-          <KpiCard title="Net Profit" value={formatCurr(metrics.netProfit)} icon={DollarSign} trendDirection="up" trend="+20%" />
+          <KpiCard title="Net Profit" value={formatCurr(metrics.netProfit)} icon={IndianRupee} trendDirection="up" trend="+20%" />
           <KpiCard title="Outstanding" value={formatCurr(metrics.outstandingPayments)} icon={AlertCircle} trendDirection="warning" trend="Action Needed" />
         </ResponsiveFormGrid>
 

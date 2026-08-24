@@ -16,6 +16,7 @@ import { LeadViewManager } from "@/components/leads/lead-view-manager";
 import { getLeadFilters } from "@/components/leads/lead-config";
 import LeadKanban from "@/components/leads/lead-kanban";
 import LeadImportExport from "@/components/leads/lead-import-export";
+import { AutoRefresh } from "@/components/ui/auto-refresh";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -54,6 +55,7 @@ export default async function LeadsPage(props: {
 
   return (
     <ModuleLayout>
+      <AutoRefresh interval={5000} />
       <ModuleHeader 
         title="Leads" primaryAction={
           <Link href="?new=lead">
@@ -62,7 +64,6 @@ export default async function LeadsPage(props: {
         }
         secondaryActions={<LeadImportExport leads={leads} />}
       />
-
       <ModuleSummary>
         <ModuleSummaryCard 
           title="Total Leads" 

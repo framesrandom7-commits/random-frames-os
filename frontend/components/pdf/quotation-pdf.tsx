@@ -1,344 +1,303 @@
 import React from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { Prisma } from "@prisma/client";
+import { PDFLayout, theme } from "./shared/PDFLayout";
+import { PDFIcons } from "./shared/PDFIcons";
+import { PDFSectionTitle, PDFInfoRow, PDFTable } from "./shared/PDFComponents";
 
 type QuotationWithRelations = Prisma.QuotationGetPayload<{
   include: { client: true; project: true; items: true }
 }>;
 
 const styles = StyleSheet.create({
-  page: {
-    padding: 40,
-    backgroundColor: "#ffffff",
-    fontFamily: "Helvetica",
-  },
-  header: {
+  summarySection: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eeeeee",
-    paddingBottom: 20,
-    marginBottom: 20,
-  },
-  brandName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#C1121F",
-  },
-  brandDetails: {
-    fontSize: 10,
-    color: "#666666",
-    marginTop: 5,
-  },
-  invoiceTitle: {
-    fontSize: 24,
-    color: "#333333",
-    fontWeight: "bold",
-  },
-  invoiceMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 30,
-  },
-  metaCol: {
-    flexDirection: "column",
-  },
-  metaLabel: {
-    fontSize: 10,
-    color: "#888888",
-    marginBottom: 4,
-  },
-  metaValue: {
-    fontSize: 12,
-    color: "#333333",
-    fontWeight: "bold",
-  },
-  billTo: {
-    marginBottom: 30,
-  },
-  billToTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#333333",
-    marginBottom: 6,
-  },
-  billToText: {
-    fontSize: 11,
-    color: "#555555",
-    marginBottom: 3,
-  },
-  table: {
-    width: "auto",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
     marginTop: 20,
+    gap: 20,
   },
-  tableRow: {
-    margin: "auto",
+  deliverablesCol: {
+    flex: 1,
+    paddingTop: 10,
+  },
+  deliverableRow: {
     flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
   },
-  tableHeader: {
+  deliverableText: {
+    fontSize: 9,
+    color: theme.colors.textDark,
+  },
+  summaryCol: {
+    width: "45%",
     backgroundColor: "#f9f9f9",
-    fontWeight: "bold",
-  },
-  tableColHeader: {
-    width: "25%",
-    borderStyle: "solid",
+    borderRadius: 8,
+    padding: 15,
+    paddingBottom: 0,
     borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 8,
-  },
-  tableColDescHeader: {
-    width: "50%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 8,
-  },
-  tableCol: {
-    width: "25%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 8,
-  },
-  tableColDesc: {
-    width: "50%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 8,
-  },
-  tableCellHeader: {
-    fontSize: 10,
-    color: "#333333",
-  },
-  tableCell: {
-    fontSize: 10,
-    color: "#555555",
-  },
-  summary: {
-    marginTop: 20,
-    alignItems: "flex-end",
+    borderColor: theme.colors.grayBorder,
+    overflow: "hidden"
   },
   summaryRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "50%",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   summaryLabel: {
-    fontSize: 10,
-    color: "#666666",
+    fontSize: 9,
+    color: theme.colors.textDark,
   },
   summaryValue: {
-    fontSize: 10,
-    color: "#333333",
-  },
-  summaryTotalLabel: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#333333",
-  },
-  summaryTotalValue: {
-    fontSize: 14,
-    color: "#C1121F",
-    fontWeight: "bold",
-  },
-  footer: {
-    position: "absolute",
-    bottom: 40,
-    left: 40,
-    right: 40,
-    textAlign: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#eeeeee",
-    paddingTop: 10,
-  },
-  footerText: {
     fontSize: 9,
-    color: "#888888",
+    color: theme.colors.textDark,
+    fontWeight: 600,
   },
-  notes: {
+  grandTotalBox: {
+    backgroundColor: theme.colors.primary,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "15px 20px",
+    marginHorizontal: -15,
+    marginBottom: 0,
+  },
+  grandTotalLabel: {
+    color: theme.colors.white,
+    fontSize: 12,
+    fontWeight: 700,
+  },
+  grandTotalValue: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: 700,
+  },
+  bottomSection: {
+    flexDirection: "row",
     marginTop: 30,
-    padding: 10,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 4,
+    gap: 20,
   },
-  notesTitle: {
+  bottomCol: {
+    flex: 1,
+  },
+  termsText: {
+    fontSize: 8,
+    color: theme.colors.textLight,
+    lineHeight: 1.5,
+    marginBottom: 6,
+    flexDirection: "row",
+    gap: 6,
+  },
+  thankYouBox: {
+    marginTop: 20,
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center"
+  },
+  thankYouTextCol: {
+    flex: 1,
+  },
+  thankYouTitle: {
+    color: theme.colors.primary,
     fontSize: 10,
-    fontWeight: "bold",
-    color: "#333333",
-    marginBottom: 4,
+    fontWeight: 700,
+    marginBottom: 2,
   },
-  notesText: {
-    fontSize: 9,
-    color: "#666666",
+  thankYouDesc: {
+    fontSize: 7,
+    color: theme.colors.textLight,
+  },
+  dottedLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#dddddd",
+    borderBottomStyle: "dashed",
+    flex: 1,
+  },
+  signatureRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 10,
+    marginBottom: 20,
+  },
+  signatureLabel: {
+    fontSize: 8,
+    color: theme.colors.textDark,
+    width: 60,
+  },
+  notesLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#dddddd",
+    borderBottomStyle: "dashed",
+    marginBottom: 15,
+    height: 10,
   }
 });
 
 interface QuotationPDFProps {
   quotation: QuotationWithRelations;
+  companyInfo?: {
+    businessName: string;
+    email: string;
+    phone: string;
+    address: string;
+    website: string;
+    gstin?: string;
+  };
 }
 
-export function QuotationPDF({ quotation }: QuotationPDFProps) {
-  const { client, project } = quotation;
-  
+export function QuotationPDF({ quotation, companyInfo }: QuotationPDFProps) {
+  const { client, project, items } = quotation;
+
   const formatDate = (dateString: Date) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      year: "numeric",
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
       month: "short",
-      day: "numeric",
+      year: "numeric",
     });
   };
 
+  const metaInfo = [
+    { icon: <PDFIcons.Document size={12} />, label: "Quotation No.", value: quotation.quotationNumber },
+    { icon: <PDFIcons.Calendar size={12} />, label: "Issue Date", value: formatDate(quotation.issueDate) },
+    { icon: <PDFIcons.Calendar size={12} />, label: "Valid Until", value: formatDate(quotation.validUntil) },
+    { icon: <PDFIcons.Tag size={12} />, label: "Status", value: quotation.status, isStatus: true, statusColor: quotation.status === 'ACCEPTED' ? '#10B981' : theme.colors.primary },
+  ];
+
+  const tableItems = items.length > 0 ? items.map(item => ({
+    service: item.description,
+    qty: item.quantity,
+    unit: "Unit",
+    rate: Number(item.unitPrice).toLocaleString('en-IN'),
+    amount: Number(item.total).toLocaleString('en-IN')
+  })) : [
+    {
+      service: "Professional Services",
+      qty: "1",
+      unit: "Service",
+      rate: Number(quotation.subtotal).toLocaleString('en-IN'),
+      amount: Number(quotation.subtotal).toLocaleString('en-IN')
+    }
+  ];
+
+  const parsedDeliverables = quotation.deliverables ? (typeof quotation.deliverables === 'string' ? JSON.parse(quotation.deliverables as string) : quotation.deliverables) : [];
+  const deliverablesList = Array.isArray(parsedDeliverables) && parsedDeliverables.length > 0 
+    ? parsedDeliverables 
+    : ["High-resolution edited photographs", "Web-optimized files", "Commercial usage rights"];
+
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.brandName}>Random Frames</Text>
-            <Text style={styles.brandDetails}>Photography & Videography</Text>
-            <Text style={styles.brandDetails}>Bangalore, India</Text>
+      <PDFLayout documentTitle="QUOTATION" metaInfo={metaInfo} companyInfo={companyInfo}>
+        
+        {/* Client & Project Info */}
+        <View style={{ flexDirection: "row", gap: 30 }}>
+          <View style={{ flex: 1 }}>
+            <PDFSectionTitle icon={<PDFIcons.UserRed />} title="CLIENT INFORMATION" />
+            <PDFInfoRow icon={<PDFIcons.UserGray />} label="Client Name" value={client?.contactPerson || client?.businessName || "-"} />
+            <PDFInfoRow icon={<PDFIcons.BuildingGray />} label="Business Name" value={client?.businessName || "-"} />
+            <PDFInfoRow icon={<PDFIcons.UserGray />} label="Contact Person" value={client?.contactPerson || "-"} />
+            <PDFInfoRow icon={<PDFIcons.PhoneGray />} label="Phone Number" value={client?.phone || "-"} />
+            <PDFInfoRow icon={<PDFIcons.EmailGray />} label="Email" value={client?.email || "-"} />
+            <PDFInfoRow icon={<PDFIcons.BadgeGray />} label="GSTIN (Optional)" value="-" />
+            <PDFInfoRow icon={<PDFIcons.MapPinGray />} label="Address" value={client?.city || "-"} />
           </View>
-          <View>
-            <Text style={styles.invoiceTitle}>QUOTATION</Text>
-          </View>
-        </View>
-
-        {/* Meta Info */}
-        <View style={styles.invoiceMeta}>
-          <View style={styles.metaCol}>
-            <Text style={styles.metaLabel}>Quotation Number</Text>
-            <Text style={styles.metaValue}>{quotation.quotationNumber}</Text>
-          </View>
-          <View style={styles.metaCol}>
-            <Text style={styles.metaLabel}>Issue Date</Text>
-            <Text style={styles.metaValue}>{formatDate(quotation.issueDate)}</Text>
-          </View>
-          <View style={styles.metaCol}>
-            <Text style={styles.metaLabel}>Valid Until</Text>
-            <Text style={styles.metaValue}>{formatDate(quotation.validUntil)}</Text>
+          <View style={{ flex: 1 }}>
+            <PDFSectionTitle icon={<PDFIcons.BriefcaseRed />} title="PROJECT INFORMATION" />
+            <PDFInfoRow icon={<PDFIcons.FolderGray />} label="Project Name" value={project?.title || "-"} />
+            <PDFInfoRow icon={<PDFIcons.GridGray />} label="Category" value={project?.type || "-"} />
+            <PDFInfoRow icon={<PDFIcons.CameraGray />} label="Shoot Type" value={project?.status || "-"} />
+            <PDFInfoRow icon={<PDFIcons.MapPinGray />} label="Location" value={project?.location || "-"} />
+            <PDFInfoRow icon={<PDFIcons.CalendarGray />} label="Shoot Date" value={project?.date ? formatDate(project.date) : "-"} />
+            <PDFInfoRow icon={<PDFIcons.ClockGray />} label="Delivery Timeline" value="-" />
           </View>
         </View>
 
-        {/* Prepared For */}
-        <View style={styles.billTo}>
-          <Text style={styles.billToTitle}>Prepared For:</Text>
-          <Text style={styles.billToText}>{client?.businessName || "Client Name"}</Text>
-          {client?.contactPerson && <Text style={styles.billToText}>{client.contactPerson}</Text>}
-          {client?.address && <Text style={styles.billToText}>{client.address}</Text>}
+        {/* Services & Pricing */}
+        <View style={{ marginTop: 20 }}>
+          <PDFSectionTitle icon={<PDFIcons.DocumentRed />} title="SERVICES & PRICING" />
+          <PDFTable items={tableItems} />
         </View>
 
-        {/* Project Name */}
-        {project && (
-          <View style={{ marginBottom: 10 }}>
-            <Text style={styles.billToTitle}>Project: {project.title}</Text>
-          </View>
-        )}
-
-        {/* Line Items Table */}
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <View style={styles.tableColDescHeader}>
-              <Text style={styles.tableCellHeader}>Description</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Quantity</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Amount (₹)</Text>
-            </View>
+        {/* Deliverables & Summary */}
+        <View style={styles.summarySection}>
+          <View style={styles.deliverablesCol}>
+            <PDFSectionTitle icon={<PDFIcons.CheckCircleRed />} title="DELIVERABLES" />
+            {deliverablesList.map((item: string, idx: number) => (
+              <View key={idx} style={styles.deliverableRow}>
+                <PDFIcons.CheckRed />
+                <Text style={styles.deliverableText}>{item}</Text>
+              </View>
+            ))}
           </View>
           
-          {quotation.items && quotation.items.length > 0 ? (
-            quotation.items.map((item, i) => (
-              <View style={styles.tableRow} key={i}>
-                <View style={styles.tableColDesc}>
-                  <Text style={styles.tableCell}>{item.description}</Text>
-                </View>
-                <View style={styles.tableCol}>
-                  <Text style={styles.tableCell}>{item.quantity || 1}</Text>
-                </View>
-                <View style={styles.tableCol}>
-                  <Text style={styles.tableCell}>{Number(item.total).toLocaleString('en-IN')}</Text>
-                </View>
-              </View>
-            ))
-          ) : (
-            <View style={styles.tableRow}>
-              <View style={styles.tableColDesc}>
-                <Text style={styles.tableCell}>Professional Services</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>1</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{Number(quotation.subtotal).toLocaleString('en-IN')}</Text>
-              </View>
+          <View style={styles.summaryCol}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryValue}>₹ {Number(quotation.subtotal).toLocaleString('en-IN')}</Text>
             </View>
-          )}
-        </View>
-
-        {/* Summary */}
-        <View style={styles.summary}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>₹{Number(quotation.subtotal).toLocaleString('en-IN')}</Text>
-          </View>
-          {Number(quotation.discount) > 0 && (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Discount</Text>
-              <Text style={{...styles.summaryValue, color: '#ef4444'}}>-₹{Number(quotation.discount).toLocaleString('en-IN')}</Text>
+              <Text style={[styles.summaryValue, { color: theme.colors.primary }]}>- ₹ {Number(quotation.discount || 0).toLocaleString('en-IN')}</Text>
             </View>
-          )}
-          {Number(quotation.tax) > 0 && (
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Tax</Text>
-              <Text style={styles.summaryValue}>₹{Number(quotation.tax).toLocaleString('en-IN')}</Text>
+              <Text style={styles.summaryLabel}>Tax (If Applicable)</Text>
+              <Text style={styles.summaryValue}>₹ {Number(quotation.tax || 0).toLocaleString('en-IN')}</Text>
             </View>
-          )}
-          <View style={[styles.summaryRow, { borderTopWidth: 2, borderTopColor: '#333333', paddingTop: 8, marginTop: 4 }]}>
-            <Text style={styles.summaryTotalLabel}>Total</Text>
-            <Text style={styles.summaryTotalValue}>₹{Number(quotation.total).toLocaleString('en-IN')}</Text>
+            <View style={styles.grandTotalBox}>
+              <Text style={styles.grandTotalLabel}>GRAND TOTAL</Text>
+              <Text style={styles.grandTotalValue}>₹ {Number(quotation.total).toLocaleString('en-IN')}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Notes & Terms */}
-        {(quotation.notes || quotation.termsAndConditions) && (
-          <View style={styles.notes}>
-            {quotation.notes && (
-              <View style={{ marginBottom: 10 }}>
-                <Text style={styles.notesTitle}>Notes:</Text>
-                <Text style={styles.notesText}>{quotation.notes}</Text>
+        {/* Footer Areas */}
+        <View style={styles.bottomSection}>
+          <View style={styles.bottomCol}>
+            <PDFSectionTitle icon={<PDFIcons.DocumentRed />} title="TERMS & CONDITIONS" />
+            {(quotation.termsAndConditions || "50% advance to confirm booking.\nCancellation after confirmation may incur charges.\nQuotation is valid for 7 days from the date of issue.").split('\n').map((term, idx) => (
+               <View key={idx} style={styles.termsText}>
+                 <PDFIcons.DotRed />
+                 <Text>{term}</Text>
+               </View>
+            ))}
+            
+            <View style={styles.thankYouBox}>
+              <PDFIcons.Logo width={30} height={30} />
+              <View style={styles.thankYouTextCol}>
+                <Text style={styles.thankYouTitle}>THANK YOU!</Text>
+                <Text style={styles.thankYouDesc}>Thank you for considering Random Frames. We look forward to working with you.</Text>
               </View>
-            )}
-            {quotation.termsAndConditions && (
-              <View>
-                <Text style={styles.notesTitle}>Terms and Conditions:</Text>
-                <Text style={styles.notesText}>{quotation.termsAndConditions}</Text>
-              </View>
-            )}
+            </View>
           </View>
-        )}
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Thank you for considering Random Frames!</Text>
+          <View style={styles.bottomCol}>
+            <PDFSectionTitle icon={<PDFIcons.PenRed />} title="ACCEPTANCE" />
+            <View style={styles.signatureRow}>
+              <Text style={styles.signatureLabel}>Client Name</Text>
+              <Text>:</Text>
+              <View style={styles.dottedLine} />
+            </View>
+            <View style={styles.signatureRow}>
+              <Text style={styles.signatureLabel}>Signature</Text>
+              <Text>:</Text>
+              <View style={styles.dottedLine} />
+            </View>
+            <View style={styles.signatureRow}>
+              <Text style={styles.signatureLabel}>Date</Text>
+              <Text>:</Text>
+              <View style={styles.dottedLine} />
+            </View>
+          </View>
+
+          <View style={styles.bottomCol}>
+            <PDFSectionTitle icon={<PDFIcons.DocumentRed />} title="NOTES" />
+            <Text style={{ fontSize: 8, color: theme.colors.textLight, marginBottom: 10 }}>{quotation.notes || ""}</Text>
+            <View style={styles.notesLine} />
+            <View style={styles.notesLine} />
+            <View style={styles.notesLine} />
+          </View>
         </View>
-      </Page>
+
+      </PDFLayout>
     </Document>
   );
 }

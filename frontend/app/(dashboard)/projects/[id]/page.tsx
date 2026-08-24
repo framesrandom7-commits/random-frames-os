@@ -1,4 +1,5 @@
 import React from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { getProject } from "@/app/actions/project";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -72,10 +73,10 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
         </Button>
       </Link>
       
-      <ModuleDetailsHeader>
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-3 mb-1">
-            <span className="text-2xl font-bold text-white tracking-tight">{project.title}</span>
+      <PageHeader
+        title={
+          <div className="flex items-center gap-3">
+            <span className="text-xl font-bold text-white tracking-tight">{project.title}</span>
             <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-xs">
               {project.projectCode}
             </Badge>
@@ -83,39 +84,42 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
               {project.status.replace(/_/g, " ")}
             </Badge>
           </div>
-          <div className="flex items-center gap-2 text-lg text-zinc-400">
+        }
+        subtitle={
+          <div className="flex items-center gap-2 text-sm text-zinc-400">
             <Building className="w-4 h-4" />
             <Link href={`/clients/${project.client.id}`} className="hover:text-white hover:underline transition-colors">
               {project.client.businessName}
             </Link>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-3 mt-4 md:mt-0 flex-wrap justify-end">
-          <WhatsAppButton 
-            variant="outline" 
-            className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-9"
-            phone={project.client.phone}
-            onSavePhone={async (phone) => {
-              "use server";
-              return updateClientPhone(project.client.id, phone);
-            }}
-            whatsappTemplate="generalMessage"
-            whatsappArgs={[`Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`]}
-          >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            WhatsApp Client
-          </WhatsAppButton>
+        }
+        action={
+          <div className="flex items-center gap-3">
+            <WhatsAppButton 
+              variant="outline" 
+              className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-8 text-sm px-3"
+              phone={project.client.phone}
+              onSavePhone={async (phone) => {
+                "use server";
+                return updateClientPhone(project.client.id, phone);
+              }}
+              whatsappTemplate="generalMessage"
+              whatsappArgs={[`Hi ${project.client.contactPerson || project.client.businessName},\n\nRegarding the project "${project.title}":\n\n`]}
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              WhatsApp Client
+            </WhatsAppButton>
 
-          <div className={`px-4 py-1.5 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2 ${getPaymentColor(project.paymentStatus)}`}>
-            <IndianRupee className="w-4 h-4" />
-            <span className="font-semibold text-lg">{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>
-            <Badge variant="outline" className="ml-1 text-[10px] uppercase border-current bg-transparent">
-              {project.paymentStatus}
-            </Badge>
+            <div className={`px-4 py-1.5 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2 ${getPaymentColor(project.paymentStatus)}`}>
+              <IndianRupee className="w-4 h-4" />
+              <span className="font-semibold text-base">{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>
+              <Badge variant="outline" className="ml-1 text-[10px] uppercase border-current bg-transparent">
+                {project.paymentStatus}
+              </Badge>
+            </div>
           </div>
-        </div>
-      </ModuleDetailsHeader>
+        }
+      />
 
       <ModuleDetailsBody>
         <ModuleDetailsContent>

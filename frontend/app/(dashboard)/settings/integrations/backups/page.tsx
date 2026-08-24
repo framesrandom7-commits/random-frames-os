@@ -6,8 +6,8 @@ import { triggerManualBackup } from "@/app/actions/integrations";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Database, Download, CloudUpload, Clock } from "lucide-react";
-import Link from "next/link";
 import { toast } from "sonner";
+import { IntegrationsNav } from "@/components/settings/integrations-nav";
 
 export default function BackupCenterPage() {
   const [isBackingUp, setIsBackingUp] = useState(false);
@@ -32,14 +32,9 @@ export default function BackupCenterPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <IntegrationsNav />
       <PageHeader 
         title="Backups & Data" />
-
-      <div className="flex gap-2 mb-4">
-        <Link href="/settings/integrations" className="px-4 py-2 text-zinc-400 hover:bg-white/5 hover:text-white rounded-md text-sm font-medium transition-colors">Providers</Link>
-        <Link href="/settings/integrations/webhooks" className="px-4 py-2 text-zinc-400 hover:bg-white/5 hover:text-white rounded-md text-sm font-medium transition-colors">Webhooks</Link>
-        <Link href="/settings/integrations/backups" className="px-4 py-2 bg-white/10 text-white rounded-md text-sm font-medium">Backups & Data</Link>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-[#111] border-white/10 shadow-md">

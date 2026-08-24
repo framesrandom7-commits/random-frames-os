@@ -41,6 +41,8 @@ export function TopBar({ user }: { user?: { name: string, roleName: string } }) 
           <UserProfile user={user} />
         </div>
       </div>
+      {/* Portal Target for Module Sub-headers */}
+      <div id="topbar-subheader-portal" className="w-full empty:hidden" />
     </div>
   );
 }

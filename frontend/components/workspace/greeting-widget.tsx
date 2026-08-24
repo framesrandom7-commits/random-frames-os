@@ -21,7 +21,7 @@ export default function GreetingWidget({
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setMounted(true);
     const date = new Date();
     const hour = date.getHours();

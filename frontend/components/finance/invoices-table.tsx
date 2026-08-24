@@ -36,7 +36,7 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
   };
 
 
@@ -91,6 +91,10 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
       alert("Please create a client first before creating an invoice.");
       return;
     }
+    if (projects.length === 0) {
+      alert("Please create a project first before creating an invoice.");
+      return;
+    }
     const newNumber = await generateInvoiceNumber();
     const result = await createInvoice({
       invoiceNumber: newNumber,
@@ -100,7 +104,7 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
       total: 0,
       status: "DRAFT",
       clientId: clients[0].id,
-      projectId: "", // Will fail if not provided, UI should handle this but for draft we provide empty string
+      projectId: projects[0].id,
       items: [{
         description: "Professional Services",
         quantity: 1,
@@ -110,6 +114,8 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
     });
     if (result.success && 'invoice' in result && result.invoice) {
       router.push(`/finance/invoices/${(result.invoice as any).id}`);
+    } else {
+      alert("Failed to create invoice. Please check the logs.");
     }
   };
 
@@ -156,6 +162,7 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
                 <TableHead className="text-zinc-400 font-medium">Issue Date</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Due Date</TableHead>
                 <TableHead className="text-zinc-400 font-medium text-right">Amount</TableHead>
+                <TableHead className="text-zinc-400 font-medium text-center">PDFs</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Status</TableHead>
                 <TableHead className="text-zinc-400 font-medium w-[50px]"></TableHead>
               </TableRow>
@@ -163,7 +170,7 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
             <TableBody>
               {data.invoices.length === 0 ? (
                 <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableCell colSpan={7} className="h-32 text-center text-zinc-500">
+                  <TableCell colSpan={8} className="h-32 text-center text-zinc-500">
                     No invoices found. Create your first invoice!
                   </TableCell>
                 </TableRow>
@@ -193,6 +200,23 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
                     <TableCell className="text-right font-medium text-white">
                       {formatCurrency(Number(invoice.total))}
                     </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        {(invoice.project as any)?.quotationId ? (
+                          <a href={`/api/pdf/quotation/${(invoice.project as any).quotationId}`} target="_blank" title="View Quotation" className="px-2 py-1 flex items-center justify-center bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-md transition-colors text-xs font-bold w-7 h-7">
+                            Q
+                          </a>
+                        ) : null}
+                        <a href={`/api/pdf/invoice/${invoice.id}`} target="_blank" title="View Invoice" className="px-2 py-1 flex items-center justify-center bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-md transition-colors text-xs font-bold w-7 h-7">
+                          I
+                        </a>
+                        {invoice.payments && invoice.payments.length > 0 ? (
+                          <a href={`/api/pdf/receipt/${invoice.payments[invoice.payments.length - 1].id}`} target="_blank" title="View Receipt" className="px-2 py-1 flex items-center justify-center bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-md transition-colors text-xs font-bold w-7 h-7">
+                            R
+                          </a>
+                        ) : null}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {(() => {
                         const meta = getInvoiceStatusMetadata(invoice.status);
@@ -214,6 +238,31 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
                               <ExternalLink className="h-4 w-4 mr-2" /> View & Edit
                             </Link>
                           </DropdownMenuItem>
+
+                          {/* PDF Options */}
+                          <div className="h-px bg-white/10 my-1 mx-2" />
+                          
+                          {(invoice.project as any)?.quotationId && (
+                            <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                              <a href={`/api/pdf/quotation/${(invoice.project as any).quotationId}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-blue-400 hover:text-blue-300">
+                                <FileText className="h-4 w-4 mr-2" /> Download Quotation
+                              </a>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                            <a href={`/api/pdf/invoice/${invoice.id}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-purple-400 hover:text-purple-300">
+                              <FileText className="h-4 w-4 mr-2" /> Download Invoice
+                            </a>
+                          </DropdownMenuItem>
+                          {invoice.payments && invoice.payments.length > 0 && (
+                            <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                              <a href={`/api/pdf/receipt/${invoice.payments[invoice.payments.length - 1].id}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-emerald-400 hover:text-emerald-300">
+                                <FileText className="h-4 w-4 mr-2" /> Download Receipt
+                              </a>
+                            </DropdownMenuItem>
+                          )}
+
+                          <div className="h-px bg-white/10 my-1 mx-2" />
                           
                           {invoice.client?.phone && (
                             <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">

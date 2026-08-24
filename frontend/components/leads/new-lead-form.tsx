@@ -54,7 +54,7 @@ export function NewLeadForm({ customFields = [], className }: { customFields?: a
       whatsapp: "",
       website: "",
       instagram: "",
-      address: "",
+      currency: "INR",
       city: "",
       state: "",
       country: "",
@@ -305,19 +305,6 @@ export function NewLeadForm({ customFields = [], className }: { customFields?: a
           <div className="space-y-2">
             <Label htmlFor="postalCode" className="text-zinc-300">Pincode</Label>
             <Input id="postalCode" {...register("postalCode")} className="bg-white/5 border-white/10 text-white" />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-zinc-300">Service Interested In</Label>
-            <Select onValueChange={(v) => setValue("serviceInterested", v)} value={serviceInterested || ""}>
-              <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                <SelectValue placeholder="- - -" />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-white/10">
-                {SERVICES_REQUIRED.map((s) => (
-                  <SelectItem key={s} value={s} className="text-zinc-200 focus:bg-white/10">{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </section>

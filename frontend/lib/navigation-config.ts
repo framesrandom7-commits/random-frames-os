@@ -5,7 +5,7 @@ import {
   Briefcase,
   Camera,
   Calendar,
-  DollarSign,
+  IndianRupee,
   BarChart,
   PieChart,
   Aperture,
@@ -116,7 +116,7 @@ export const NAVIGATION_CONFIG: NavigationItem[] = [
     id: "finance",
     label: "Finance",
     route: "/finance",
-    icon: DollarSign,
+    icon: IndianRupee,
     category: "main",
     sortOrder: 7,
     allowedRoles: ["Founder", "Co-Founder"], // Finance restricted to Founder and Co-Founder

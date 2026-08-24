@@ -75,7 +75,7 @@ export default function LeadImportExport({ leads }: LeadImportExportProps) {
             leadSource: Object.values(LeadSource).includes(row.Source as LeadSource) ? row.Source as LeadSource : LeadSource.OTHER,
             businessType: BusinessType.OTHER,
             budget: row.Budget ? parseFloat(row.Budget) : null,
-            currency: "USD",
+            currency: "INR",
             address: row.Address || null,
             city: row.City || null,
             state: row.State || null,

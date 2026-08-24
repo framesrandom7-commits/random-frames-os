@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { renderToStream } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/components/pdf/invoice-pdf";
+import { getSettings } from "@/app/actions/settings";
 
 export async function GET(
   request: NextRequest,
@@ -25,7 +26,9 @@ export async function GET(
       return new NextResponse("Invoice not found", { status: 404 });
     }
 
-    const stream = await renderToStream(<InvoicePDF invoice={invoice} />);
+    const { company, payment } = await getSettings();
+
+    const stream = await renderToStream(<InvoicePDF invoice={invoice} companyInfo={company as any} paymentInfo={payment as any} />);
     
     // Convert NodeJS ReadableStream to Web ReadableStream
     const readableStream = new ReadableStream({

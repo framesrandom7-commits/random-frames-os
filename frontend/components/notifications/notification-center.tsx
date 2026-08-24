@@ -29,7 +29,7 @@ export default function NotificationCenter() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line
+     
     fetchNotifications();
   }, []);
 

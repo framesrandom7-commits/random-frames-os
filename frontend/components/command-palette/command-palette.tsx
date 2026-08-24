@@ -17,7 +17,7 @@ import {
   Briefcase, 
   Camera, 
   Calendar, 
-  DollarSign, 
+  IndianRupee, 
   BarChart 
 } from "lucide-react";
 import { CommandItemWrapper } from "./command-item";
@@ -84,7 +84,7 @@ export default function CommandPalette() {
             onSelect={() => runCommand(() => router.push("/calendar"))}
           />
           <CommandItemWrapper
-            icon={DollarSign}
+            icon={IndianRupee}
             label="Finance"
             onSelect={() => runCommand(() => router.push("/finance"))}
           />

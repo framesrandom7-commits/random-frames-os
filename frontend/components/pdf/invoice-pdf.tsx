@@ -1,330 +1,308 @@
 import React from "react";
-import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
+import { Document, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { Prisma } from "@prisma/client";
+import { PDFLayout, theme } from "./shared/PDFLayout";
+import { PDFIcons } from "./shared/PDFIcons";
+import { PDFSectionTitle, PDFInfoRow, PDFTable } from "./shared/PDFComponents";
+
+type InvoiceWithRelations = Prisma.InvoiceGetPayload<{
+  include: { project: { include: { client: true } }; items: true }
+}>;
 
 const styles = StyleSheet.create({
-  page: {
-    padding: 40,
-    backgroundColor: "#ffffff",
-    fontFamily: "Helvetica",
-  },
-  header: {
+  summarySection: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eeeeee",
-    paddingBottom: 20,
-    marginBottom: 20,
+    marginTop: 15,
+    gap: 15,
   },
-  brandName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#C1121F",
+  paymentInfoCol: {
+    flex: 1,
   },
-  brandDetails: {
-    fontSize: 10,
-    color: "#666666",
-    marginTop: 5,
+  paymentInfoBox: {
+    marginTop: 8,
   },
-  invoiceTitle: {
-    fontSize: 28,
-    color: "#333333",
-    fontWeight: "bold",
-  },
-  invoiceMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 30,
-  },
-  metaCol: {
-    flexDirection: "column",
-  },
-  metaLabel: {
-    fontSize: 10,
-    color: "#888888",
-    marginBottom: 4,
-  },
-  metaValue: {
-    fontSize: 12,
-    color: "#333333",
-    fontWeight: "bold",
-  },
-  billTo: {
-    marginBottom: 30,
-  },
-  billToTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#333333",
-    marginBottom: 6,
-  },
-  billToText: {
-    fontSize: 11,
-    color: "#555555",
-    marginBottom: 3,
-  },
-  table: {
-    width: "auto",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-    marginTop: 20,
-  },
-  tableRow: {
-    margin: "auto",
-    flexDirection: "row",
-  },
-  tableHeader: {
+  summaryCol: {
+    width: "45%",
     backgroundColor: "#f9f9f9",
-    fontWeight: "bold",
-  },
-  tableColHeader: {
-    width: "25%",
-    borderStyle: "solid",
+    borderRadius: 8,
+    padding: 10,
+    paddingBottom: 0,
     borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 8,
-  },
-  tableColDescHeader: {
-    width: "50%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 8,
-  },
-  tableCol: {
-    width: "25%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 8,
-  },
-  tableColDesc: {
-    width: "50%",
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: "#eeeeee",
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    padding: 8,
-  },
-  tableCellHeader: {
-    fontSize: 10,
-    color: "#333333",
-    fontWeight: "bold",
-  },
-  tableCell: {
-    fontSize: 10,
-    color: "#555555",
-  },
-  summary: {
-    marginTop: 20,
-    alignItems: "flex-end",
+    borderColor: theme.colors.grayBorder,
+    overflow: "hidden"
   },
   summaryRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "40%",
-    marginBottom: 5,
+    marginBottom: 8,
   },
   summaryLabel: {
-    fontSize: 11,
-    color: "#666666",
+    fontSize: 9,
+    color: theme.colors.textDark,
   },
   summaryValue: {
-    fontSize: 11,
-    color: "#333333",
-    fontWeight: "bold",
-  },
-  summaryTotalLabel: {
-    fontSize: 14,
-    color: "#333333",
-    fontWeight: "bold",
-  },
-  summaryTotalValue: {
-    fontSize: 14,
-    color: "#C1121F",
-    fontWeight: "bold",
-  },
-  footer: {
-    position: "absolute",
-    bottom: 40,
-    left: 40,
-    right: 40,
-    textAlign: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#eeeeee",
-    paddingTop: 10,
-  },
-  footerText: {
     fontSize: 9,
-    color: "#888888",
+    color: theme.colors.textDark,
+    fontWeight: 600,
   },
-  statusBadge: {
+  grandTotalBox: {
+    backgroundColor: theme.colors.primary,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "10px 15px",
+    marginHorizontal: -10,
+    marginBottom: 0,
+  },
+  grandTotalLabel: {
+    color: theme.colors.white,
+    fontSize: 12,
+    fontWeight: 700,
+  },
+  grandTotalValue: {
+    color: theme.colors.white,
+    fontSize: 14,
+    fontWeight: 700,
+  },
+  bottomSection: {
+    flexDirection: "row",
+    marginTop: 15,
+    gap: 15,
+  },
+  bottomCol: {
+    flex: 1,
+  },
+  termsText: {
+    fontSize: 8,
+    color: theme.colors.textLight,
+    lineHeight: 1.4,
+    marginBottom: 4,
+    flexDirection: "row",
+    gap: 6,
+  },
+  thankYouBox: {
     marginTop: 10,
-    padding: 5,
-    borderRadius: 4,
-    borderWidth: 1,
-    width: 80,
-    textAlign: "center",
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center"
   },
-  statusPaid: {
-    borderColor: "#22c55e",
-    backgroundColor: "#dcfce7",
-    color: "#166534",
+  thankYouTextCol: {
+    flex: 1,
   },
-  statusPending: {
-    borderColor: "#eab308",
-    backgroundColor: "#fef9c3",
-    color: "#854d0e",
+  thankYouTitle: {
+    color: theme.colors.primary,
+    fontSize: 10,
+    fontWeight: 700,
+    marginBottom: 2,
+  },
+  thankYouDesc: {
+    fontSize: 7,
+    color: theme.colors.textLight,
+  },
+  dottedLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#dddddd",
+    borderBottomStyle: "dashed",
+    flex: 1,
+  },
+  signatureRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 10,
+    marginBottom: 10,
+  },
+  signatureLabel: {
+    fontSize: 8,
+    color: theme.colors.textDark,
+    width: 60,
+  },
+  notesLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#dddddd",
+    borderBottomStyle: "dashed",
+    marginBottom: 10,
+    height: 10,
   }
 });
 
 interface InvoicePDFProps {
-  invoice: any; // We'll pass the full invoice object including project and client
+  invoice: any;
+  companyInfo?: {
+    businessName: string;
+    email: string;
+    phone: string;
+    address: string;
+    website: string;
+    gstin?: string;
+  };
+  paymentInfo?: {
+    acceptUpi: boolean;
+    upiId: string;
+    acceptBankTransfer: boolean;
+    bankName: string;
+    accountHolder: string;
+    accountNumber: string;
+    ifscCode: string;
+  };
 }
 
-export function InvoicePDF({ invoice }: InvoicePDFProps) {
-  const { project } = invoice;
+export function InvoicePDF({ invoice, companyInfo, paymentInfo: defaultPaymentInfo }: InvoicePDFProps) {
+  const { project, items } = invoice;
   const client = project?.client;
-  
-  const formatDate = (dateString: Date) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      year: "numeric",
+  const paymentInfo = invoice.paymentSnapshot || defaultPaymentInfo;
+
+  const formatDate = (dateString: string | Date) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "2-digit",
       month: "short",
-      day: "numeric",
+      year: "numeric",
     });
   };
 
   const isPaid = invoice.status === "PAID";
+  const statusColor = isPaid ? "#10B981" : theme.colors.primary;
+
+  const metaInfo = [
+    { icon: <PDFIcons.Document size={12} />, label: "Invoice No.", value: invoice.invoiceNumber || "-" },
+    { icon: <PDFIcons.Calendar size={12} />, label: "Issue Date", value: formatDate(invoice.issueDate) },
+    { icon: <PDFIcons.Calendar size={12} />, label: "Due Date", value: formatDate(invoice.dueDate) },
+    { icon: <PDFIcons.Tag size={12} />, label: "Status", value: invoice.status || "DRAFT", isStatus: true, statusColor },
+  ];
+
+  const tableItems = items && items.length > 0 ? items.map((item: any) => ({
+    service: item.description,
+    qty: item.quantity || 1,
+    unit: "Unit",
+    rate: Number(item.unitPrice || item.total).toLocaleString('en-IN'),
+    amount: Number(item.total).toLocaleString('en-IN')
+  })) : [
+    {
+      service: project?.title || "Professional Services",
+      qty: "1",
+      unit: "Service",
+      rate: Number(invoice.subtotal).toLocaleString('en-IN'),
+      amount: Number(invoice.subtotal).toLocaleString('en-IN')
+    }
+  ];
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.brandName}>Random Frames</Text>
-            <Text style={styles.brandDetails}>Photography & Videography</Text>
-            <Text style={styles.brandDetails}>Bangalore, India</Text>
+      <PDFLayout documentTitle="INVOICE" metaInfo={metaInfo} companyInfo={companyInfo}>
+        
+        {/* Bill To & From Info */}
+        <View style={{ flexDirection: "row", gap: 30 }}>
+          <View style={{ flex: 1 }}>
+            <PDFSectionTitle icon={<PDFIcons.UserRed />} title="BILL TO" />
+            <PDFInfoRow icon={<PDFIcons.UserGray />} label="Client Name" value={client?.contactPerson || client?.businessName || "-"} />
+            <PDFInfoRow icon={<PDFIcons.BuildingGray />} label="Business Name" value={client?.businessName || "-"} />
+            <PDFInfoRow icon={<PDFIcons.UserGray />} label="Contact Person" value={client?.contactPerson || "-"} />
+            <PDFInfoRow icon={<PDFIcons.PhoneGray />} label="Phone Number" value={client?.phone || "-"} />
+            <PDFInfoRow icon={<PDFIcons.EmailGray />} label="Email" value={client?.email || "-"} />
+            <PDFInfoRow icon={<PDFIcons.BadgeGray />} label="GSTIN (Optional)" value={client?.gstNumber || "-"} />
+            <PDFInfoRow icon={<PDFIcons.MapPinGray />} label="Address" value={client?.address || client?.city || "-"} />
           </View>
-          <View>
-            <Text style={styles.invoiceTitle}>INVOICE</Text>
-            <View style={[styles.statusBadge, isPaid ? styles.statusPaid : styles.statusPending]}>
-              <Text style={{ fontSize: 9, fontWeight: "bold" }}>{invoice.status}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Meta Info */}
-        <View style={styles.invoiceMeta}>
-          <View style={styles.metaCol}>
-            <Text style={styles.metaLabel}>Invoice Number</Text>
-            <Text style={styles.metaValue}>{invoice.invoiceNumber}</Text>
-          </View>
-          <View style={styles.metaCol}>
-            <Text style={styles.metaLabel}>Issue Date</Text>
-            <Text style={styles.metaValue}>{formatDate(invoice.issueDate)}</Text>
-          </View>
-          <View style={styles.metaCol}>
-            <Text style={styles.metaLabel}>Due Date</Text>
-            <Text style={styles.metaValue}>{formatDate(invoice.dueDate)}</Text>
+          <View style={{ flex: 1 }}>
+            <PDFSectionTitle icon={<PDFIcons.BriefcaseRed />} title="FROM" />
+            <PDFInfoRow icon={<PDFIcons.BuildingGray />} label="Business Name" value={companyInfo?.businessName || "Random Frames"} />
+            <PDFInfoRow icon={<PDFIcons.UserGray />} label="Contact Person" value={companyInfo?.businessName === "Random Frames" ? "Savan Somaiah T P" : companyInfo?.businessName || "Savan Somaiah T P"} />
+            <PDFInfoRow icon={<PDFIcons.PhoneGray />} label="Phone Number" value={companyInfo?.phone || "8073080077"} />
+            <PDFInfoRow icon={<PDFIcons.EmailGray />} label="Email" value={companyInfo?.email || "frames.random.7@gmail.com"} />
+            <PDFInfoRow icon={<PDFIcons.MapPinGray />} label="Address" value={companyInfo?.address || "Bangalore | Coorg, India"} />
           </View>
         </View>
 
-        {/* Bill To */}
-        <View style={styles.billTo}>
-          <Text style={styles.billToTitle}>Bill To:</Text>
-          <Text style={styles.billToText}>{client?.businessName || "Client Name"}</Text>
-          {client?.contactPerson && <Text style={styles.billToText}>{client.contactPerson}</Text>}
-          {client?.address && <Text style={styles.billToText}>{client.address}</Text>}
-          {client?.gstNumber && <Text style={styles.billToText}>GST: {client.gstNumber}</Text>}
+        {/* Services & Pricing */}
+        <View style={{ marginTop: 20 }}>
+          <PDFSectionTitle icon={<PDFIcons.DocumentRed />} title="SERVICES & PRICING" />
+          <PDFTable items={tableItems} />
         </View>
 
-        {/* Project Name */}
-        <View style={{ marginBottom: 10 }}>
-          <Text style={styles.billToTitle}>Project: {project?.title || "N/A"}</Text>
-        </View>
-
-        {/* Line Items Table */}
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <View style={styles.tableColDescHeader}>
-              <Text style={styles.tableCellHeader}>Description</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Quantity</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableCellHeader}>Amount (₹)</Text>
+        {/* Payment Info & Summary */}
+        <View style={styles.summarySection}>
+          <View style={styles.paymentInfoCol}>
+            <PDFSectionTitle icon={<PDFIcons.CheckCircleRed />} title="PAYMENT INFORMATION" />
+            <View style={styles.paymentInfoBox}>
+              <PDFInfoRow icon={<PDFIcons.DotRed />} label="Payment Method" value={paymentInfo?.acceptBankTransfer ? "Bank Transfer" : "UPI"} />
+              <PDFInfoRow icon={<PDFIcons.DotRed />} label="Bank Name" value={paymentInfo?.bankName || "HDFC Bank"} />
+              <PDFInfoRow icon={<PDFIcons.DotRed />} label="Account Number" value={paymentInfo?.accountNumber || "50100XXXXXXX"} />
+              <PDFInfoRow icon={<PDFIcons.DotRed />} label="IFSC Code" value={paymentInfo?.ifscCode || "HDFC0000XXX"} />
+              <PDFInfoRow icon={<PDFIcons.DotRed />} label="Account Holder" value={paymentInfo?.accountHolder || "Savan Somaiah T P"} />
+              {paymentInfo?.acceptUpi && (
+                <PDFInfoRow icon={<PDFIcons.DotRed />} label="UPI ID" value={paymentInfo.upiId} />
+              )}
             </View>
           </View>
           
-          {/* We map over items */}
-          {invoice.items && invoice.items.length > 0 ? invoice.items.map((item: any, i: number) => (
-            <View style={styles.tableRow} key={i}>
-              <View style={styles.tableColDesc}>
-                <Text style={styles.tableCell}>{item.description}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{item.quantity || 1}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{Number(item.total).toLocaleString('en-IN')}</Text>
-              </View>
-            </View>
-          )) : (
-            <View style={styles.tableRow}>
-              <View style={styles.tableColDesc}>
-                <Text style={styles.tableCell}>{project?.title || "Project Services"}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>1</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{Number(invoice.subtotal).toLocaleString('en-IN')}</Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Summary */}
-        <View style={styles.summary}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>₹{Number(invoice.subtotal).toLocaleString('en-IN')}</Text>
-          </View>
-          {Number(invoice.taxAmount) > 0 && (
+          <View style={styles.summaryCol}>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Tax</Text>
-              <Text style={styles.summaryValue}>₹{Number(invoice.taxAmount).toLocaleString('en-IN')}</Text>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryValue}>₹ {Number(invoice.subtotal).toLocaleString('en-IN')}</Text>
             </View>
-          )}
-          {Number(invoice.discountAmount) > 0 && (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Discount</Text>
-              <Text style={styles.summaryValue}>-₹{Number(invoice.discountAmount).toLocaleString('en-IN')}</Text>
+              <Text style={[styles.summaryValue, { color: theme.colors.primary }]}>- ₹ {Number(invoice.discountAmount || 0).toLocaleString('en-IN')}</Text>
             </View>
-          )}
-          <View style={[styles.summaryRow, { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: "#eeeeee" }]}>
-            <Text style={styles.summaryTotalLabel}>Total</Text>
-            <Text style={styles.summaryTotalValue}>₹{Number(invoice.total).toLocaleString('en-IN')}</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Tax (If Applicable)</Text>
+              <Text style={styles.summaryValue}>₹ {Number(invoice.taxAmount || 0).toLocaleString('en-IN')}</Text>
+            </View>
+            <View style={styles.grandTotalBox}>
+              <Text style={styles.grandTotalLabel}>GRAND TOTAL</Text>
+              <Text style={styles.grandTotalValue}>₹ {Number(invoice.total).toLocaleString('en-IN')}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Thank you for your business!</Text>
-          <Text style={styles.footerText}>For any queries, please contact Random Frames.</Text>
+        {/* Footer Areas */}
+        <View style={styles.bottomSection}>
+          <View style={styles.bottomCol}>
+            <PDFSectionTitle icon={<PDFIcons.DocumentRed />} title="TERMS & CONDITIONS" />
+            {(invoice.termsAndConditions || "50% advance to confirm booking.\nRaw footage will be retained for 7 days from the date of delivery.\nCancellation after confirmation may incur charges.\nInvoice is valid for 7 days from the date of issue.").split('\n').map((term: string, idx: number) => (
+               <View key={idx} style={styles.termsText}>
+                 <PDFIcons.DotRed />
+                 <Text>{term}</Text>
+               </View>
+            ))}
+            
+            <View style={styles.thankYouBox}>
+              <PDFIcons.Logo width={30} height={30} />
+              <View style={styles.thankYouTextCol}>
+                <Text style={styles.thankYouTitle}>THANK YOU!</Text>
+                <Text style={styles.thankYouDesc}>Thank you for choosing Random Frames. We look forward to working with you.</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.bottomCol}>
+            <PDFSectionTitle icon={<PDFIcons.PenRed />} title="ACCEPTANCE" />
+            <View style={styles.signatureRow}>
+              <Text style={styles.signatureLabel}>Client Name</Text>
+              <Text>:</Text>
+              <View style={styles.dottedLine} />
+            </View>
+            <View style={styles.signatureRow}>
+              <Text style={styles.signatureLabel}>Signature</Text>
+              <Text>:</Text>
+              <View style={styles.dottedLine} />
+            </View>
+            <View style={styles.signatureRow}>
+              <Text style={styles.signatureLabel}>Date</Text>
+              <Text>:</Text>
+              <View style={styles.dottedLine} />
+            </View>
+          </View>
+
+          <View style={styles.bottomCol}>
+            <PDFSectionTitle icon={<PDFIcons.DocumentRed />} title="NOTES" />
+            <Text style={{ fontSize: 8, color: theme.colors.textLight, marginBottom: 10 }}>{invoice.notes || ""}</Text>
+            <View style={styles.notesLine} />
+            <View style={styles.notesLine} />
+            <View style={styles.notesLine} />
+          </View>
         </View>
-      </Page>
+
+      </PDFLayout>
     </Document>
   );
 }

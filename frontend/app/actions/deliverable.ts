@@ -8,8 +8,9 @@ import {
   addDeliverableVersionSchema 
 } from "@/lib/validations/deliverable";
 import { z } from "zod";
-import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
 import { DeliverableService } from "@/domain/services/DeliverableService";
+import { checkFinanceRbac, checkFounderRbac } from "./rbac";
+import { FinanceRbacEngine } from "@/domain/finance/finance-rbac";
 
 export async function createDeliverable(data: z.infer<typeof createDeliverableSchema>) {
   try {
@@ -62,12 +63,31 @@ export async function createDeliverable(data: z.infer<typeof createDeliverableSc
 
 export async function updateDeliverable(id: string, data: z.infer<typeof updateDeliverableSchema>) {
   try {
+    const user = await checkFinanceRbac();
     const validatedData = updateDeliverableSchema.parse(data);
     
     // Fetch old to compare status
     const oldDeliverable = await DeliverableService.getById(id);
     
     if (!oldDeliverable) return { success: false, error: "Not found" };
+
+    if (validatedData.status === "DELIVERED" && oldDeliverable.status !== "DELIVERED") {
+      if (!FinanceRbacEngine.isFounder(user.role?.name)) {
+        // Co-Founders cannot mark as delivered directly without Founder approval
+        // Check if there is an approved Approval record
+        const { prisma } = await import("@/lib/prisma");
+        const approval = await prisma.approval.findFirst({
+          where: {
+            entityType: "DELIVERABLE",
+            entityId: id,
+            status: "APPROVED"
+          }
+        });
+        if (!approval) {
+          throw new Error("403 Forbidden: Final delivery requires Founder approval.");
+        }
+      }
+    }
 
     const deliverable = await DeliverableService.updateDeliverable(id, validatedData);
 

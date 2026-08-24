@@ -8,20 +8,9 @@ export class ClientService {
   }
 
   static async generateCode(): Promise<string> {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    
-    const count = await prisma.client.count({
-      where: {
-        createdAt: {
-          gte: new Date(date.getFullYear(), date.getMonth(), 1),
-        }
-      }
-    });
-
+    const count = await prisma.client.count();
     const sequential = (count + 1).toString().padStart(3, '0');
-    return `CL${year}${month}${sequential}`;
+    return `RF-${sequential}`;
   }
 
   static async create(data: CreateClientData & { commercialAgreement?: any }) {

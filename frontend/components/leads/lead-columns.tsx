@@ -1,4 +1,5 @@
 "use client";
+import { format } from "date-fns";
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -85,11 +86,12 @@ export function useLeadColumns({
       )
     },
     {
+      id: "createdAt",
       header: "Created Date",
       accessorKey: "createdAt",
       cell: (lead) => (
         <div className="text-zinc-300 text-sm">
-          {new Date(lead.createdAt).toLocaleDateString()}
+          {format(new Date(lead.createdAt), "dd/MM/yyyy")}
         </div>
       )
     },

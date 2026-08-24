@@ -35,7 +35,7 @@ export default function GoogleCalendarSettingsPage() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     loadStatus();
   }, []);
 

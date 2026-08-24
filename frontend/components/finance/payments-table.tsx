@@ -48,19 +48,20 @@ export default function PaymentsTable({ data, clients, projects }: PaymentsTable
         <div className="overflow-auto flex-1 custom-scrollbar">
           <Table>
             <TableHeader className="bg-black/40 sticky top-0 z-10 backdrop-blur-md">
-              <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Payment Ref</TableHead>
+              <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Ref Number</TableHead>
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Date</TableHead>
-                <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Client / Project</TableHead>
-                <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Related Doc</TableHead>
+                <TableHead className="text-zinc-400 font-medium">Client / Project</TableHead>
+                <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Related Invoice</TableHead>
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Method</TableHead>
-                <TableHead className="text-zinc-400 font-medium text-right whitespace-nowrap">Amount</TableHead>
+                <TableHead className="text-zinc-400 font-medium text-center">PDFs</TableHead>
+                <TableHead className="text-zinc-400 font-medium text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.payments.length === 0 ? (
                 <TableRow className="border-white/5">
-                  <TableCell colSpan={6} className="text-center py-12 text-zinc-500">
+                  <TableCell colSpan={7} className="text-center py-12 text-zinc-500">
                     <div className="flex flex-col items-center justify-center">
                       <CheckCircle className="h-12 w-12 text-zinc-700 mb-4" />
                       <p>No payments found.</p>
@@ -102,6 +103,13 @@ export default function PaymentsTable({ data, clients, projects }: PaymentsTable
                       <Badge variant="outline" className="bg-zinc-800 text-zinc-300 border-zinc-700 font-normal">
                         {payment.paymentMethod.replace("_", " ")}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <a href={`/api/pdf/receipt/${payment.id}`} target="_blank" title="View Receipt" className="px-2 py-1 flex items-center justify-center bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-md transition-colors text-xs font-bold w-7 h-7">
+                          R
+                        </a>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="font-bold text-emerald-400">

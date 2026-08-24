@@ -12,7 +12,7 @@ export interface AppConfig {
 const DEFAULT_CONFIG: AppConfig = {
   BUSINESS_NAME: "Random Frames",
   TAX_RATE: 0.1, // 10%
-  CURRENCY: "USD",
+  CURRENCY: "INR",
   WORKING_HOURS_START: "09:00",
   WORKING_HOURS_END: "18:00",
   DEFAULT_NOTIFICATION_PREFERENCES: {

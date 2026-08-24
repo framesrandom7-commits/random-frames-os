@@ -148,7 +148,7 @@ export function ModuleDataView<T>({
                   className={cn(onRowClick && "cursor-pointer hover:bg-white/5")}
                 >
                   {hasSelection && (
-                    <TableCell className="px-4">
+                    <TableCell className="px-4" onClick={(e) => e.stopPropagation()}>
                       <input 
                         type="checkbox"
                         className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#C1121F] focus:ring-[#C1121F]"

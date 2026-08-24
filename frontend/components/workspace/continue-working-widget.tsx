@@ -7,6 +7,7 @@ import { LeadService } from "@/domain/services/LeadService";
 import { DeliverableService } from "@/domain/services/DeliverableService";
 import { calculateProjectProgress, calculateShootProgress, calculateLeadProgress, calculateDeliverableProgress } from "@/domain/workflow/core";
 import { LeadStatus } from "@prisma/client";
+import Image from "next/image";
 
 interface ResumeItem {
   id: string;
@@ -129,9 +130,9 @@ export default async function ContinueWorkingWidget() {
                 </Link>
 
                 {/* Background Image / Placeholder */}
-                <div className="absolute inset-0 z-0 pointer-events-none">
+                <div className="absolute inset-0 z-0 pointer-events-none relative w-full h-full">
                   {item.coverImage ? (
-                    <img src={item.coverImage} alt={item.title} className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
+                    <Image src={item.coverImage} alt={item.title} fill className="object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" unoptimized />
                   ) : (
                     <div className={`w-full h-full bg-gradient-to-br ${gradient} opacity-80 group-hover:scale-105 transition-transform duration-700`} />
                   )}

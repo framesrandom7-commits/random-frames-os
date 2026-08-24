@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, DollarSign, Wallet, TrendingUp, Download, PieChart as PieChartIcon } from "lucide-react";
+import { Loader2, IndianRupee, Wallet, TrendingUp, Download, PieChart as PieChartIcon } from "lucide-react";
 import { CurrencyService } from "@/lib/finance/currency.service";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
@@ -87,7 +87,7 @@ export default function FinanceReportsGenerator() {
             <Card className="bg-white/5 border-white/10 backdrop-blur-md">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-sm font-medium text-zinc-400">Total Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-emerald-500" />
+                <IndianRupee className="h-4 w-4 text-emerald-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-white">{formatCurrency(report.totalRevenue)}</div>

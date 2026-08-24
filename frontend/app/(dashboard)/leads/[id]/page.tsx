@@ -1,4 +1,5 @@
 import React from "react";
+import { PageHeader } from "@/components/layout/page-header";
 import { getLead, updateLeadPhone } from "@/app/actions/lead";
 import { notFound } from "next/navigation";
 import {
@@ -24,6 +25,7 @@ import { ActivityTimeline } from "@/components/shared/activity-timeline";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
 import QuotationActions from "@/components/leads/quotation-actions";
 import { Typography } from "@/components/ui/typography";
+import { TopBarSubheader } from "@/components/layout/topbar-subheader";
 
 export const dynamic = "force-dynamic";
 
@@ -57,54 +59,30 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
 
   return (
     <ModuleDetailsLayout>
-      <Link href="/leads">
-        <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Leads
-        </Button>
-      </Link>
-      
-      <ModuleDetailsHeader>
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <Typography variant="pageTitle">{lead.businessName}</Typography>
-            <div className="flex items-center gap-1 text-amber-500 font-medium bg-amber-500/10 px-2 py-1 rounded-full text-base">
-              <Star className="w-4 h-4 fill-current" />
-              {lead.leadScore}
-            </div>
-          </div>
-          {lead.contactPerson && <Typography variant="sectionTitle" color="muted">{lead.contactPerson}</Typography>}
-          {lead.leadTags && lead.leadTags.length > 0 && (
-            <div className="flex gap-2 mt-2 flex-wrap">
-              {lead.leadTags.map(lt => (
-                <Badge key={lt.tag.id} variant="outline" className="text-xs py-0.5 border-white/20 text-zinc-300">
-                  {lt.tag.name}
-                </Badge>
-              ))}
-              <Button variant="ghost" size="sm" className="h-5 text-xs text-zinc-400 hover:text-white px-2">
-                <Plus className="w-3 h-3 mr-1" /> Add Tag
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-3 items-end">
-          <div className="flex gap-2">
+      <TopBarSubheader>
+        <Link href="/leads">
+          <Button variant="ghost" className="w-fit text-zinc-400 hover:text-white p-0 h-auto">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Leads
+          </Button>
+        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-2 mr-2">
             <StatusBadge status={lead.status} />
             <PriorityBadge priority={lead.priority} />
           </div>
           {lead.convertedToClientId ? (
             <Link href={`/clients/${lead.convertedToClientId}`}>
-              <Button className="bg-zinc-800 text-white hover:bg-zinc-700">
+              <Button size="sm" className="bg-zinc-800 text-white hover:bg-zinc-700 h-8">
                 View Client
               </Button>
             </Link>
           ) : (
-            <div className="flex gap-2 items-center">
+            <div className="flex flex-wrap gap-2 items-center">
               {(lead.status === "NEW" || lead.status === "CONTACTED" || lead.status === "REQUIREMENT_DISCUSSION") && (
                 <WhatsAppButton 
                   variant="outline" 
-                  className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 h-8 text-sm"
                   phone={lead.whatsapp || lead.phone}
                   onSavePhone={async (phone) => {
                     "use server";
@@ -119,7 +97,7 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
               {(lead.status === "QUOTE_SENT" || lead.status === "NEGOTIATION" || lead.status === "QUOTE_APPROVED") && (
                 <WhatsAppButton 
                   variant="outline" 
-                  className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 h-8 text-sm"
                   phone={lead.whatsapp || lead.phone}
                   onSavePhone={async (phone) => {
                     "use server";
@@ -138,11 +116,13 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
               {lead.status !== "CONVERTED" && lead.status !== "LOST" && (
                 <MarkAsLostButton leadId={lead.id} />
               )}
-              <ConvertToClientButton leadId={lead.id} />
+              {lead.status !== "CONVERTED" && lead.status !== "LOST" && (
+                <ConvertToClientButton lead={lead} />
+              )}
             </div>
           )}
         </div>
-      </ModuleDetailsHeader>
+      </TopBarSubheader>
 
       <ModuleDetailsBody>
         <ModuleDetailsContent>

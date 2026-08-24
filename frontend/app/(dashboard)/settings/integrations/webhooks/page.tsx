@@ -4,8 +4,8 @@ import { getWebhooks } from "@/app/actions/integrations";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Activity, Plus, Trash2 } from "lucide-react";
-import Link from "next/link";
 import { format } from "date-fns";
+import { IntegrationsNav } from "@/components/settings/integrations-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,7 @@ export default async function WebhooksPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <IntegrationsNav />
       <PageHeader 
         title="Webhooks" action={
           <Button className="bg-[#E53935] hover:bg-[#D32F2F] text-white">
@@ -22,12 +23,6 @@ export default async function WebhooksPage() {
           </Button>
         }
       />
-
-      <div className="flex gap-2 mb-4">
-        <Link href="/settings/integrations" className="px-4 py-2 text-zinc-400 hover:bg-white/5 hover:text-white rounded-md text-sm font-medium transition-colors">Providers</Link>
-        <Link href="/settings/integrations/webhooks" className="px-4 py-2 bg-white/10 text-white rounded-md text-sm font-medium">Webhooks</Link>
-        <Link href="/settings/integrations/backups" className="px-4 py-2 text-zinc-400 hover:bg-white/5 hover:text-white rounded-md text-sm font-medium transition-colors">Backups & Data</Link>
-      </div>
 
       <div className="space-y-4">
         {webhooks.length === 0 ? (

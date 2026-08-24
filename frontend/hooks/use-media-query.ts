@@ -14,7 +14,7 @@ export function useMediaQuery(query: string): boolean {
   const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setMounted(true);
     
     // Check if window is defined (browser environment)

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, ArrowDownRight, DollarSign, Wallet, FileText, AlertCircle, Clock, Receipt } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, IndianRupee, Wallet, FileText, AlertCircle, Clock, Receipt } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
@@ -35,9 +35,9 @@ interface FinanceStats {
 
 export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD', // You can make this dynamic if needed
+      currency: 'INR', // You can make this dynamic if needed
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
@@ -51,7 +51,7 @@ export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
         <Card className="bg-white/5 border-white/10 backdrop-blur-md">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium text-zinc-400">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-emerald-500" />
+            <IndianRupee className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</div>

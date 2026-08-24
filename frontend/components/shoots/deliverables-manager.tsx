@@ -35,7 +35,7 @@ export default function DeliverablesManager({ shootId }: { shootId: string }) {
   }, [shootId]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     loadDeliverables();
   }, [loadDeliverables]);
 

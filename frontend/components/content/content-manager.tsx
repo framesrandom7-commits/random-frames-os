@@ -123,7 +123,7 @@ function ContentFormDialog({ open, onOpenChange, content, projects }: any) {
     let mounted = true;
     if (mounted) {
       if (open) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setFormData(content || {
           platform: "INSTAGRAM",
           editingStatus: "PENDING",

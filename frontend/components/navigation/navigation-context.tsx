@@ -26,7 +26,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     try {
       const stored = localStorage.getItem("rf_sidebar_pinned");
       if (stored) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+         
         setSidebarPinned(JSON.parse(stored));
       }
     } catch (e) {
@@ -45,7 +45,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
 
   // Close overlays on route change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setDrawerOpen(false);
     setMoreSheetOpen(false);
   }, [pathname]);

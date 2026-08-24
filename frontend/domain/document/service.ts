@@ -106,8 +106,9 @@ export class DocumentService {
       ownerName: rawSettings.BUSINESS_OWNER || "Savan Somaiah T P",
       phone: rawSettings.BUSINESS_PHONE || "8073080077",
       email: rawSettings.BUSINESS_EMAIL || "frames.random.7@gmail.com",
-      address: "Bangalore, India",
-      website: rawSettings.BUSINESS_WEBSITE || "instagram.com/random.frames.7",
+      address: rawSettings.BUSINESS_ADDRESS || "Bangalore | Coorg, India",
+      website: rawSettings.BUSINESS_WEBSITE || "random.frames.7",
+      gstin: rawSettings.BUSINESS_GSTIN || undefined,
     };
 
     if (type === "INVOICE" && !paymentInfo) {
