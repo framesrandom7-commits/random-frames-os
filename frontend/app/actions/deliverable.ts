@@ -191,7 +191,29 @@ export async function deleteDeliverableFile(fileId: string) {
 
 export async function getDeliverablesByShoot(shootId: string) {
   try {
-    return await DeliverableService.getByShoot(shootId);
+    const deliverables = await DeliverableService.getByShoot(shootId);
+    
+    // Fetch approvals for these deliverables
+    const { prisma } = await import("@/lib/prisma");
+    const deliverableIds = deliverables.map((d: any) => d.id);
+    const approvals = await prisma.approval.findMany({
+      where: {
+        entityType: "DELIVERABLE",
+        entityId: { in: deliverableIds }
+      },
+      orderBy: { requestedAt: "desc" },
+      include: { requestedBy: { select: { name: true, role: true } }, approvedBy: { select: { name: true } } }
+    });
+
+    const user = await checkFinanceRbac();
+
+    return {
+      deliverables: deliverables.map((d: any) => ({
+        ...d,
+        latestApproval: approvals.find((a: any) => a.entityId === d.id) || null
+      })),
+      userRole: user.role?.name || "CO_FOUNDER"
+    };
   } catch (error) {
   console.error("Error in getDeliverablesByShoot:", error);
   return GlobalErrorService.handleError(error, "Action:getDeliverablesByShoot");

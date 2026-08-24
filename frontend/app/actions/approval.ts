@@ -73,3 +73,38 @@ export async function resolveApproval(approvalId: string, status: "APPROVED" | "
     return GlobalErrorService.handleError(error, "Action:resolveApproval");
   }
 }
+
+export async function getApprovalForEntity(entityType: string, entityId: string) {
+  try {
+    const approval = await prisma.approval.findFirst({
+      where: {
+        entityType,
+        entityId,
+      },
+      orderBy: { requestedAt: "desc" },
+      include: { requestedBy: { select: { name: true, role: true } }, approvedBy: { select: { name: true } } }
+    });
+    
+    return approval;
+  } catch (error) {
+    console.error("Error in getApprovalForEntity:", error);
+    return null;
+  }
+}
+
+export async function getPendingApprovals() {
+  try {
+    const user = await checkFounderRbac();
+    
+    const pendingApprovals = await prisma.approval.findMany({
+      where: { status: "PENDING" },
+      orderBy: { requestedAt: "desc" },
+      include: { requestedBy: { select: { name: true, role: true } } }
+    });
+    
+    return pendingApprovals;
+  } catch (error) {
+    console.error("Error in getPendingApprovals:", error);
+    return [];
+  }
+}

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Plus, Loader2, Link as LinkIcon, FileUp, FileText, CheckCircle2, MoreVertical, Edit2 } from "lucide-react";
 import { createDeliverable, updateDeliverable, addDeliverableFile, addDeliverableVersion, deleteDeliverable, getDeliverablesByShoot, deleteDeliverableFile } from "@/app/actions/deliverable";
+import { requestApproval, resolveApproval } from "@/app/actions/approval";
 import { toast } from "sonner";
 import { DeliverableStatus, ReviewStatus, DeliverablePriority } from "@prisma/client";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -15,6 +16,7 @@ export default function DeliverablesManager({ shootId }: { shootId: string }) {
   const [deliverables, setDeliverables] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState("CO_FOUNDER");
 
   // Form State
   const [newType, setNewType] = useState("");
@@ -24,7 +26,12 @@ export default function DeliverablesManager({ shootId }: { shootId: string }) {
     setIsLoading(true);
     try {
       const data = await getDeliverablesByShoot(shootId);
-      setDeliverables(Array.isArray(data) ? data : []);
+      if (data && !data.error) {
+        setDeliverables(data.deliverables || []);
+        setUserRole(data.userRole || "CO_FOUNDER");
+      } else {
+        setDeliverables([]);
+      }
     } catch (error) {
       console.error("Failed to load deliverables:", error);
       toast.error("Failed to load deliverables");
@@ -127,6 +134,32 @@ export default function DeliverablesManager({ shootId }: { shootId: string }) {
     });
   };
 
+  const handleRequestApproval = (id: string) => {
+    const comments = prompt("Optional notes for the Founder:");
+    startTransition(async () => {
+      const result = await requestApproval("DELIVERABLE", id, comments || undefined);
+      if (result.success) {
+        loadDeliverables();
+        toast.success("Internal approval requested");
+      } else {
+        toast.error(result.error || "Failed to request approval");
+      }
+    });
+  };
+
+  const handleResolveApproval = (approvalId: string, status: "APPROVED" | "REJECTED") => {
+    const comments = prompt(`Optional comments for ${status === "APPROVED" ? "approval" : "rejection"}:`);
+    startTransition(async () => {
+      const result = await resolveApproval(approvalId, status, comments || undefined);
+      if (result.success) {
+        loadDeliverables();
+        toast.success(`Deliverable ${status.toLowerCase()}`);
+      } else {
+        toast.error(result.error || `Failed to ${status.toLowerCase()} deliverable`);
+      }
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30';
@@ -193,11 +226,17 @@ export default function DeliverablesManager({ shootId }: { shootId: string }) {
                         </Badge>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-zinc-900 border-white/10 text-white">
-                        {Object.values(DeliverableStatus).map(status => (
-                          <DropdownMenuItem key={status} onClick={() => handleStatusChange(item.id, status)} className="hover:bg-white/10 cursor-pointer">
-                            {status.replace(/_/g, " ")}
-                          </DropdownMenuItem>
-                        ))}
+                        {Object.values(DeliverableStatus).map(status => {
+                          if (status === "DELIVERED" && userRole !== "FOUNDER" && item.latestApproval?.status !== "APPROVED") {
+                            // Co-Founders cannot mark as DELIVERED without Founder Approval
+                            return null;
+                          }
+                          return (
+                            <DropdownMenuItem key={status} onClick={() => handleStatusChange(item.id, status)} className="hover:bg-white/10 cursor-pointer">
+                              {status.replace(/_/g, " ")}
+                            </DropdownMenuItem>
+                          );
+                        })}
                       </DropdownMenuContent>
                     </DropdownMenu>
                     
@@ -252,6 +291,43 @@ export default function DeliverablesManager({ shootId }: { shootId: string }) {
                       ))}
                     </div>
                   )}
+                </div>
+
+                {/* Internal Approval Section */}
+                <div className="pt-2 mt-2 border-t border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-zinc-500">Internal Approval:</span>
+                    {item.latestApproval ? (
+                      <span className={`font-medium px-2 py-0.5 rounded-full ${
+                        item.latestApproval.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' : 
+                        item.latestApproval.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' : 
+                        'bg-amber-500/10 text-amber-400'
+                      }`}>
+                        {item.latestApproval.status}
+                      </span>
+                    ) : (
+                      <span className="text-zinc-600">Not Requested</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {!item.latestApproval && userRole !== "FOUNDER" && item.status !== "PENDING" && (
+                      <Button size="sm" variant="outline" onClick={() => handleRequestApproval(item.id)} className="h-7 text-xs bg-white/5 hover:bg-white/10 text-white border-white/10">
+                        Request Founder Approval
+                      </Button>
+                    )}
+                    
+                    {item.latestApproval?.status === "PENDING" && userRole === "FOUNDER" && (
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => handleResolveApproval(item.latestApproval.id, "APPROVED")} className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                          Approve
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleResolveApproval(item.latestApproval.id, "REJECTED")} className="h-7 text-xs">
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Version History snippet */}
