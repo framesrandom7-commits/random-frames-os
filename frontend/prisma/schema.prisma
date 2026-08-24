@@ -35,12 +35,24 @@ model User {
   leadsOwned          Lead[]                @relation("LeadOwner")
   approvalRequests    Approval[]            @relation("ApprovalRequests")
   approvalsGranted    Approval[]            @relation("ApprovalsGranted")
+  securityPin         String?
 }
 
 model PasswordResetToken {
   id        String    @id @default(cuid())
   email     String
   tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+model OtpToken {
+  id        String    @id @default(cuid())
+  email     String
+  otpHash   String    @unique
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
