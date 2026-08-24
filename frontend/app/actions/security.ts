@@ -2,9 +2,34 @@
 
 import { prisma } from "@/lib/prisma";
 import { checkFinanceRbac, checkFounderRbac } from "./rbac";
+import { verifySession } from "@/lib/auth";
 import crypto from "crypto";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
+export async function getCurrentUserSession() {
+  try {
+    const session = await verifySession();
+    if (!session) return { success: false };
+    
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      include: { role: true }
+    });
+    
+    if (!user) return { success: false };
+    
+    return { 
+      success: true, 
+      user: { 
+        email: user.email, 
+        role: user.role?.name 
+      } 
+    };
+  } catch (error) {
+    return { success: false };
+  }
+}
 
 export async function sendOtpForPinReset(email: string) {
   try {

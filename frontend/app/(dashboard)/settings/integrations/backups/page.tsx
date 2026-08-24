@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { triggerManualBackup } from "@/app/actions/integrations";
-import { executeDataDeletion, sendOtpForPinReset, verifyOtpAndSetPin } from "@/app/actions/security";
+import { executeDataDeletion, sendOtpForPinReset, verifyOtpAndSetPin, getCurrentUserSession } from "@/app/actions/security";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,6 @@ import { toast } from "sonner";
 import { IntegrationsNav } from "@/components/settings/integrations-nav";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getSession } from "next-auth/react";
 
 export default function BackupCenterPage() {
   const [isBackingUp, setIsBackingUp] = useState(false);
@@ -39,10 +38,10 @@ export default function BackupCenterPage() {
     // Check role from session to only show Danger Zone to Founders
     const checkRole = async () => {
       try {
-        const session = await getSession();
-        if (session?.user?.role === "FOUNDER") {
+        const result = await getCurrentUserSession();
+        if (result.success && result.user?.role === "FOUNDER") {
           setIsFounder(true);
-          setUserEmail(session.user.email || "");
+          setUserEmail(result.user.email || "");
         }
       } catch (e) {
         console.error(e);
