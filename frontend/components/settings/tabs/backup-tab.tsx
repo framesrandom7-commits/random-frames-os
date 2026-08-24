@@ -96,10 +96,13 @@ export default function BackupTab() {
     try {
       const result = await executeDataDeletion(deleteTarget, pin);
       if (result.success) {
-        toast.success("Data successfully deleted!");
-        setIsDangerModalOpen(false);
-        setPin("");
-        setDeleteTarget("");
+        setModalMessage({ type: "success", text: "Data successfully deleted!" });
+        setTimeout(() => {
+          setIsDangerModalOpen(false);
+          setPin("");
+          setDeleteTarget("");
+          setModalMessage(null);
+        }, 2000);
       } else {
         setModalMessage({ type: "error", text: result.error || "Failed to delete data." });
       }
