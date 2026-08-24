@@ -70,7 +70,7 @@ export async function sendOtpForPinReset(email: string) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "Security <noreply@randomframesbysavan.in>", // This needs to be a verified domain on Resend
+        from: "Security <onboarding@resend.dev>", // Safe fallback for unverified domains
         to: email,
         subject: "Your Random Frames OS Security Code",
         html: `<h2>Security Code</h2><p>Your 6-digit OTP is: <strong>${otp}</strong></p><p>This code will expire in 5 minutes. If you did not request this, please ignore this email.</p>`
@@ -94,7 +94,7 @@ export async function verifyOtpAndSetPin(email: string, otp: string, newPin: str
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return { success: false, error: "User not found" };
     
-    if (newPin.length !== 4 || !/^\\d{4}$/.test(newPin)) {
+    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
       return { success: false, error: "PIN must be exactly 4 digits" };
     }
 

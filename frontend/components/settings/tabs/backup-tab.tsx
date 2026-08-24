@@ -29,6 +29,7 @@ export default function BackupTab() {
   const [newPin, setNewPin] = useState("");
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [modalMessage, setModalMessage] = useState<{type: "success" | "error", text: string} | null>(null);
 
   useEffect(() => {
     const checkRole = async () => {
@@ -80,16 +81,18 @@ export default function BackupTab() {
     }
     setPin("");
     setOtpMode(false);
+    setModalMessage(null);
     setIsDangerModalOpen(true);
   };
 
   const handleDeleteExecute = async () => {
     if (pin.length !== 4) {
-      toast.error("PIN must be 4 digits.");
+      setModalMessage({ type: "error", text: "PIN must be 4 digits." });
       return;
     }
 
     setIsDeleting(true);
+    setModalMessage(null);
     try {
       const result = await executeDataDeletion(deleteTarget, pin);
       if (result.success) {
@@ -98,10 +101,10 @@ export default function BackupTab() {
         setPin("");
         setDeleteTarget("");
       } else {
-        toast.error(result.error || "Failed to delete data.");
+        setModalMessage({ type: "error", text: result.error || "Failed to delete data." });
       }
     } catch (e) {
-      toast.error("An error occurred during deletion.");
+      setModalMessage({ type: "error", text: "An error occurred during deletion." });
     } finally {
       setIsDeleting(false);
     }
@@ -109,20 +112,21 @@ export default function BackupTab() {
 
   const handleRequestOtp = async () => {
     setIsSendingOtp(true);
+    setModalMessage(null);
     try {
       const result = await sendOtpForPinReset(userEmail);
       if (result.success) {
         setOtpMode(true);
         if (result.warning) {
-          toast.warning(result.warning); // Log warning if email is skipped in dev mode
+          setModalMessage({ type: "success", text: result.warning });
         } else {
-          toast.success(`OTP sent to ${userEmail}`);
+          setModalMessage({ type: "success", text: `OTP sent to ${userEmail}` });
         }
       } else {
-        toast.error(result.error || "Failed to send OTP.");
+        setModalMessage({ type: "error", text: result.error || "Failed to send OTP." });
       }
     } catch (e) {
-      toast.error("Error requesting OTP.");
+      setModalMessage({ type: "error", text: "Error requesting OTP." });
     } finally {
       setIsSendingOtp(false);
     }
@@ -130,27 +134,32 @@ export default function BackupTab() {
 
   const handleVerifyOtpAndSetPin = async () => {
     if (newPin.length !== 4) {
-      toast.error("New PIN must be 4 digits.");
+      setModalMessage({ type: "error", text: "New PIN must be 4 digits." });
       return;
     }
     if (otp.length !== 6) {
-      toast.error("OTP must be 6 digits.");
+      setModalMessage({ type: "error", text: "OTP must be 6 digits." });
       return;
     }
 
     setIsVerifyingOtp(true);
+    setModalMessage(null);
     try {
       const result = await verifyOtpAndSetPin(userEmail, otp, newPin);
       if (result.success) {
-        toast.success("Security PIN successfully updated!");
-        setOtpMode(false);
-        setOtp("");
-        setNewPin("");
+        setModalMessage({ type: "success", text: "Security PIN successfully updated!" });
+        // After 2 seconds, close OTP mode
+        setTimeout(() => {
+          setOtpMode(false);
+          setOtp("");
+          setNewPin("");
+          setModalMessage(null);
+        }, 2000);
       } else {
-        toast.error(result.error || "Failed to verify OTP.");
+        setModalMessage({ type: "error", text: result.error || "Failed to verify OTP." });
       }
     } catch (e) {
-      toast.error("Error setting PIN.");
+      setModalMessage({ type: "error", text: "Error setting PIN." });
     } finally {
       setIsVerifyingOtp(false);
     }
@@ -309,6 +318,12 @@ export default function BackupTab() {
                   className="bg-black/50 border-white/10 text-center text-xl tracking-widest" 
                 />
               </div>
+            </div>
+          )}
+
+          {modalMessage && (
+            <div className={`text-sm px-3 py-2 rounded-md ${modalMessage.type === "success" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
+              {modalMessage.text}
             </div>
           )}
 
