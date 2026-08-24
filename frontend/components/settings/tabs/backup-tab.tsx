@@ -228,7 +228,7 @@ export default function BackupTab() {
                   <SelectItem value="LEADS">Leads & Clients Only</SelectItem>
                   <SelectItem value="FINANCIALS">Financials (Quotations, Invoices, Expenses)</SelectItem>
                   <SelectItem value="PROJECTS_SHOOTS">Projects, Shoots & Deliverables</SelectItem>
-                  <SelectItem value="ALL" className="text-red-400 font-medium">All Transactional Data (Everything)</SelectItem>
+                  <SelectItem value="ALL" className="text-red-500 font-bold bg-red-500/10 hover:bg-red-500/20">Delete All (Wipe Everything)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
