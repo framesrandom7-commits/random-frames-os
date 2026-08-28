@@ -39,6 +39,12 @@ export class LeadService {
   static async createLead(data: LeadFormData) {
     const { tags, reminderDate, reminderTime, reminderType, whatsapp, ...leadData } = data;
     
+    // STRICT DUPLICATE PREVENTION
+    const { duplicate } = await LeadService.checkDuplicates(leadData.email, leadData.phone || whatsapp);
+    if (duplicate) {
+      throw new Error("A lead with this email or phone already exists in the system.");
+    }
+    
     // Create Lead via repository
     const newLead = await LeadRepository.create({
       ...leadData,
@@ -82,7 +88,16 @@ export class LeadService {
   }
 
   static async updateLead(id: string, data: LeadUpdateFormData) {
-    const { tags, id: _id, reminderDate, reminderTime, reminderType, whatsapp, ...leadData } = data;
+    const { tags, reminderDate, reminderTime, reminderType, whatsapp, ...leadData } = data;
+    
+    // STRICT DUPLICATE PREVENTION (excluding self)
+    if (leadData.email || leadData.phone || whatsapp) {
+      const { matches } = await LeadService.checkDuplicates(leadData.email, leadData.phone || whatsapp);
+      const otherMatches = matches.filter(m => m.id !== id);
+      if (otherMatches.length > 0) {
+        throw new Error("A lead with this email or phone already exists in the system.");
+      }
+    }
     
     const updatedLead = await LeadRepository.update(id, {
       ...leadData,
@@ -286,8 +301,27 @@ export class LeadService {
   }
 
   static async importLeads(data: LeadFormData[]) {
-    const mappedData = data.map(({ tags: _tags, reminderDate: _rd, reminderTime: _rt, reminderType: _rType, ...rest }) => rest);
-    return LeadRepository.createMany(mappedData);
+    let newLeadsCount = 0;
+    
+    for (const lead of data) {
+      const { tags: _tags, reminderDate: _rd, reminderTime: _rt, reminderType: _rType, ...leadData } = lead;
+      
+      const { duplicate, matches } = await LeadService.checkDuplicates(leadData.email, leadData.phone);
+      
+      if (duplicate && matches.length > 0) {
+        // Log that an import attempted to add a duplicate
+        await this.addActivity(
+          matches[0].id,
+          "SYSTEM",
+          `Bulk Import attempted to add this lead again. (Source: ${leadData.leadSource || "Unknown"})`
+        );
+      } else {
+        await LeadRepository.create(leadData);
+        newLeadsCount++;
+      }
+    }
+    
+    return { success: true, count: newLeadsCount };
   }
 
   static async updatePhone(id: string, phone: string) {

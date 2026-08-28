@@ -17,6 +17,7 @@ import { getLeadFilters } from "@/components/leads/lead-config";
 import LeadKanban from "@/components/leads/lead-kanban";
 import LeadImportExport from "@/components/leads/lead-import-export";
 import { AutoRefresh } from "@/components/ui/auto-refresh";
+import { FollowUpsQueue } from "@/components/leads/follow-ups-queue";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -104,6 +105,8 @@ export default async function LeadsPage(props: {
           trendDirection="neutral" 
         />
       </ModuleSummary>
+
+      <FollowUpsQueue />
 
       <ModuleToolbar 
         searchPlaceholder="Search leads..."

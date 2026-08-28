@@ -21,6 +21,7 @@ import { WhatsAppConversationWidget } from "@/components/shared/whatsapp-convers
 import { projectConfig } from "@/components/projects/project-config";
 import { ModuleDetailsLayout, ModuleDetailsBody, ModuleDetailsContent, ModuleDetailsSection } from "@/components/ui/module";
 import { PageHeader } from "@/components/layout/page-header";
+import { ClientDeleteButton } from "@/components/clients/client-delete-button";
 
 interface InternalWorkspaceDashboardProps {
   clientId: string;
@@ -84,6 +85,7 @@ export default function InternalWorkspaceDashboard({
             {contactPerson && <span className="text-base text-zinc-400 leading-none">Primary Contact: {contactPerson}</span>}
           </div>
         }
+        action={<ClientDeleteButton clientId={clientId} clientName={clientName} />}
       />
 
       <ModuleDetailsBody className="block w-full">

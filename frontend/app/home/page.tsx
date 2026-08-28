@@ -31,11 +31,17 @@ export default async function Home() {
 
   // Fetch Dashboard Metrics
   const activeProjectsCount = await prisma.project.count({
-    where: { status: { notIn: ["COMPLETED", "CANCELLED"] } }
+    where: { 
+      status: { notIn: ["COMPLETED", "CANCELLED"] },
+      archivedAt: null 
+    }
   });
 
   const openLeadsCount = await prisma.lead.count({
-    where: { status: { notIn: [LeadStatus.CLIENT, LeadStatus.WON, LeadStatus.LOST, LeadStatus.NOT_INTERESTED] } }
+    where: { 
+      status: { notIn: [LeadStatus.CLIENT, LeadStatus.WON, LeadStatus.LOST, LeadStatus.NOT_INTERESTED] },
+      archivedAt: null 
+    }
   });
 
   const pendingInvoices = await prisma.invoice.aggregate({

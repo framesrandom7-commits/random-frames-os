@@ -4,6 +4,25 @@ import { prisma } from "@/lib/prisma";
 import { ProjectService } from "./ProjectService";
 
 export class ClientService {
+  static async checkDuplicates(email?: string | null, phone?: string | null, whatsapp?: string | null) {
+    if (!email && !phone && !whatsapp) return { duplicate: false, matches: [] };
+    
+    const OR: any[] = [];
+    if (email) OR.push({ email });
+    if (phone) OR.push({ phone });
+    if (whatsapp) OR.push({ whatsapp });
+
+    const duplicates = await prisma.client.findMany({
+      where: { OR },
+      select: { id: true, clientCode: true, email: true, phone: true }
+    });
+
+    return {
+      duplicate: duplicates.length > 0,
+      matches: duplicates
+    };
+  }
+
   static async getDashboardRecentClients(limit: number = 5) {
     return ClientRepository.findRecent(limit);
   }
@@ -16,6 +35,13 @@ export class ClientService {
 
   static async create(data: CreateClientData & { commercialAgreement?: any }) {
     const { commercialAgreement, ...clientData } = data;
+    
+    // STRICT DUPLICATE PREVENTION
+    const { duplicate } = await ClientService.checkDuplicates(clientData.email, clientData.phone, clientData.whatsapp);
+    if (duplicate) {
+      throw new Error("A client with this email or phone number already exists in the system.");
+    }
+    
     const clientCode = await ClientService.generateCode();
     
     const client = await prisma.$transaction(async (tx) => {
@@ -75,6 +101,15 @@ export class ClientService {
   }
 
   static async update(id: string, data: Partial<CreateClientData>) {
+    // STRICT DUPLICATE PREVENTION (excluding self)
+    if (data.email || data.phone || data.whatsapp) {
+      const { matches } = await ClientService.checkDuplicates(data.email, data.phone, data.whatsapp);
+      const otherMatches = matches.filter(m => m.id !== id);
+      if (otherMatches.length > 0) {
+        throw new Error("A client with this email or phone number already exists in the system.");
+      }
+    }
+
     return ClientRepository.update(id, data);
   }
 

@@ -235,9 +235,49 @@ export async function executeDataDeletion(target: string, pin: string) {
       return { success: false, error: "Invalid target selection" };
     }
 
+    const session = await verifySession();
+    await prisma.auditLog.create({
+      data: {
+        action: "DATA_WIPE",
+        module: "SECURITY",
+        entityId: target,
+        userId: session ? session.userId : null,
+      }
+    });
+
     return { success: true };
   } catch (error: any) {
     console.error("Error executing data deletion:", error);
     return { success: false, error: "Failed to delete data. Make sure to delete related data first." };
+  }
+}
+
+export async function getDataWipeLogs() {
+  try {
+    const session = await verifySession();
+    if (!session) return { success: false, error: "Unauthorized" };
+
+    const logs = await prisma.auditLog.findMany({
+      where: { action: "DATA_WIPE" },
+      orderBy: { createdAt: "desc" },
+      take: 10
+    });
+    
+    // Fetch users manually since no relation is defined
+    const userIds = Array.from(new Set(logs.map(l => l.userId).filter(Boolean))) as string[];
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, name: true, email: true }
+    });
+    
+    const enrichedLogs = logs.map(log => ({
+      ...log,
+      user: users.find(u => u.id === log.userId) || null
+    }));
+    
+    return { success: true, data: enrichedLogs };
+  } catch (error: any) {
+    console.error("Error fetching wipe logs:", error);
+    return { success: false, error: error.message };
   }
 }

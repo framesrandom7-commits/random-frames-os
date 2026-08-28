@@ -5,12 +5,14 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ClientPhoneAction } from "@/components/clients/client-phone-action";
 import { getProjects } from "@/app/actions/project";
 import { projectConfig } from "@/components/projects/project-config";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ArrowLeft, Mail, Phone, MapPin, Globe, AtSign, Clock, Building, Plus, FileText, CheckCircle, CreditCard, Camera, MessageCircle } from "lucide-react";
 import Link from "next/link";
+import { ClientDeleteButton } from "@/components/clients/client-delete-button";
 import { 
   ModuleDetailsLayout, 
   ModuleDetailsHeader, 
@@ -77,6 +79,7 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
         subtitle={client.contactPerson && <span className="text-sm text-zinc-400">{client.contactPerson}</span>}
         action={
           <div className="flex items-center gap-3">
+            <ClientDeleteButton clientId={client.id} clientName={client.businessName} />
 
             <WhatsAppButton 
               variant="outline" 
@@ -116,13 +119,7 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                     <p className="text-white">{client.email || "—"}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 text-zinc-400 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-zinc-500">Phone</p>
-                    <p className="text-white">{client.phone || "—"}</p>
-                  </div>
-                </div>
+                <ClientPhoneAction clientId={client.id} phone={client.phone} />
                 <div className="flex items-start gap-3">
                   <Globe className="w-5 h-5 text-zinc-400 mt-0.5" />
                   <div>

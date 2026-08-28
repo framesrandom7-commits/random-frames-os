@@ -98,16 +98,25 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
   const onSubmit = async (data: LeadFormData) => {
     try {
       if (isEditing && lead?.id) {
-        await updateLead(lead.id, data as unknown as LeadUpdateFormData);
-        toast.success("Lead updated successfully");
+        const response = await updateLead(lead.id, data as unknown as LeadUpdateFormData);
+        if (response?.success) {
+          toast.success("Lead updated successfully");
+          onOpenChange(false);
+        } else {
+          toast.error(response?.error || "Failed to update lead");
+        }
       } else {
-        await createLead(data);
-        toast.success("Lead created successfully");
+        const response = await createLead(data);
+        if (response?.success) {
+          toast.success("Lead created successfully");
+          onOpenChange(false);
+        } else {
+          toast.error(response?.error || "Failed to create lead");
+        }
       }
-      onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error(isEditing ? "Failed to update lead" : "Failed to create lead");
+      toast.error(error.message || (isEditing ? "Failed to update lead" : "Failed to create lead"));
     }
   };
 

@@ -38,10 +38,10 @@ export async function createLead(data: LeadFormData) {
   try {
     const newLead = await LeadService.createLead(data);
     revalidatePath("/leads");
-    return newLead;
-  } catch (error) {
+    return { success: true, lead: newLead };
+  } catch (error: any) {
     console.error("Error creating lead:", error);
-    return null;
+    return { success: false, error: error.message || "Failed to create lead" };
   }
 }
 
@@ -50,10 +50,10 @@ export async function updateLead(id: string, data: LeadUpdateFormData) {
     const updatedLead = await LeadService.updateLead(id, data);
     revalidatePath("/leads");
     revalidatePath(`/leads/${id}`);
-    return updatedLead;
-  } catch (error) {
+    return { success: true, lead: updatedLead };
+  } catch (error: any) {
     console.error("Error updating lead:", error);
-    return null;
+    return { success: false, error: error.message || "Failed to update lead" };
   }
 }
 
@@ -111,14 +111,14 @@ export async function getLeadStats() {
   }
 }
 
-export async function importLeads(data: LeadFormData[]): Promise<boolean> {
+export async function importLeads(data: LeadFormData[]): Promise<{success: boolean, count?: number}> {
   try {
-    await LeadService.importLeads(data);
+    const result = await LeadService.importLeads(data);
     revalidatePath("/leads");
-    return true;
+    return { success: true, count: result.count };
   } catch (error) {
     console.error("Error importing leads:", error);
-    return false;
+    return { success: false };
   }
 }
 
@@ -229,3 +229,44 @@ export async function convertLead(id: string) {
 export type LeadWithRelations = NonNullable<Awaited<ReturnType<typeof getLead>>>;
 export type LeadListWithRelations = NonNullable<Awaited<ReturnType<typeof getLeads>>>["leads"][number];
 
+
+export async function markLeadAsContacted(id: string, channel: OutreachChannel) {
+  try {
+    const updatedLead = await LeadService.updateLead(id, {
+      id,
+      outreachChannel: channel,
+      status: LeadStatus.CONTACTED
+    });
+    
+    // Log the activity
+    await prisma.activity.create({
+      data: {
+        type: "NOTE",
+        description: `Marked as contacted via ${channel.replace(/_/g, " ")}`,
+        leadId: id,
+        createdBy: "SYSTEM",
+      }
+    });
+
+    revalidatePath("/leads");
+    revalidatePath(`/leads/${id}`);
+    return { success: true, lead: updatedLead };
+  } catch (error) {
+    console.error("Error marking lead as contacted:", error);
+    return { success: false, error: "Failed to update lead" };
+  }
+}
+
+export async function logCallAttempt(leadId: string, outcome: 'ANSWERED' | 'NO_ANSWER' | 'VOICEMAIL') {
+  try {
+    const outcomeText = outcome === 'ANSWERED' ? 'Answered' : outcome === 'NO_ANSWER' ? 'No Answer' : 'Left Voicemail';
+    await LeadService.addActivity(leadId, ActivityType.CALL, `Call Attempt: ${outcomeText}`);
+    await LeadService.updateLead(leadId, { status: LeadStatus.CONTACTED } as any);
+    revalidatePath("/leads");
+    revalidatePath(`/leads/${leadId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error logging call:", error);
+    return { success: false, error: error.message || "Failed to log call" };
+  }
+}

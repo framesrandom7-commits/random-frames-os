@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/module";
 import StatusBadge from "@/components/leads/status-badge";
 import PriorityBadge from "@/components/leads/priority-badge";
+import { LeadStatus } from "@prisma/client";
+import { QuickOutreachActions } from "@/components/leads/quick-outreach-actions";
+import { OutreachActionButtons } from "@/components/leads/outreach-action-buttons";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mail, Phone, MapPin, Globe, AtSign, Clock, Star, Plus } from "lucide-react";
 import Link from "next/link";
@@ -119,6 +122,15 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
               {lead.status !== "CONVERTED" && lead.status !== "LOST" && (
                 <ConvertToClientButton lead={lead} />
               )}
+              <OutreachActionButtons 
+                leadId={lead.id}
+                email={lead.email}
+                phone={lead.phone}
+                whatsapp={lead.whatsapp}
+                instagram={lead.instagram}
+                status={lead.status}
+                outreachChannel={lead.outreachChannel}
+              />
             </div>
           )}
         </div>
@@ -130,56 +142,18 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
             <div className="mb-4">
               <Typography variant="sectionTitle">Contact Information</Typography>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-zinc-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-zinc-500">Email</p>
-                  <p className="text-white">{lead.email || "—"}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-zinc-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-zinc-500">Phone</p>
-                  <p className="text-white">{lead.phone || "—"}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-green-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-zinc-500">WhatsApp</p>
-                  <p className="text-white">{lead.whatsapp || "—"}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Globe className="w-5 h-5 text-zinc-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-zinc-500">Website</p>
-                  <p className="text-white">
-                    {lead.website ? (
-                      <a href={lead.website} target="_blank" rel="noopener noreferrer" className="text-[#C1121F] hover:underline">
-                        {lead.website}
-                      </a>
-                    ) : "—"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <AtSign className="w-5 h-5 text-zinc-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-zinc-500">Instagram</p>
-                  <p className="text-white">{lead.instagram || "—"}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 md:col-span-2">
-                <MapPin className="w-5 h-5 text-zinc-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-zinc-500">Address</p>
-                  <p className="text-white">{fullAddress || "—"}</p>
-                </div>
-              </div>
-            </div>
+            <QuickOutreachActions
+              leadId={lead.id}
+              email={lead.email}
+              phone={lead.phone}
+              whatsapp={lead.whatsapp}
+              instagram={lead.instagram}
+              website={lead.website}
+              fullAddress={fullAddress}
+              status={lead.status}
+              outreachChannel={lead.outreachChannel}
+              activities={lead.activities || []}
+            />
           </ModuleDetailsSection>
 
           <ModuleDetailsSection>

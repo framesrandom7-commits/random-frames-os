@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { exportDatabaseBackup } from "@/app/actions/settings";
 import { Download, Upload, ShieldAlert, Database, AlertTriangle, Trash2 } from "lucide-react";
-import { executeDataDeletion, sendOtpForPinReset, verifyOtpAndSetPin, getCurrentUserSession } from "@/app/actions/security";
+import { executeDataDeletion, sendOtpForPinReset, verifyOtpAndSetPin, getCurrentUserSession, getDataWipeLogs } from "@/app/actions/security";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
 
 export default function BackupTab() {
   const [isExporting, setIsExporting] = useState(false);
@@ -19,6 +20,7 @@ export default function BackupTab() {
   const [userEmail, setUserEmail] = useState("");
   const [deleteTarget, setDeleteTarget] = useState("");
   const [isDangerModalOpen, setIsDangerModalOpen] = useState(false);
+  const [wipeLogs, setWipeLogs] = useState<any[]>([]);
   
   const [pin, setPin] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -32,18 +34,24 @@ export default function BackupTab() {
   const [modalMessage, setModalMessage] = useState<{type: "success" | "error", text: string} | null>(null);
 
   useEffect(() => {
-    const checkRole = async () => {
+    const fetchData = async () => {
       try {
         const result = await getCurrentUserSession();
         if (result.success && result.user?.role?.toUpperCase() === "FOUNDER") {
           setIsFounder(true);
           setUserEmail(result.user.email || "");
+          
+          // Fetch wipe logs for founder
+          const logsResult = await getDataWipeLogs();
+          if (logsResult.success) {
+            setWipeLogs(logsResult.data || []);
+          }
         }
       } catch (e) {
         console.error(e);
       }
     };
-    checkRole();
+    fetchData();
   }, []);
 
   const handleExport = async () => {
@@ -102,6 +110,8 @@ export default function BackupTab() {
           setPin("");
           setDeleteTarget("");
           setModalMessage(null);
+          // Refresh logs
+          getDataWipeLogs().then(r => r.success && setWipeLogs(r.data || []));
         }, 2000);
       } else {
         setModalMessage({ type: "error", text: result.error || "Failed to delete data." });
@@ -169,98 +179,124 @@ export default function BackupTab() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div>
+    <div className="max-w-6xl">
+      <div className="mb-6">
         <h3 className="text-lg font-medium text-white">Backup & Restore</h3>
         <p className="text-sm text-zinc-400">Export your data or restore from a previous backup.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         
-        <div className="bg-white/5 border border-white/10 rounded-lg p-6 flex flex-col items-center text-center">
-          <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-4">
-            <Download className="w-6 h-6" />
-          </div>
-          <h4 className="text-white font-medium text-lg mb-2">Export Database</h4>
-          <p className="text-zinc-400 text-sm mb-6">
-            Download a complete JSON snapshot of all your Leads, Clients, Projects, Settings, and Financial records.
-          </p>
-          <Button onClick={handleExport} disabled={isExporting} className="w-full bg-white/10 hover:bg-white/20 text-white">
-            {isExporting ? "Exporting..." : "Download Backup"}
-          </Button>
-        </div>
-
-        <div className="bg-white/5 border border-white/10 rounded-lg p-6 flex flex-col items-center text-center">
-          <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center mb-4">
-            <Upload className="w-6 h-6" />
-          </div>
-          <h4 className="text-white font-medium text-lg mb-2">Restore Database</h4>
-          <p className="text-zinc-400 text-sm mb-6">
-            Upload a previously exported JSON backup file to restore your entire workspace.
-          </p>
-          <Button onClick={handleImportClick} variant="outline" className="w-full border-white/10 text-zinc-300 hover:text-white">
-            Upload Backup File
-          </Button>
-        </div>
-
-      </div>
-
-      <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-3">
-        <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-        <div>
-          <h5 className="text-amber-500 font-medium">Important Warning</h5>
-          <p className="text-amber-500/80 text-sm mt-1">
-            Keep your backup files secure. They contain sensitive client and financial data. Restoring a backup will completely overwrite your current database.
-          </p>
-        </div>
-      </div>
-
-      {isFounder && (
-        <div className="mt-8 border border-red-500/30 bg-[#111] rounded-lg p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-red-500/10 rounded-lg">
-              <AlertTriangle className="text-red-500 w-5 h-5" />
+        {/* Left Column: Backup & Restore */}
+        <div className="space-y-6">
+          <div className="bg-white/5 border border-white/10 rounded-lg p-6 flex flex-col items-center text-center">
+            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mb-4">
+              <Download className="w-6 h-6" />
             </div>
+            <h4 className="text-white font-medium text-lg mb-2">Export Database</h4>
+            <p className="text-zinc-400 text-sm mb-6">
+              Download a complete JSON snapshot of all your Leads, Clients, Projects, Settings, and Financial records.
+            </p>
+            <Button onClick={handleExport} disabled={isExporting} className="w-full bg-white/10 hover:bg-white/20 text-white mt-auto">
+              {isExporting ? "Exporting..." : "Download Backup"}
+            </Button>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-lg p-6 flex flex-col items-center text-center">
+            <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center mb-4">
+              <Upload className="w-6 h-6" />
+            </div>
+            <h4 className="text-white font-medium text-lg mb-2">Restore Database</h4>
+            <p className="text-zinc-400 text-sm mb-6">
+              Upload a previously exported JSON backup file to restore your entire workspace.
+            </p>
+            <Button onClick={handleImportClick} variant="outline" className="w-full border-white/10 text-zinc-300 hover:text-white mt-auto">
+              Upload Backup File
+            </Button>
+          </div>
+
+          <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-3">
+            <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-red-500 font-medium text-lg">Danger Zone</h4>
-              <p className="text-zinc-400 text-sm">
-                Permanently delete data from your system. This action is irreversible. Requires Founder PIN.
+              <h5 className="text-amber-500 font-medium">Important Warning</h5>
+              <p className="text-amber-500/80 text-sm mt-1">
+                Keep your backup files secure. They contain sensitive client and financial data. Restoring a backup will completely overwrite your current database.
               </p>
             </div>
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 items-end mt-6">
-            <div className="flex-1 space-y-2 w-full">
-              <Label className="text-zinc-400 text-xs">Select data to delete</Label>
-              <Select value={deleteTarget} onValueChange={setDeleteTarget}>
-                <SelectTrigger className="bg-black/50 border-white/10 text-white">
-                  <SelectValue placeholder="Select Data Type..." />
-                </SelectTrigger>
-                <SelectContent side="top" className="bg-zinc-900 border-white/10 text-white">
-                  <SelectItem value="LEADS">Leads</SelectItem>
-                  <SelectItem value="CLIENTS">Clients</SelectItem>
-                  <SelectItem value="QUOTATIONS">Quotations</SelectItem>
-                  <SelectItem value="INVOICES">Invoices</SelectItem>
-                  <SelectItem value="PAYMENTS">Payments</SelectItem>
-                  <SelectItem value="EXPENSES">Expenses</SelectItem>
-                  <SelectItem value="PROJECTS">Projects</SelectItem>
-                  <SelectItem value="SHOOTS">Shoots</SelectItem>
-                  <SelectItem value="DELIVERABLES">Deliverables</SelectItem>
-                  <SelectItem value="ALL" className="text-red-500 font-bold bg-red-500/10 hover:bg-red-500/20">Delete All (Wipe Everything)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <Button 
-              variant="destructive" 
-              onClick={handleOpenDeleteModal}
-              className="w-full sm:w-auto"
-            >
-              <Trash2 className="w-4 h-4 mr-2" /> Delete Data
-            </Button>
-          </div>
         </div>
-      )}
+
+        {/* Right Column: Danger Zone */}
+        <div className="space-y-6">
+          {isFounder && (
+            <div className="border border-red-500/30 bg-[#111] rounded-lg p-6 h-full flex flex-col">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-red-500/10 rounded-lg">
+                  <AlertTriangle className="text-red-500 w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-red-500 font-medium text-lg">Danger Zone</h4>
+                  <p className="text-zinc-400 text-sm">
+                    Permanently delete data from your system. This action is irreversible. Requires Founder PIN.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 mt-6">
+                <div className="space-y-2 w-full">
+                  <Label className="text-zinc-400 text-xs">Select data to delete</Label>
+                  <Select value={deleteTarget} onValueChange={setDeleteTarget}>
+                    <SelectTrigger className="bg-black/50 border-white/10 text-white w-full">
+                      <SelectValue placeholder="Select Data Type..." />
+                    </SelectTrigger>
+                    <SelectContent side="top" className="bg-zinc-900 border-white/10 text-white">
+                      <SelectItem value="LEADS">Leads</SelectItem>
+                      <SelectItem value="CLIENTS">Clients</SelectItem>
+                      <SelectItem value="QUOTATIONS">Quotations</SelectItem>
+                      <SelectItem value="INVOICES">Invoices</SelectItem>
+                      <SelectItem value="PAYMENTS">Payments</SelectItem>
+                      <SelectItem value="EXPENSES">Expenses</SelectItem>
+                      <SelectItem value="PROJECTS">Projects</SelectItem>
+                      <SelectItem value="SHOOTS">Shoots</SelectItem>
+                      <SelectItem value="DELIVERABLES">Deliverables</SelectItem>
+                      <SelectItem value="ALL" className="text-red-500 font-bold bg-red-500/10 hover:bg-red-500/20">Delete All (Wipe Everything)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <Button 
+                  variant="destructive" 
+                  onClick={handleOpenDeleteModal}
+                  className="w-full mt-2"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> Delete Data
+                </Button>
+              </div>
+
+              {wipeLogs.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-white/5">
+                  <h5 className="text-white font-medium text-sm mb-4">Recent Wipes</h5>
+                  <div className="space-y-3">
+                    {wipeLogs.map((log) => (
+                      <div key={log.id} className="bg-black/30 border border-white/5 p-3 rounded-lg flex items-center justify-between text-xs">
+                        <div>
+                          <span className="text-red-400 font-bold tracking-wider">{log.entityId}</span>
+                          <p className="text-zinc-500 mt-0.5">
+                            By <span className="text-zinc-300">{log.user?.name || log.user?.email || "Unknown"}</span>
+                          </p>
+                        </div>
+                        <div className="text-right text-zinc-500 font-mono">
+                          {format(new Date(log.createdAt), "dd MMM yyyy, HH:mm")}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Security PIN Modal */}
       <Dialog open={isDangerModalOpen} onOpenChange={setIsDangerModalOpen}>
