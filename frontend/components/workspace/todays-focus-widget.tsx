@@ -32,7 +32,7 @@ export default async function TodaysFocusWidget() {
   const allLeadsData = await LeadService.getLeads({});
   const allLeads = allLeadsData.leads;
   const leads = allLeads.filter((l: any) => 
-    [LeadStatus.NEW, LeadStatus.CONTACTED, LeadStatus.REQUIREMENT_DISCUSSION].includes(l.status as any) &&
+    [LeadStatus.NEW, LeadStatus.CONTACTED, LeadStatus.NO_RESPONSE, LeadStatus.REPLIED, LeadStatus.INTERESTED, LeadStatus.QUALIFIED].includes(l.status as any) &&
     new Date(l.createdAt) >= sevenDaysAgo
   ).slice(0, 3);
 

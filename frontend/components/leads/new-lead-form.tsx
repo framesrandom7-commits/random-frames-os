@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { leadSchema, LeadFormData } from "@/lib/validations/lead";
 import { createLead } from "@/app/actions/lead";
 import { checkUniqueContact } from "@/app/actions/validation";
-import { LeadStatus, LeadPriority, LeadSource, BusinessType, ReminderType, PreferredContact } from "@prisma/client";
+import { LeadStatus, LeadPriority, LeadSource, BusinessType, ReminderType, PreferredContact, OutreachChannel } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,7 @@ export function NewLeadForm({ customFields = [], className }: { customFields?: a
       postalCode: "",
       businessType: undefined,
       leadSource: undefined,
+      outreachChannel: undefined,
       status: undefined,
       priority: undefined,
       reminderType: undefined,
@@ -77,6 +78,7 @@ export function NewLeadForm({ customFields = [], className }: { customFields?: a
   // eslint-disable-next-line react-hooks/incompatible-library
   const businessType = watch("businessType");
   const leadSource = watch("leadSource");
+  const outreachChannel = watch("outreachChannel");
   const status = watch("status");
   const priority = watch("priority");
   const reminderType = watch("reminderType");
@@ -321,6 +323,19 @@ export function NewLeadForm({ customFields = [], className }: { customFields?: a
               </SelectTrigger>
               <SelectContent className="bg-zinc-900 border-white/10">
                 {Object.values(LeadSource).map((t) => (
+                  <SelectItem key={t} value={t} className="text-zinc-200 focus:bg-white/10">{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-zinc-300">Outreach Channel</Label>
+            <Select onValueChange={(v) => setValue("outreachChannel", v as OutreachChannel)} value={outreachChannel || undefined}>
+              <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectValue placeholder="- - -" />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 border-white/10">
+                {Object.values(OutreachChannel).map((t) => (
                   <SelectItem key={t} value={t} className="text-zinc-200 focus:bg-white/10">{t}</SelectItem>
                 ))}
               </SelectContent>

@@ -221,8 +221,16 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
+                <span className="text-zinc-400">Creation Type</span>
+                <span className="text-white capitalize">{(lead.creationType || 'MANUAL').replace(/_/g, " ").toLowerCase()}</span>
+              </div>
+              <div className="flex items-center justify-between">
                 <span className="text-zinc-400">Source</span>
                 <span className="text-white capitalize">{lead.leadSource.replace(/_/g, " ").toLowerCase()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-400">Outreach Channel</span>
+                <span className="text-white capitalize">{lead.outreachChannel ? lead.outreachChannel.replace(/_/g, " ").toLowerCase() : "—"}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-zinc-400">Business Type</span>

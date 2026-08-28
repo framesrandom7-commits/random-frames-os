@@ -16,22 +16,22 @@ interface LeadKanbanProps {
   {
     id: "INBOUND",
     label: "Inbound",
-    statuses: [LeadStatus.NEW, LeadStatus.CONTACTED]
+    statuses: [LeadStatus.NEW, LeadStatus.CONTACTED, LeadStatus.NO_RESPONSE, LeadStatus.REPLIED]
+  },
+  {
+    id: "ENGAGED",
+    label: "Engaged",
+    statuses: [LeadStatus.INTERESTED, LeadStatus.QUALIFIED, LeadStatus.FOLLOW_UP_LATER]
   },
   {
     id: "IN_PROGRESS",
     label: "In Progress",
-    statuses: [LeadStatus.MEETING_SCHEDULED, LeadStatus.QUOTE_SENT]
-  },
-  {
-    id: "CLOSING",
-    label: "Closing",
-    statuses: [LeadStatus.QUOTE_APPROVED, LeadStatus.ADVANCE_PENDING]
+    statuses: [LeadStatus.DISCOVERY, LeadStatus.PROPOSAL, LeadStatus.NEGOTIATION]
   },
   {
     id: "COMPLETED",
     label: "Completed",
-    statuses: [LeadStatus.CONVERTED, LeadStatus.LOST, LeadStatus.ON_HOLD]
+    statuses: [LeadStatus.WON, LeadStatus.CLIENT, LeadStatus.LOST, LeadStatus.NOT_INTERESTED]
   }
 ];
 

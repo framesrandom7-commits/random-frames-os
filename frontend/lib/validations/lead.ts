@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 const BusinessTypeEnum = z.enum(["CORPORATE", "WEDDING", "FASHION", "REAL_ESTATE", "EVENTS", "COMMERCIAL", "PORTRAIT", "OTHER"]);
-const LeadSourceEnum = z.enum(["WEBSITE", "WHATSAPP", "INSTAGRAM", "FACEBOOK", "REFERRAL", "WALK_IN", "PHONE_CALL", "MANUAL", "OTHER"]);
-const LeadStatusEnum = z.enum(["NEW", "CONTACTED", "REQUIREMENT_DISCUSSION", "QUOTE_SENT", "NEGOTIATION", "QUOTE_APPROVED", "ADVANCE_PENDING", "CONVERTED", "LOST"]);
+const CreationTypeEnum = z.enum(["MANUAL", "AUTOMATED"]);
+const OutreachChannelEnum = z.enum(["INSTAGRAM_DM", "PHONE", "WHATSAPP", "EMAIL", "IN_PERSON", "LINKEDIN", "OTHER"]);
+const LeadSourceEnum = z.enum(["INSTAGRAM", "GOOGLE_MAPS", "REFERRAL", "NETWORKING", "WEBSITE", "WALK_IN", "LINKEDIN", "EXISTING_CONTACT", "OTHER", "WHATSAPP", "FACEBOOK", "PHONE_CALL", "MANUAL"]);
+const LeadStatusEnum = z.enum(["NEW", "CONTACTED", "NO_RESPONSE", "REPLIED", "INTERESTED", "QUALIFIED", "DISCOVERY", "PROPOSAL", "NEGOTIATION", "WON", "CLIENT", "LOST", "NOT_INTERESTED", "FOLLOW_UP_LATER"]);
 const PreferredContactEnum = z.enum(["WHATSAPP", "PHONE", "EMAIL"]);
 const LostReasonEnum = z.enum(["PRICE_TOO_HIGH", "CHOSE_ANOTHER_PHOTOGRAPHER", "BUDGET_ISSUES", "PROJECT_CANCELLED", "JUST_AN_ENQUIRY", "NO_RESPONSE", "TIMING_ISSUES", "NOT_INTERESTED", "DUPLICATE_LEAD", "OTHER"]);
 const LeadPriorityEnum = z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]);
@@ -27,6 +29,8 @@ export const leadSchema = z.object({
   serviceInterested: z.string().max(255).optional().nullable().or(z.literal("")),
   preferredContactMethod: PreferredContactEnum.optional().nullable(),
   leadSource: LeadSourceEnum.default("OTHER"),
+  creationType: CreationTypeEnum.default("MANUAL"),
+  outreachChannel: OutreachChannelEnum.optional().nullable(),
   status: LeadStatusEnum.default("NEW"),
   priority: LeadPriorityEnum.default("MEDIUM"),
   

@@ -164,6 +164,8 @@ model Lead {
   serviceInterested      String?
   preferredContactMethod PreferredContact?
   leadSource             LeadSource          @default(OTHER)
+  creationType           CreationType        @default(MANUAL)
+  outreachChannel        OutreachChannel?
   status                 LeadStatus          @default(NEW)
   priority               LeadPriority        @default(MEDIUM)
   budget                 Decimal?            @db.Decimal(10, 2)
@@ -1042,13 +1044,33 @@ model InternalNote {
 enum LeadStatus {
   NEW
   CONTACTED
-  REQUIREMENT_DISCUSSION
-  QUOTE_SENT
+  NO_RESPONSE
+  REPLIED
+  INTERESTED
+  QUALIFIED
+  DISCOVERY
+  PROPOSAL
   NEGOTIATION
-  QUOTE_APPROVED
-  ADVANCE_PENDING
-  CONVERTED
+  WON
+  CLIENT
   LOST
+  NOT_INTERESTED
+  FOLLOW_UP_LATER
+}
+
+enum CreationType {
+  MANUAL
+  AUTOMATED
+}
+
+enum OutreachChannel {
+  INSTAGRAM_DM
+  PHONE
+  WHATSAPP
+  EMAIL
+  IN_PERSON
+  LINKEDIN
+  OTHER
 }
 
 enum LeadPriority {
@@ -1059,15 +1081,20 @@ enum LeadPriority {
 }
 
 enum LeadSource {
-  WEBSITE
-  WHATSAPP
   INSTAGRAM
-  FACEBOOK
+  GOOGLE_MAPS
   REFERRAL
+  NETWORKING
+  WEBSITE
   WALK_IN
+  LINKEDIN
+  EXISTING_CONTACT
+  OTHER
+  // Legacy
+  WHATSAPP
+  FACEBOOK
   PHONE_CALL
   MANUAL
-  OTHER
 }
 
 enum PreferredContact {

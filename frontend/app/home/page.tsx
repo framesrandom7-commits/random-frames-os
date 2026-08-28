@@ -35,7 +35,7 @@ export default async function Home() {
   });
 
   const openLeadsCount = await prisma.lead.count({
-    where: { status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] } }
+    where: { status: { notIn: [LeadStatus.CLIENT, LeadStatus.WON, LeadStatus.LOST, LeadStatus.NOT_INTERESTED] } }
   });
 
   const pendingInvoices = await prisma.invoice.aggregate({

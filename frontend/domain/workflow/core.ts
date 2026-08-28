@@ -107,20 +107,27 @@ export function calculateLeadProgress(status: LeadStatus): number {
     case LeadStatus.NEW:
       return 10;
     case LeadStatus.CONTACTED:
-      return 30;
-    case LeadStatus.REQUIREMENT_DISCUSSION:
-    case LeadStatus.QUOTE_SENT:
-      return 50;
+    case LeadStatus.NO_RESPONSE:
+      return 20;
+    case LeadStatus.REPLIED:
+    case LeadStatus.INTERESTED:
+      return 40;
+    case LeadStatus.QUALIFIED:
+    case LeadStatus.DISCOVERY:
+      return 60;
+    case LeadStatus.PROPOSAL:
     case LeadStatus.NEGOTIATION:
-    case LeadStatus.QUOTE_APPROVED:
-    case LeadStatus.ADVANCE_PENDING:
       return 80;
-    case LeadStatus.CONVERTED:
+    case LeadStatus.WON:
+    case LeadStatus.CLIENT:
       return 100;
     case LeadStatus.LOST:
+    case LeadStatus.NOT_INTERESTED:
       return 0;
+    case LeadStatus.FOLLOW_UP_LATER:
+      return 30;
     default:
-      return 60;
+      return 50;
   }
 }
 

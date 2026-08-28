@@ -131,14 +131,14 @@ export class LeadService {
   static async updateStatus(id: string, status: LeadStatus) {
     let finalStatus = status;
 
-    if (status === LeadStatus.QUOTE_APPROVED) {
+    // If status updated to WON, ensure a quote exists
+    if (status === LeadStatus.WON) {
       const leadData = await LeadRepository.findById(id);
       if (leadData && leadData.email) {
         const { sendClientFormEmail } = await import("@/lib/email");
         const result = await sendClientFormEmail(leadData.id, leadData.email, leadData.businessName || "Client");
-        if (result.success) {
-          finalStatus = LeadStatus.ADVANCE_PENDING;
-        }
+        // If quotation has an advance required and no payment recorded, stay at WON or maybe introduce a new status if needed, but for now just stay WON
+        finalStatus = LeadStatus.WON;
       }
     }
 
@@ -199,7 +199,7 @@ export class LeadService {
     }
   }
 
-  static async getStats() {
+  static async getStats(userId?: string) {
     const now = new Date();
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -224,11 +224,12 @@ export class LeadService {
       // Active leads
       LeadRepository.count({
         archivedAt: null,
-        status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] }
+        status: { notIn: [LeadStatus.CLIENT, LeadStatus.WON, LeadStatus.LOST, LeadStatus.NOT_INTERESTED] }
       }),
       LeadRepository.count({
         archivedAt: null,
-        status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] },
+        ownerId: userId,
+        status: { notIn: [LeadStatus.CLIENT, LeadStatus.WON, LeadStatus.LOST, LeadStatus.NOT_INTERESTED] },
         createdAt: { lte: endOfLastMonth }
       }),
 
@@ -249,7 +250,7 @@ export class LeadService {
       }),
 
       // Total won all time for conversion rate
-      LeadRepository.count({ archivedAt: null, status: LeadStatus.CONVERTED }),
+      LeadRepository.count({ archivedAt: null, status: LeadStatus.CLIENT }),
 
       // Follow-ups today
       prisma.leadReminder.count({
@@ -376,7 +377,7 @@ export class LeadService {
     });
 
     await LeadRepository.update(id, { 
-      status: LeadStatus.CONVERTED,
+      status: LeadStatus.CLIENT,
       convertedToClient: { connect: { id: client.id } }
     });
 

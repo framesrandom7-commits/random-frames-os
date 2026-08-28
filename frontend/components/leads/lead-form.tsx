@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { LeadStatus, LeadPriority, LeadSource, BusinessType, ReminderType } from "@prisma/client";
+import { LeadStatus, LeadPriority, LeadSource, BusinessType, ReminderType, OutreachChannel } from "@prisma/client";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { leadSchema, LeadFormData, leadUpdateSchema, LeadUpdateFormData } from "@/lib/validations/lead";
@@ -42,6 +42,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
       postalCode: "",
       businessType: undefined,
       leadSource: undefined,
+      outreachChannel: undefined,
       status: undefined,
       priority: undefined,
       budget: null,
@@ -79,6 +80,7 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
         postalCode: "",
         businessType: BusinessType.OTHER,
         leadSource: LeadSource.OTHER,
+        outreachChannel: undefined,
         status: LeadStatus.NEW,
         priority: LeadPriority.MEDIUM,
         budget: null,
@@ -274,6 +276,27 @@ export default function LeadForm({ open, onOpenChange, lead }: LeadFormProps) {
                     </SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white">
                       {Object.values(LeadSource).map(s => (
+                        <SelectItem key={s} value={s}>{s.replace(/_/g, " ")}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            
+            {/* Outreach Channel */}
+            <div className="space-y-2">
+              <Label htmlFor="outreachChannel" className="text-zinc-400">Outreach Channel</Label>
+              <Controller
+                name="outreachChannel"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <SelectTrigger className="bg-zinc-900/50 border-white/10 focus:ring-[#C1121F]">
+                      <SelectValue placeholder="- - -" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                      {Object.values(OutreachChannel).map(s => (
                         <SelectItem key={s} value={s}>{s.replace(/_/g, " ")}</SelectItem>
                       ))}
                     </SelectContent>
