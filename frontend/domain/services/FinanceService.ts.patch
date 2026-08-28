@@ -1,0 +1,28 @@
+--- frontend/domain/services/FinanceService.ts
++++ frontend/domain/services/FinanceService.ts
+@@ -370,4 +370,30 @@
+ 
++  static async getPaymentById(id: string) {
++    return await prisma.payment.findUnique({
++      where: { id },
++      include: {
++        client: true,
++        project: true,
++        invoice: true,
++      }
++    });
++  }
++
++  static async updatePayment(id: string, data: any) {
++    const payment = await prisma.payment.update({
++      where: { id },
++      data: {
++        ...data
++      }
++    });
++    
++    // Let's not do ledger stuff here, it's a simple update
++    return payment;
++  }
++
+   // ... Ledger & Other ...

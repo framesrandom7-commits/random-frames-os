@@ -37,7 +37,6 @@ export function ClientsModuleClient({
   return (
     <ModulePage 
       title="Clients"
-      subtitle="Manage your client relationships"
       primaryAction={
         <Link href="?new=client">
           <Button className="bg-[#C1121F] text-white hover:bg-[#a00f1a]">

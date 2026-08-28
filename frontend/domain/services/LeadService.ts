@@ -200,21 +200,58 @@ export class LeadService {
   }
 
   static async getStats() {
-    const [totalActive, wonThisMonth, lostThisMonth, followUpsToday] = await Promise.all([
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+    const [
+      totalAllTime,
+      totalAllTimeLastMonth,
+      totalActive,
+      totalActiveLastMonth,
+      newThisMonth,
+      newLastMonth,
+      wonThisMonth,
+      wonLastMonth,
+      totalWonAllTime,
+      followUpsToday
+    ] = await Promise.all([
+      // Total leads
+      LeadRepository.count({ archivedAt: null }),
+      LeadRepository.count({ archivedAt: null, createdAt: { lte: endOfLastMonth } }),
+      
+      // Active leads
       LeadRepository.count({
         archivedAt: null,
         status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] }
       }),
       LeadRepository.count({
         archivedAt: null,
+        status: { notIn: [LeadStatus.CONVERTED, LeadStatus.LOST] },
+        createdAt: { lte: endOfLastMonth }
+      }),
+
+      // New leads
+      LeadRepository.count({ archivedAt: null, createdAt: { gte: startOfThisMonth } }),
+      LeadRepository.count({ archivedAt: null, createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } }),
+
+      // Won leads
+      LeadRepository.count({
+        archivedAt: null,
         status: LeadStatus.CONVERTED,
-        updatedAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
+        updatedAt: { gte: startOfThisMonth }
       }),
       LeadRepository.count({
         archivedAt: null,
-        status: LeadStatus.LOST,
-        updatedAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) }
+        status: LeadStatus.CONVERTED,
+        updatedAt: { gte: startOfLastMonth, lte: endOfLastMonth }
       }),
+
+      // Total won all time for conversion rate
+      LeadRepository.count({ archivedAt: null, status: LeadStatus.CONVERTED }),
+
+      // Follow-ups today
       prisma.leadReminder.count({
         where: {
           completed: false,
@@ -226,7 +263,25 @@ export class LeadService {
       })
     ]);
 
-    return { totalActive, wonThisMonth, lostThisMonth, followUpsToday };
+    const calculateTrend = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 100);
+    };
+
+    const conversionRate = totalAllTime > 0 ? Math.round((totalWonAllTime / totalAllTime) * 100) : 0;
+
+    return { 
+      totalAllTime,
+      totalAllTimeTrend: calculateTrend(totalAllTime, totalAllTimeLastMonth),
+      totalActive,
+      totalActiveTrend: calculateTrend(totalActive, totalActiveLastMonth),
+      newThisMonth,
+      newThisMonthTrend: calculateTrend(newThisMonth, newLastMonth),
+      wonThisMonth,
+      wonThisMonthTrend: calculateTrend(wonThisMonth, wonLastMonth),
+      followUpsToday,
+      conversionRate
+    };
   }
 
   static async importLeads(data: LeadFormData[]) {

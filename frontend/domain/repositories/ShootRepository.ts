@@ -118,6 +118,7 @@ export class ShootRepository {
           [sortBy]: sortOrder,
         },
         include: {
+          client: true,
           project: {
             include: {
               client: true

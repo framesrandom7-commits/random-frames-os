@@ -112,29 +112,60 @@ export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
 
       <div className="grid gap-6 md:grid-cols-7">
         {/* Chart */}
-        <Card className="md:col-span-4 bg-white/5 border-white/10 backdrop-blur-md">
+        <Card className="md:col-span-4 bg-white/5 border-white/10 backdrop-blur-md h-full flex flex-col">
           <CardHeader>
             <CardTitle className="text-white text-base">Revenue vs Expenses (6 Months)</CardTitle>
           </CardHeader>
-          <CardContent className="pl-0 pr-4 pb-4">
-            <div className="h-[300px] w-full">
+          <CardContent className="pb-4 flex-1 flex flex-col min-h-0">
+            <div className="flex-1 w-full min-h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={stats.chartData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                  <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                  <Tooltip 
-                    cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#3f3f46', color: '#fff', borderRadius: '8px' }}
-                    itemStyle={{ color: '#fff' }}
-                    formatter={(value: any) => [formatCurrency(Number(value || 0)), '']}
+                  <BarChart
+                    data={stats.chartData}
+                    margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis 
+                      hide
+                      width={0}
+                      domain={[(dataMin: number) => Math.min(dataMin * 1.1, 0), (dataMax: number) => Math.max(dataMax * 1.1, 10000)]}
+                    />
+                    <Tooltip 
+                      cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                      contentStyle={{ backgroundColor: '#18181b', borderColor: '#3f3f46', color: '#fff', borderRadius: '8px' }}
+                      itemStyle={{ color: '#fff' }}
+                      formatter={(value: any, name: string) => [new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(value || 0)), name]}
+                      itemSorter={(item) => {
+                        if (item.dataKey === 'revenue') return 1;
+                        if (item.dataKey === 'expenses') return 2;
+                        if (item.dataKey === 'netProfit') return 3;
+                        return 4;
+                      }}
+                    />
+                  <Legend 
+                    content={(props) => {
+                      const { payload } = props;
+                      const ordered = [
+                        payload?.find((entry: any) => entry.dataKey === 'revenue'),
+                        payload?.find((entry: any) => entry.dataKey === 'expenses'),
+                        payload?.find((entry: any) => entry.dataKey === 'netProfit')
+                      ].filter(Boolean);
+                      
+                      return (
+                        <div className="flex justify-center gap-6 pt-4 text-xs">
+                          {ordered.map((entry: any, index: number) => (
+                            <div key={`item-${index}`} className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                              <span className="text-zinc-300">{entry.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }}
                   />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                  <Bar dataKey="revenue" name="Revenue" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="revenue" name="Revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} />
                   <Bar dataKey="expenses" name="Expenses" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="netProfit" name="Net Profit" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -142,7 +173,7 @@ export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
         </Card>
 
         {/* Recent Activity */}
-        <div className="md:col-span-3 space-y-6">
+        <div className="md:col-span-3 space-y-6 max-h-[500px] overflow-y-auto pr-2 hide-scrollbar">
           <Card className="bg-white/5 border-white/10 backdrop-blur-md">
             <CardHeader className="pb-3 flex flex-row justify-between items-center">
               <CardTitle className="text-white text-base flex items-center gap-2">
@@ -245,7 +276,7 @@ export default function FinanceDashboard({ stats }: { stats: FinanceStats }) {
                   <div key={expense.id} className="flex items-center justify-between p-2">
                     <div>
                       <div className="font-medium text-white text-sm">{expense.title}</div>
-                      <div className="text-[10px] text-zinc-500 uppercase">{expense.categoryId?.replace("_", " ")}</div>
+                      <div className="text-[10px] text-zinc-500 uppercase">{(expense.category?.name || expense.categoryId || 'Uncategorized').replace("_", " ")}</div>
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-red-400 text-sm">-{formatCurrency(Number(expense.amount))}</div>

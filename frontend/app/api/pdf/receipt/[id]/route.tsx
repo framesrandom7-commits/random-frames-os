@@ -24,9 +24,30 @@ export async function GET(
       return new NextResponse("Payment receipt not found", { status: 404 });
     }
 
-    const { company } = await getSettings();
+        const settings = await getSettings();
+    const { company, invoiceLogo, currency, invoiceFooterNotes } = settings;
 
-    const stream = await renderToStream(<ReceiptPDF payment={payment} companyInfo={company as any} />);
+    const paymentInfo = {
+      acceptUpi: settings.acceptUpi !== false,
+      upiId: settings.PAYMENT_UPI_ID || "",
+      upiQrUrl: settings.PAYMENT_UPI_QR_URL || "",
+      acceptBankTransfer: settings.acceptBankTransfer !== false,
+      bankName: settings.PAYMENT_BANK_NAME || "",
+      accountHolder: settings.PAYMENT_BANK_HOLDER || "",
+      accountNumber: settings.PAYMENT_BANK_ACCOUNT || "",
+      ifscCode: settings.PAYMENT_BANK_IFSC || ""
+    };
+
+    const stream = await renderToStream(
+      <ReceiptPDF 
+        payment={payment} 
+        companyInfo={company as any} 
+        paymentInfo={paymentInfo as any}
+        invoiceLogo={invoiceLogo as string} 
+        currency={currency as string}
+        invoiceFooterNotes={invoiceFooterNotes as string}
+      />
+    );
     
     const readableStream = new ReadableStream({
       start(controller) {

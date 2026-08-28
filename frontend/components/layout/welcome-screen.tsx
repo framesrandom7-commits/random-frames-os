@@ -13,10 +13,10 @@ export function WelcomeScreen({ user }: { user?: { name: string } }) {
     
     if (!hasSeenWelcome) {
       setShow(true);
-      sessionStorage.setItem('hasSeenWelcome', 'true');
       
       const timer = setTimeout(() => {
         setShow(false);
+        sessionStorage.setItem('hasSeenWelcome', 'true');
       }, 1500);
       
       return () => clearTimeout(timer);
@@ -31,11 +31,6 @@ export function WelcomeScreen({ user }: { user?: { name: string } }) {
     return (
       <div className="fixed inset-0 z-[99999] bg-[#0F1115] pointer-events-none" />
     );
-  }
-
-  // If client-side and show is false, render nothing to avoid exit animations
-  if (!show && isClient) {
-    return null;
   }
 
   return (

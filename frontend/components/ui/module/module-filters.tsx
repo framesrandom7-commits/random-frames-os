@@ -97,11 +97,11 @@ export function ModuleFilters({
           return (
               <Select
               key={filter.id}
-              value={searchParams.get(filter.id)?.toString() || "all"}
+              value={searchParams.get(filter.id)?.toString() || ""}
               onValueChange={(val: string | null) => handleFilterChange(filter.id, val || "")}
             >
               <SelectTrigger className="w-[160px] h-9 bg-white/5 backdrop-blur-sm border-white/10">
-                <SelectValue placeholder={filter.placeholder || `Select ${filter.label}`} />
+                <SelectValue placeholder={filter.label} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All {filter.label}</SelectItem>

@@ -3,11 +3,16 @@
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, CheckCircle } from "lucide-react";
+import { ExternalLink, CheckCircle, MoreVertical, FileText, Trash2, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { Prisma } from "@prisma/client";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { deletePayment, deleteMultiplePayments } from "@/app/actions/payment";
 import { CurrencyService } from "@/lib/finance/currency.service";
+import { Checkbox } from "@/components/ui/checkbox";
+import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
 type PaymentWithRelations = Prisma.PaymentGetPayload<{
   include: { client: true; project: true; invoice: true }
@@ -41,21 +46,80 @@ export default function PaymentsTable({ data, clients, projects }: PaymentsTable
     router.push(`${pathname}?${params.toString()}`);
   };
 
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === data.payments.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(data.payments.map(p => p.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (confirm(`Are you sure you want to delete ${selectedIds.length} payments?`)) {
+      setIsDeletingBulk(true);
+      await deleteMultiplePayments(selectedIds);
+      setSelectedIds([]);
+      setIsDeletingBulk(false);
+    }
+  };
+
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this payment receipt?")) {
+      setIsDeleting(id);
+      await deletePayment(id);
+      setIsDeleting(null);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full space-y-4">
+      {/* Toolbar */}
+      {selectedIds.length > 0 && (
+        <div className="flex justify-start bg-white/5 p-4 rounded-lg border border-white/10 backdrop-blur-md">
+          <Button 
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={isDeletingBulk}
+            className="whitespace-nowrap"
+          >
+            <Trash2 className="h-4 w-4 mr-2" /> 
+            {isDeletingBulk ? 'Deleting...' : `Delete (${selectedIds.length})`}
+          </Button>
+        </div>
+      )}
+
       {/* Table Area */}
       <div className="flex-1 overflow-hidden bg-white/5 border border-white/10 rounded-lg flex flex-col backdrop-blur-md">
         <div className="overflow-auto flex-1 custom-scrollbar">
           <Table>
             <TableHeader className="bg-black/40 sticky top-0 z-10 backdrop-blur-md">
               <TableRow className="border-white/5 hover:bg-transparent">
+                <TableHead className="w-[40px] pl-4">
+                  <Checkbox 
+                    checked={selectedIds.length === data.payments.length && data.payments.length > 0}
+                    onChange={toggleSelectAll}
+                    aria-label="Select all"
+                    className="border-white/20 data-[state=checked]:bg-[#C1121F] data-[state=checked]:border-[#C1121F]"
+                  />
+                </TableHead>
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Ref Number</TableHead>
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Date</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Client / Project</TableHead>
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Related Invoice</TableHead>
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap">Method</TableHead>
-                <TableHead className="text-zinc-400 font-medium text-center">PDFs</TableHead>
                 <TableHead className="text-zinc-400 font-medium text-right">Amount</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -70,11 +134,22 @@ export default function PaymentsTable({ data, clients, projects }: PaymentsTable
                 </TableRow>
               ) : (
                 data.payments.map((payment) => (
-                  <TableRow key={payment.id} className="border-white/5 hover:bg-white/5 transition-colors cursor-default">
-                    <TableCell className="font-medium text-white whitespace-nowrap">
-                      {payment.referenceNumber || "—"}
+                  <TableRow key={payment.id} className="border-white/5 hover:bg-white/5 transition-colors group">
+                    <TableCell className="pl-4">
+                      <Checkbox 
+                        checked={selectedIds.includes(payment.id)}
+                        onChange={() => toggleSelect(payment.id)}
+                        aria-label={`Select payment ${payment.referenceNumber}`}
+                        className="border-white/20 data-[state=checked]:bg-[#C1121F] data-[state=checked]:border-[#C1121F]"
+                      />
                     </TableCell>
-                    <TableCell className="text-zinc-300 whitespace-nowrap">
+                    <TableCell>
+                      <Link href={`/finance/payments/${payment.id}`} className="font-medium text-white group-hover:text-[#C1121F] transition-colors flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                        <FileText className="h-4 w-4 text-zinc-500 group-hover:text-[#C1121F] transition-colors" />
+                        {payment.referenceNumber || "—"}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-zinc-300 whitespace-nowrap cursor-default">
                       {new Date(payment.paymentDate).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
@@ -104,17 +179,55 @@ export default function PaymentsTable({ data, clients, projects }: PaymentsTable
                         {payment.paymentMethod.replace("_", " ")}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <a href={`/api/pdf/receipt/${payment.id}`} target="_blank" title="View Receipt" className="px-2 py-1 flex items-center justify-center bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-md transition-colors text-xs font-bold w-7 h-7">
-                          R
-                        </a>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right cursor-default">
                       <div className="font-bold text-emerald-400">
                         {formatCurrency(Number(payment.amount))}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0 text-zinc-400 hover:text-white">
+                            <span className="sr-only">Open menu</span>
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-zinc-900 border-white/10 text-zinc-300">
+                          <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                            <a href={`/api/documents/receipt/${payment.id}/pdf`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-blue-600 hover:text-blue-500 hover:bg-blue-50 rounded">
+                              <FileText className="h-4 w-4 mr-2" /> Download Receipt
+                            </a>
+                          </DropdownMenuItem>
+                          
+                          {payment.client?.phone && (
+                            <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                              <a 
+                                href={whatsappLinks.sendReceipt(
+                                  payment.client.phone, 
+                                  payment.client.contactPerson || payment.client.businessName, 
+                                  Number(payment.amount),
+                                  `https://randomframes.app/api/documents/receipt/${payment.id}/pdf`
+                                )} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center w-full px-2 py-1.5 text-emerald-400 hover:text-emerald-300"
+                              >
+                                <MessageCircle className="h-4 w-4 mr-2" /> Send WhatsApp
+                              </a>
+                            </DropdownMenuItem>
+                          )}
+                          
+                          <div className="h-px bg-white/10 my-1 mx-2" />
+                          
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(payment.id)}
+                            disabled={isDeleting === payment.id}
+                            className="text-red-400 focus:text-red-300 focus:bg-red-400/10 hover:text-red-300 hover:bg-red-400/10 cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" /> {isDeleting === payment.id ? 'Deleting...' : 'Delete Receipt'}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))

@@ -6,6 +6,7 @@ import { EventBus } from "@/domain/events/EventBus";
 import { WorkflowEvent } from "@/lib/workflow/events";
 import { Logger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { getSettings } from "@/app/actions/settings";
 
 export interface InvoiceItemDTO {
   description: string;
@@ -34,16 +35,30 @@ export interface CreateInvoicePayload {
  */
 export class InvoiceEngine {
   static async generateInvoiceNumber(invoiceType: "ADVANCE" | "INTERIM" | "FINAL" | "CREDIT_NOTE" = "INTERIM"): Promise<string> {
-    const config = await BusinessFinanceSettingsService.getConfig();
+    const config = await getSettings();
     const isCreditNote = invoiceType === "CREDIT_NOTE";
     const basePrefix = isCreditNote ? (config.creditNotePrefix || "CN-") : (config.invoicePrefix || "INV-");
     const prefix = `${basePrefix}${new Date().getFullYear()}-`;
+    const startingNumber = config.invoiceStartingNumber ? parseInt(config.invoiceStartingNumber, 10) : 1;
     
     try {
       const last = await prisma.invoice.findFirst({
         where: { invoiceNumber: { startsWith: prefix } },
         orderBy: { invoiceNumber: "desc" }
       });
+      if (!last) return `${prefix}${String(startingNumber).padStart(3, "0")}`;
+      
+      const seqStr = last.invoiceNumber.replace(prefix, "");
+      const seq = parseInt(seqStr, 10);
+      if (isNaN(seq)) {
+        const count = await prisma.invoice.count({ where: { invoiceNumber: { startsWith: prefix } } });
+        return `${prefix}${String(count + 1).padStart(3, "0")}`;
+      }
+      return `${prefix}${String(seq + 1).padStart(3, "0")}`;
+    } catch {
+      return `${prefix}${Math.floor(Math.random() * 900) + 100}`;
+    }
+  });
       if (!last) return `${prefix}001`;
       
       const seqStr = last.invoiceNumber.replace(prefix, "");

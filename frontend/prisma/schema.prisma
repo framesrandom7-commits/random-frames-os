@@ -286,6 +286,7 @@ model Client {
   serviceType            String?
   ownerNotes             String?
   preferredContactMethod PreferredContact?
+  strategy               ClientStrategy?
   notes                  String?
   customFields           Json?
   createdAt              DateTime          @default(now())
@@ -297,6 +298,8 @@ model Client {
   driveFolderUrl         String?
   activities             Activity[]
   calendarEvents         CalendarEvent[]
+  contentDeliverables    ClientContentDeliverable[]
+  contentMetrics         ClientContentMetric[]
   communicationsCenter   Communication[]
   expenses               Expense[]
   followUps              FollowUp[]
@@ -437,6 +440,7 @@ model Shoot {
   project               Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   equipment             ShootEquipment[]
   shots                 ShootShot[]
+  expenses              Expense[]
 }
 
 model ShootEquipment {
@@ -610,6 +614,7 @@ model Expense {
   notes              String?
   clientId           String?
   projectId          String?
+  shootId            String?
   financialAccountId String?
   vendorId           String?
   department         String?               @default("Operations")
@@ -623,6 +628,7 @@ model Expense {
   category           ExpenseCategory       @relation(fields: [categoryId], references: [id])
   client             Client?               @relation(fields: [clientId], references: [id])
   project            Project?              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  shoot              Shoot?                @relation(fields: [shootId], references: [id], onDelete: Cascade)
   financialAccount   FinancialAccount?     @relation(fields: [financialAccountId], references: [id])
   vendorRecord       Vendor?               @relation(fields: [vendorId], references: [id])
   recurringExpense   RecurringExpense?     @relation(fields: [recurringId], references: [id])
@@ -1679,4 +1685,70 @@ enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model ClientStrategy {
+  id              String   @id @default(cuid())
+  clientId        String   @unique
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  brandGuidelines String?  @db.Text
+  targetAudience  String?  @db.Text
+  coreObjectives  String?  @db.Text
+  referenceLinks  String?  @db.Text // Will store JSON string of URLs
+  documents       String?  @db.Text // Will store JSON string of uploaded doc URLs/metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+
+enum ContentFormat {
+  REEL_VIDEO
+  PHOTO_BATCH
+}
+
+enum ContentPipelineStatus {
+  EDITING
+  UPLOADED
+  SHARED
+  APPROVED
+  REVISION_REQUESTED
+}
+
+model ClientContentDeliverable {
+  id          String                @id @default(cuid())
+  clientId    String
+  client      Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title       String
+  format      ContentFormat
+  status      ContentPipelineStatus @default(EDITING)
+  driveLink   String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([clientId])
+}
+
+model ClientContentMetric {
+  id              String   @id @default(cuid())
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title           String
+  platform        String   // "INSTAGRAM" or "YOUTUBE"
+  publishedUrl    String?
+  publishedAt     DateTime @default(now())
+  
+  // Metrics
+  views           Int      @default(0)
+  likes           Int      @default(0)
+  comments        Int      @default(0)
+  shares          Int      @default(0)
+  saves           Int      @default(0)
+  linkClicks      Int      @default(0)
+  leadsGenerated  Int      @default(0)
+  adSpend         Decimal  @default(0) @db.Decimal(10, 2)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clientId])
 }

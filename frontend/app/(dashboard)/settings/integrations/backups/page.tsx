@@ -242,10 +242,16 @@ export default function BackupCenterPage() {
                 <SelectTrigger className="bg-black/50 border-white/10 text-white">
                   <SelectValue placeholder="Select Data Type..." />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                  <SelectItem value="LEADS">Leads & Clients Only</SelectItem>
-                  <SelectItem value="FINANCIALS">Financials (Quotations, Invoices, Expenses)</SelectItem>
-                  <SelectItem value="PROJECTS_SHOOTS">Projects, Shoots & Deliverables</SelectItem>
+                <SelectContent side="top" className="bg-zinc-900 border-white/10 text-white">
+                  <SelectItem value="LEADS">Leads</SelectItem>
+                  <SelectItem value="CLIENTS">Clients</SelectItem>
+                  <SelectItem value="QUOTATIONS">Quotations</SelectItem>
+                  <SelectItem value="INVOICES">Invoices</SelectItem>
+                  <SelectItem value="PAYMENTS">Payments</SelectItem>
+                  <SelectItem value="EXPENSES">Expenses</SelectItem>
+                  <SelectItem value="PROJECTS">Projects</SelectItem>
+                  <SelectItem value="SHOOTS">Shoots</SelectItem>
+                  <SelectItem value="DELIVERABLES">Deliverables</SelectItem>
                   <SelectItem value="ALL" className="text-red-400 font-medium">All Transactional Data (Everything)</SelectItem>
                 </SelectContent>
               </Select>

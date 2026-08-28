@@ -7,174 +7,1679 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  FOUNDER
-  CO_FOUNDER
+model User {
+  id                  String                @id @default(cuid())
+  email               String                @unique
+  name                String?
+  passwordHash        String
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  archivedAt          DateTime?
+  createdBy           String?
+  updatedBy           String?
+  contactEmail        String?
+  roleId              String?
+  availabilities      Availability[]
+  deliveries          Delivery[]
+  eventParticipations EventParticipant[]
+  financialReports    FinancialReport[]
+  followUps           FollowUp[]
+  integrationSettings IntegrationSettings[]
+  internalNotes       InternalNote[]
+  leadsCreated        Lead[]                @relation("LeadCreatedBy")
+  leadsUpdated        Lead[]                @relation("LeadUpdatedBy")
+  notifications       Notification[]
+  tasks               Task[]
+  assignedProjects    Project[]             @relation("ProjectAssignments")
+  role                Role?                 @relation(fields: [roleId], references: [id])
+  leadsOwned          Lead[]                @relation("LeadOwner")
+  approvalRequests    Approval[]            @relation("ApprovalRequests")
+  approvalsGranted    Approval[]            @relation("ApprovalsGranted")
+  securityPin         String?
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+model OtpToken {
+  id        String    @id @default(cuid())
+  email     String
+  otpHash   String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+model IntegrationSettings {
+  id                String    @id @default(cuid())
+  provider          String    @unique
+  accessToken       String?
+  refreshToken      String?
+  tokenExpiry       DateTime?
+  rootFolderId      String?
+  rootFolderUrl     String?
+  calendarId        String?
+  storageUsageBytes BigInt    @default(0)
+  fileCount         Int       @default(0)
+  lastSyncAt        DateTime?
+  syncStatus        String    @default("IDLE")
+  createdAt         DateTime  @default(now())
+  metadata          Json?
+  updatedAt         DateTime  @updatedAt
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id])
+}
+
+model WebhookEndpoint {
+  id                 String    @id @default(cuid())
+  name               String
+  url                String
+  secret             String?
+  eventTypes         String    @default("[]")
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  authenticationType String    @default("HMAC")
+  failureCount       Int       @default(0)
+  lastFailureAt      DateTime?
+  lastSuccessAt      DateTime?
+  retryPolicy        String    @default("EXPONENTIAL_BACKOFF")
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  permissions RolePermission[]
+  users       User[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  action      String           @unique
+  description String?
+  module      String?
+  createdAt   DateTime         @default(now())
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  color     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  leadTags  LeadTag[]
+}
+
+model LeadTag {
+  id        String   @id @default(cuid())
+  leadId    String
+  tagId     String
+  createdAt DateTime @default(now())
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([leadId, tagId])
+}
+
+model Lead {
+  id                     String              @id @default(cuid())
+  businessName           String?
+  contactPerson          String?
+  phone                  String?
+  whatsapp               String?
+  email                  String?
+  instagram              String?
+  website                String?
+  address                String?
+  city                   String?
+  state                  String?
+  country                String?
+  postalCode             String?
+  businessType           BusinessType        @default(OTHER)
+  serviceInterested      String?
+  preferredContactMethod PreferredContact?
+  leadSource             LeadSource          @default(OTHER)
+  status                 LeadStatus          @default(NEW)
+  priority               LeadPriority        @default(MEDIUM)
+  budget                 Decimal?            @db.Decimal(10, 2)
+  currency               String              @default("INR")
+  leadScore              Int                 @default(0)
+  notes                  String?
+  lastContactDate        DateTime?
+  nextFollowUpDate       DateTime?
+  ownerId                String?
+  ownerRemarks           String?
+  lostReason             LostReason?
+  closingRemarks         String?
+  sourceEmailId          String?             @unique
+  convertedToClientId    String?             @unique
+  customFields           Json?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  archivedAt             DateTime?
+  createdById            String?
+  updatedById            String?
+  activities             Activity[]
+  calendarEvents         CalendarEvent[]
+  communicationsCenter   Communication[]
+  followUps              FollowUp[]
+  internalNotes          InternalNote[]
+  convertedToClient      Client?             @relation("LeadConvertedToClient", fields: [convertedToClientId], references: [id])
+  createdBy              User?               @relation("LeadCreatedBy", fields: [createdById], references: [id])
+  updatedBy              User?               @relation("LeadUpdatedBy", fields: [updatedById], references: [id])
+  owner                  User?               @relation("LeadOwner", fields: [ownerId], references: [id])
+  attachments            LeadAttachment[]
+  communications         LeadCommunication[]
+  reminders              LeadReminder[]
+  leadTags               LeadTag[]
+  notifications          Notification[]
+  tasks                  Task[]
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  description String
+  metadata    Json?
+  leadId      String?
+  clientId    String?
+  projectId   String?
+  shootId     String?
+  invoiceId   String?
+  paymentId   String?
+  expenseId   String?
+  createdAt   DateTime     @default(now())
+  createdBy   String?
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  expense     Expense?     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  invoice     Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  lead        Lead?        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  payment     Payment?     @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  shoot       Shoot?       @relation(fields: [shootId], references: [id], onDelete: Restrict)
+}
+
+model LeadCommunication {
+  id        String            @id @default(cuid())
+  type      CommunicationType
+  summary   String
+  details   String?
+  leadId    String
+  clientId  String?
+  projectId String?
+  createdAt DateTime          @default(now())
+  createdBy String?
+  lead      Lead              @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model LeadReminder {
+  id        String       @id @default(cuid())
+  type      ReminderType
+  date      DateTime
+  time      String?
+  completed Boolean      @default(false)
+  leadId    String
+  clientId  String?
+  projectId String?
+  createdAt DateTime     @default(now())
+  createdBy String?
+  lead      Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model LeadAttachment {
+  id        String   @id @default(cuid())
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  fileType  String
+  leadId    String?
+  clientId  String?
+  projectId String?
+  createdAt DateTime @default(now())
+  createdBy String?
+  lead      Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model Client {
+  id                     String            @id @default(cuid())
+  clientCode             String            @unique
+  businessName           String
+  contactPerson          String?
+  phone                  String?
+  email                  String?
+  instagram              String?
+  website                String?
+  address                String?
+  city                   String?
+  state                  String?
+  country                String?
+  postalCode             String?
+  businessType           BusinessType      @default(OTHER)
+  gstNumber              String?
+  whatsapp               String?
+  googleMapsLink         String?
+  serviceType            String?
+  ownerNotes             String?
+  preferredContactMethod PreferredContact?
+  notes                  String?
+  customFields           Json?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  archivedAt             DateTime?
+  createdBy              String?
+  updatedBy              String?
+  driveFolderId          String?
+  driveFolderUrl         String?
+  activities             Activity[]
+  calendarEvents         CalendarEvent[]
+  communicationsCenter   Communication[]
+  expenses               Expense[]
+  followUps              FollowUp[]
+  internalNotes          InternalNote[]
+  invoices               Invoice[]
+  convertedFromLead      Lead?             @relation("LeadConvertedToClient")
+  notifications          Notification[]
+  payments               Payment[]
+  projects               Project[]
+  quotations             Quotation[]
+  shoots                 Shoot[]
+  tasks                  Task[]
+}
+
+model Project {
+  id                       String          @id @default(cuid())
+  projectCode              String          @unique
+  title                    String
+  description              String?
+  category                 ProjectCategory @default(ONE_TIME_SHOOT)
+  status                   ProjectStatus   @default(PLANNING)
+  priority                 ProjectPriority @default(MEDIUM)
+  paymentStatus            PaymentStatus   @default(PENDING)
+  startDate                DateTime?
+  endDate                  DateTime?
+  deliveryDate             DateTime?
+  quotationAmount          Decimal?        @db.Decimal(10, 2)
+  additionalServicesAmount Decimal?        @db.Decimal(10, 2)
+  additionalChargesAmount  Decimal?        @db.Decimal(10, 2)
+  discountAmount           Decimal?        @db.Decimal(10, 2)
+  taxAmount                Decimal?        @db.Decimal(10, 2)
+  advanceAmount            Decimal?        @db.Decimal(10, 2)
+  totalAmount              Decimal?        @db.Decimal(10, 2)
+  balanceAmount            Decimal?        @db.Decimal(10, 2)
+  profitAmount             Decimal?        @db.Decimal(10, 2)
+  notes                    String?
+  clientId                 String
+  quotationId              String?
+  originQuotation          Quotation?      @relation("ProjectOriginQuotation", fields: [quotationId], references: [id])
+  customFields             Json?
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  archivedAt               DateTime?
+  createdBy                String?
+  updatedBy                String?
+  backupFolderId           String?
+  backupFolderUrl          String?
+  deliveryFolderId         String?
+  deliveryFolderUrl        String?
+  documentsFolderId        String?
+  documentsFolderUrl       String?
+  driveRootFolderId        String?
+  driveRootFolderUrl       String?
+  editFolderId             String?
+  editFolderUrl            String?
+  fileCount                Int             @default(0)
+  lastSyncAt               DateTime?
+  rawFolderId              String?
+  rawFolderUrl             String?
+  referencesFolderId       String?
+  referencesFolderUrl      String?
+  socialFolderId           String?
+  socialFolderUrl          String?
+  storageUsageBytes        BigInt          @default(0)
+  syncStatus               String          @default("IDLE")
+  activities               Activity[]
+  calendarEvents           CalendarEvent[]
+  communicationsCenter     Communication[]
+  deliveries               Delivery[]
+  expenses                 Expense[]
+  followUps                FollowUp[]
+  internalNotes            InternalNote[]
+  invoices                 Invoice[]
+  notifications            Notification[]
+  payments                 Payment[]
+  client Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  quotations               Quotation[]
+  reminders                Reminder[]
+  shoots                   Shoot[]
+  tasks                    Task[]
+  assignedUsers            User[]          @relation("ProjectAssignments")
+  contentPlans             ContentPlan[]
+}
+
+model Shoot {
+  id                    String           @id @default(cuid())
+  shootCode             String           @unique
+  title                 String
+  shootType             ShootType        @default(OTHER)
+  status                ShootStatus      @default(UPCOMING)
+  date                  DateTime?
+  startTime             String?
+  endTime               String?
+  location              String?
+  googleMapsLink        String?
+  contactPerson         String?
+  contactNumber         String?
+  photographer          String?
+  videographer          String?
+  assistants            String?
+  weatherNotes          String?
+  notes                 String?
+  projectId             String
+  clientId              String
+  customFields          Json?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  archivedAt            DateTime?
+  createdBy             String?
+  updatedBy             String?
+  callTime              String?
+  clientBrief           String?
+  deliverablesChecklist String?
+  droneOperator         String?
+  editor                String?
+  makeupArtist          String?
+  moodBoard             String?
+  referenceImages       String?
+  specialRequests       String?
+  timeZone              String?
+  wrapTime              String?
+  audioFolderId         String?
+  audioFolderUrl        String?
+  btsFolderId           String?
+  btsFolderUrl          String?
+  cameraAFolderId       String?
+  cameraAFolderUrl      String?
+  cameraBFolderId       String?
+  cameraBFolderUrl      String?
+  droneFolderId         String?
+  droneFolderUrl        String?
+  activities            Activity[]
+  calendarEvents        CalendarEvent[]
+  communications        Communication[]
+  deliverables          Deliverable[]
+  notifications         Notification[]
+  client Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  project               Project          @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  equipment             ShootEquipment[]
+  shots                 ShootShot[]
+  expenses              Expense[]
+}
+
+model ShootEquipment {
+  id      String          @id @default(cuid())
+  name    String
+  shootId String
+  notes   String?
+  status  EquipmentStatus @default(REQUIRED)
+  shoot   Shoot           @relation(fields: [shootId], references: [id], onDelete: Restrict)
+}
+
+model ShootShot {
+  id             String  @id @default(cuid())
+  title          String
+  description    String?
+  order          Int     @default(0)
+  isCompleted    Boolean @default(false)
+  shootId        String
+  notes          String?
+  priority       String?
+  referenceImage String?
+  shoot          Shoot   @relation(fields: [shootId], references: [id], onDelete: Restrict)
+}
+
+model Deliverable {
+  id             String               @id @default(cuid())
+  type           String
+  assignedEditor String?
+  status         DeliverableStatus    @default(PENDING)
+  dueDate        DateTime?
+  completionDate DateTime?
+  shootId        String
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  priority       DeliverablePriority  @default(MEDIUM)
+  reviewDate     DateTime?
+  reviewStatus   ReviewStatus         @default(NOT_SENT)
+  reviewerNotes  String?
+  shoot          Shoot                @relation(fields: [shootId], references: [id], onDelete: Restrict)
+  files          DeliverableFile[]
+  versions       DeliverableVersion[]
+}
+
+model DeliverableFile {
+  id            String      @id @default(cuid())
+  deliverableId String
+  name          String
+  url           String
+  sizeBytes     Int?
+  uploadedAt    DateTime    @default(now())
+  deliverable   Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+}
+
+model DeliverableVersion {
+  id            String      @id @default(cuid())
+  deliverableId String
+  versionNumber Int
+  changeNotes   String?
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+  deliverable   Deliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+}
+
+model CalendarEvent {
+  id                    String               @id @default(cuid())
+  title                 String
+  date                  DateTime
+  startTime             String?
+  endTime               String?
+  isAllDay              Boolean              @default(false)
+  eventType             CalendarEventType
+  status                CalendarEventStatus  @default(SCHEDULED)
+  color                 String?
+  googleCalendarEventId String?
+  clientId              String?
+  projectId             String?
+  shootId               String?
+  leadId                String?
+  notes                 String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  createdBy             String?
+  updatedBy             String?
+  recurringRuleId       String?
+  client                Client?              @relation(fields: [clientId], references: [id])
+  lead                  Lead?                @relation(fields: [leadId], references: [id])
+  project               Project?             @relation(fields: [projectId], references: [id])
+  recurringRule         RecurringRule?       @relation(fields: [recurringRuleId], references: [id])
+  shoot                 Shoot?               @relation(fields: [shootId], references: [id], onDelete: Restrict)
+  communicationsCenter  Communication[]
+  participants          EventParticipant[]
+  internalNotes         InternalNote[]
+  reminders             Reminder[]
+  resources             ResourceAssignment[]
+}
+
+model Invoice {
+  id                   String              @id @default(cuid())
+  invoiceNumber        String              @unique
+  invoiceType          InvoiceType         @default(INTERIM)
+  issueDate            DateTime
+  dueDate              DateTime
+  subtotal             Decimal             @db.Decimal(10, 2)
+  discount             Decimal?            @db.Decimal(10, 2)
+  tax                  Decimal?            @db.Decimal(10, 2)
+  total                Decimal             @db.Decimal(10, 2)
+  status               InvoiceStatus       @default(DRAFT)
+  notes                String?
+  termsAndConditions   String?
+  paymentLinks         Json?
+  paymentSnapshot      Json?
+  deliverables         Json?
+  clientSnapshot       Json?
+  companySnapshot      Json?
+  projectId            String
+  clientId             String
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  archivedAt           DateTime?
+  activities           Activity[]
+  communicationsCenter Communication[]
+  internalNotes        InternalNote[]
+  client Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  project              Project             @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  items                InvoiceItem[]
+  notifications        Notification[]
+  payments             Payment[]
+  allocations          PaymentAllocation[]
+  ledgerEntries        FinancialLedger[]
+}
+
+model Payment {
+  id                   String              @id @default(cuid())
+  amount               Decimal             @db.Decimal(10, 2)
+  paymentDate          DateTime
+  paymentMethod        PaymentMethod       @default(OTHER)
+  paymentType          PaymentType         @default(PARTIAL)
+  receiptNumber        String?             @unique
+  referenceNumber      String?
+  notes                String?
+  invoiceId            String?
+  projectId            String
+  clientId             String
+  financialAccountId   String?
+  createdAt            DateTime            @default(now())
+  archivedAt           DateTime?
+  bankReference        String?
+  paymentScreenshotUrl String?
+  upiTransactionId     String?
+  clientSnapshot       Json?
+  companySnapshot      Json?
+  paymentSnapshot      Json? // To store bank details at the time of receipt generation
+  activities           Activity[]
+  communicationsCenter Communication[]
+  internalNotes        InternalNote[]
+  client Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  invoice              Invoice?            @relation(fields: [invoiceId], references: [id])
+  project              Project             @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  financialAccount     FinancialAccount?   @relation(fields: [financialAccountId], references: [id])
+  allocations          PaymentAllocation[]
+  ledgerEntries        FinancialLedger[]
+}
+
+model Expense {
+  id                 String                @id @default(cuid())
+  title              String
+  amount             Decimal               @db.Decimal(10, 2)
+  date               DateTime
+  paymentMethod      PaymentMethod         @default(OTHER)
+  approvalStatus     ExpenseApprovalStatus @default(APPROVED)
+  notes              String?
+  clientId           String?
+  projectId          String?
+  shootId            String?
+  financialAccountId String?
+  vendorId           String?
+  department         String?               @default("Operations")
+  recurringId        String?
+  createdAt          DateTime              @default(now())
+  archivedAt         DateTime?
+  categoryId         String
+  receiptUrl         String?
+  vendor             String?
+  activities         Activity[]
+  category           ExpenseCategory       @relation(fields: [categoryId], references: [id])
+  client             Client?               @relation(fields: [clientId], references: [id])
+  project            Project?              @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  shoot              Shoot?                @relation(fields: [shootId], references: [id], onDelete: Restrict)
+  financialAccount   FinancialAccount?     @relation(fields: [financialAccountId], references: [id])
+  vendorRecord       Vendor?               @relation(fields: [vendorId], references: [id])
+  recurringExpense   RecurringExpense?     @relation(fields: [recurringId], references: [id])
+  ledgerEntries      FinancialLedger[]
+}
+
+model ExpenseCategory {
+  id          String             @id @default(cuid())
+  name        String             @unique
+  description String?
+  color       String?            @default("#888888")
+  isDefault   Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  expenses    Expense[]
+  recurring   RecurringExpense[]
+}
+
+model Quotation {
+  id                   String            @id @default(cuid())
+  quotationNumber      String            @unique
+  issueDate            DateTime
+  validUntil           DateTime
+  subtotal             Decimal           @db.Decimal(10, 2)
+  discount             Decimal?          @db.Decimal(10, 2)
+  tax                  Decimal?          @db.Decimal(10, 2)
+  total                Decimal           @db.Decimal(10, 2)
+  status               QuotationStatus   @default(DRAFT)
+  notes                String?
+  termsAndConditions   String?
+  deliverables         Json?
+  clientSnapshot       Json?
+  companySnapshot      Json?
+  version              Int               @default(1)
+  parentQuotationId    String?
+  projectId            String?
+  clientId             String
+  approvalMethod       String?
+  approvalUserId       String?
+  viewedAt             DateTime?
+  approvedAt           DateTime?
+  rejectedAt           DateTime?
+  founderOverride      Boolean           @default(false)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  archivedAt           DateTime?
+  communicationsCenter Communication[]
+  internalNotes        InternalNote[]
+  client Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  parentQuotation      Quotation?        @relation("QuotationVersions", fields: [parentQuotationId], references: [id])
+  childQuotations      Quotation[]       @relation("QuotationVersions")
+  project              Project?          @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  originatingProjects  Project[]         @relation("ProjectOriginQuotation")
+  items                QuotationItem[]
+  ledgerEntries        FinancialLedger[]
+}
+
+model QuotationItem {
+  id          String    @id @default(cuid())
+  description String
+  quantity    Int       @default(1)
+  unitPrice   Decimal   @db.Decimal(10, 2)
+  total       Decimal   @db.Decimal(10, 2)
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  description String
+  quantity    Int     @default(1)
+  unitPrice   Decimal @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model FinancialReport {
+  id          String              @id @default(cuid())
+  title       String
+  type        FinancialReportType
+  periodStart DateTime
+  periodEnd   DateTime
+  data        Json
+  fileUrl     String?
+  generatedBy String?
+  createdAt   DateTime            @default(now())
+  user        User?               @relation(fields: [generatedBy], references: [id])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id           String               @id @default(cuid())
+  title        String
+  message      String?
+  type         NotificationType
+  status       NotificationStatus   @default(PENDING)
+  priority     NotificationPriority @default(MEDIUM)
+  dueDate      DateTime?
+  snoozedUntil DateTime?
+  leadId       String?
+  clientId     String?
+  projectId    String?
+  shootId      String?
+  invoiceId    String?
+  userId       String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  actionUrl    String?
+  isRead       Boolean              @default(false)
+  client       Client?              @relation(fields: [clientId], references: [id])
+  invoice      Invoice?             @relation(fields: [invoiceId], references: [id])
+  lead         Lead?                @relation(fields: [leadId], references: [id])
+  project      Project?             @relation(fields: [projectId], references: [id])
+  shoot        Shoot?               @relation(fields: [shootId], references: [id])
+  user         User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BackgroundJob {
+  id          String    @id @default(cuid())
+  type        String
+  payload     Json?
+  status      JobStatus @default(QUEUED)
+  progress    Int       @default(0)
+  error       String?
+  retryCount  Int       @default(0)
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  module     String?
+  entityId   String?
+  entityType String?
+  userId     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+}
+
+model Task {
+  id                      String          @id @default(cuid())
+  title                   String
+  description             String?
+  status                  TaskStatus      @default(PENDING)
+  priority                TaskPriority    @default(MEDIUM)
+  dueDate                 DateTime?
+  estimatedDuration       Int?
+  actualDuration          Int?
+  progress                Int             @default(0)
+  projectId               String?
+  clientId                String?
+  leadId                  String?
+  assignedToId            String?
+  parentTaskId            String?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  createdBy               String?
+  updatedBy               String?
+  checklist               ChecklistItem[]
+  reminders               Reminder[]
+  assignedTo              User?           @relation(fields: [assignedToId], references: [id])
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  lead                    Lead?           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  parentTask              Task?           @relation("SubTasks", fields: [parentTaskId], references: [id])
+  subTasks                Task[]          @relation("SubTasks")
+  project                 Project?        @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  Task_TaskDependencies_A Task[]          @relation("TaskDependencies")
+  Task_TaskDependencies_B Task[]          @relation("TaskDependencies")
+}
+
+model ChecklistItem {
+  id          String   @id @default(cuid())
+  title       String
+  isCompleted Boolean  @default(false)
+  taskId      String
+  createdAt   DateTime @default(now())
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model Reminder {
+  id          String          @id @default(cuid())
+  title       String
+  description String?
+  triggerDate DateTime
+  type        ReminderChannel @default(IN_APP)
+  isSent      Boolean         @default(false)
+  eventId     String?
+  taskId      String?
+  projectId   String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  event       CalendarEvent?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  project     Project?        @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  task        Task?           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  userId    String?
+  date      DateTime
+  reason    String?
+  startTime String?
+  endTime   String?
+  isBlocked Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model WorkingHours {
+  id        String  @id @default(cuid())
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  isActive  Boolean @default(true)
+}
+
+model Holiday {
+  id       String   @id @default(cuid())
+  name     String
+  date     DateTime
+  isYearly Boolean  @default(false)
+}
+
+model EventParticipant {
+  id      String            @id @default(cuid())
+  eventId String
+  userId  String?
+  name    String?
+  email   String?
+  status  ParticipantStatus @default(PENDING)
+  event   CalendarEvent     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user    User?             @relation(fields: [userId], references: [id])
+}
+
+model RecurringRule {
+  id        String             @id @default(cuid())
+  frequency RecurringFrequency
+  interval  Int                @default(1)
+  endDate   DateTime?
+  count     Int?
+  events    CalendarEvent[]
+}
+
+model Resource {
+  id          String               @id @default(cuid())
+  name        String
+  type        ResourceType         @default(OTHER)
+  description String?
+  isActive    Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  assignments ResourceAssignment[]
+}
+
+model ResourceAssignment {
+  id         String        @id @default(cuid())
+  resourceId String
+  eventId    String
+  status     String        @default("ASSIGNED")
+  event      CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  resource   Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+}
+
+model CommunicationTemplate {
+  id        String            @id @default(cuid())
+  title     String
+  category  TemplateCategory  @default(CUSTOM)
+  type      CommunicationType
+  subject   String?
+  body      String
+  version   Int               @default(1)
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  createdBy String?
+}
+
+model Communication {
+  id           String                    @id @default(cuid())
+  type         CommunicationType
+  direction    CommunicationDirection
+  subject      String?
+  body         String
+  status       String                    @default("SENT")
+  error        String?
+  leadId       String?
+  clientId     String?
+  projectId    String?
+  invoiceId    String?
+  quotationId  String?
+  paymentId    String?
+  eventId      String?
+  shootId      String?
+  wamid        String?
+  templateUsed String?
+  replyToId    String?
+  assignedUser String?
+  scheduledAt  DateTime?
+  sentAt       DateTime                  @default(now())
+  createdBy    String?
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  event        CalendarEvent?            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  invoice      Invoice?                  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  lead         Lead?                     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  payment      Payment?                  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  project      Project?                  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  quotation    Quotation?                @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  shoot        Shoot?                    @relation(fields: [shootId], references: [id], onDelete: Restrict)
+  attachments  CommunicationAttachment[]
+  followUps    FollowUp[]
+}
+
+model CommunicationAttachment {
+  id              String        @id @default(cuid())
+  fileName        String
+  fileUrl         String
+  fileSize        Int
+  fileType        String
+  communicationId String
+  createdAt       DateTime      @default(now())
+  communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+}
+
+model FollowUp {
+  id              String         @id @default(cuid())
+  title           String
+  description     String?
+  dueDate         DateTime
+  status          FollowUpStatus @default(PENDING)
+  priority        String         @default("MEDIUM")
+  communicationId String?
+  leadId          String?
+  clientId        String?
+  projectId       String?
+  assignedToId    String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  createdBy       String?
+  assignedTo      User?          @relation(fields: [assignedToId], references: [id])
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  communication   Communication? @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+  lead            Lead?          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  project         Project?       @relation(fields: [projectId], references: [id], onDelete: Restrict)
+}
+
+model Delivery {
+  id           String            @id @default(cuid())
+  title        String
+  description  String?
+  status       DeliveryStatus    @default(DRAFT)
+  deliveryLink String?
+  password     String?
+  expiryDate   DateTime?
+  projectId    String
+  sentAt       DateTime?
+  viewedAt     DateTime?
+  downloadedAt DateTime?
+  confirmedAt  DateTime?
+  createdById  String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  createdBy    User?             @relation(fields: [createdById], references: [id])
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  versions     DeliveryVersion[]
+}
+
+model DeliveryVersion {
+  id           String   @id @default(cuid())
+  version      Int
+  changes      String?
+  deliveryLink String
+  deliveryId   String
+  createdAt    DateTime @default(now())
+  delivery     Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+}
+
+model InternalNote {
+  id          String         @id @default(cuid())
+  content     String
+  isPinned    Boolean        @default(false)
+  leadId      String?
+  clientId    String?
+  projectId   String?
+  invoiceId   String?
+  quotationId String?
+  paymentId   String?
+  eventId     String?
+  createdById String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  client Client? @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  createdBy   User?          @relation(fields: [createdById], references: [id])
+  event       CalendarEvent? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  invoice     Invoice?       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  lead        Lead?          @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  payment     Payment?       @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  project     Project?       @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  quotation   Quotation?     @relation(fields: [quotationId], references: [id], onDelete: Cascade)
 }
 
 enum LeadStatus {
   NEW
   CONTACTED
+  REQUIREMENT_DISCUSSION
+  QUOTE_SENT
+  NEGOTIATION
+  QUOTE_APPROVED
+  ADVANCE_PENDING
   CONVERTED
   LOST
 }
 
-enum ProjectStatus {
-  PLANNED
-  ACTIVE
-  COMPLETED
+enum LeadPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
 
-enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  DONE
+enum LeadSource {
+  WEBSITE
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK
+  REFERRAL
+  WALK_IN
+  PHONE_CALL
+  MANUAL
+  OTHER
+}
+
+enum PreferredContact {
+  PHONE
+  EMAIL
+  WHATSAPP
+  SMS
+}
+
+enum LostReason {
+  PRICE_TOO_HIGH
+  CHOSE_ANOTHER_PHOTOGRAPHER
+  BUDGET_ISSUES
+  PROJECT_CANCELLED
+  JUST_AN_ENQUIRY
+  NO_RESPONSE
+  TIMING_ISSUES
+  NOT_INTERESTED
+  DUPLICATE_LEAD
+  OTHER
+}
+
+enum BusinessType {
+  CORPORATE
+  WEDDING
+  FASHION
+  REAL_ESTATE
+  EVENTS
+  COMMERCIAL
+  PORTRAIT
+  OTHER
+}
+
+enum ProjectCategory {
+  ONE_TIME_SHOOT
+  MONTHLY_SOCIAL_MEDIA
+}
+
+enum ProjectStatus {
+  PLANNING
+  SCHEDULED
+  SHOOT_COMPLETED
+  EDITING
+  CLIENT_REVIEW
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
 }
 
 enum InvoiceStatus {
-  PENDING
+  DRAFT
+  SENT
+  PARTIAL
   PAID
   OVERDUE
+  CANCELLED
 }
 
-enum ApprovalType {
-  PROJECT
+enum PaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CARD
+  OTHER
+  CHEQUE
+  ONLINE_GATEWAY
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  VIEWED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum FinancialReportType {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  PNL
+  CUSTOM
+}
+
+enum EquipmentStatus {
+  REQUIRED
+  PACKED
+  MISSING
+}
+
+enum DeliverableStatus {
+  PENDING
+  EDITING
+  READY_FOR_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  DELIVERED
+}
+
+enum ShootType {
+  CAFE
+  PRODUCT
+  REAL_ESTATE
+  EVENT
+  PORTRAIT
+  OTHER
+}
+
+enum ShootStatus {
+  UPCOMING
+  COMPLETED
+  CANCELLED
+}
+
+enum ActivityType {
+  NOTE
+  STATUS_CHANGE
+  FILE_UPLOAD
+  SYSTEM
+  INTEGRATION_SYNC
+}
+
+enum CommunicationType {
+  EMAIL
+  CALL
+  MEETING
+  MESSAGE
+  WHATSAPP
+  SMS
+}
+
+enum ReminderType {
+  FOLLOW_UP
+  MEETING
+  CALL
+  DEADLINE
+}
+
+enum CommunicationDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+enum TemplateCategory {
+  QUOTATION
   INVOICE
-  EXPENSE
+  REMINDER
+  SHOOT_CONFIRMATION
+  MEETING_CONFIRMATION
+  DELIVERY
+  PAYMENT
+  FOLLOW_UP
+  WELCOME
+  THANK_YOU
+  CUSTOM
+}
+
+enum FollowUpStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  DRAFT
+  SENT
+  VIEWED
+  DOWNLOADED
+  CONFIRMED
+  EXPIRED
+}
+
+enum ReviewStatus {
+  NOT_SENT
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+}
+
+enum DeliverablePriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CalendarEventType {
+  SHOOT
+  MEETING
+  FOLLOW_UP
+  DELIVERY
+  PAYMENT_DUE
+  CONTENT_PUBLISHING
+  PERSONAL_REMINDER
+}
+
+enum CalendarEventStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  LEAD_FOLLOW_UP
+  SHOOT_REMINDER
+  MEETING_REMINDER
+  PROJECT_DEADLINE
+  DELIVERY_REMINDER
+  INVOICE_DUE
+  PAYMENT_RECEIVED
+  OVERDUE_PAYMENT
+  GENERAL_REMINDER
+  SYSTEM
+  INTEGRATION_SYNC
+  STORAGE
+  WORKFLOW
+  SUCCESS
+  INFO
+  WARNING
+  ERROR
+}
+
+enum NotificationStatus {
+  PENDING
+  COMPLETED
+  DISMISSED
+  SNOOZED
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  RETRYING
+  CANCELLED
+  DEAD_LETTER
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ReminderChannel {
+  IN_APP
+  EMAIL
+  WHATSAPP
+}
+
+enum ParticipantStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum RecurringFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum ResourceType {
+  CAMERA_BODY
+  LENS
+  LIGHTING
+  STUDIO
+  VEHICLE
+  ASSISTANT
+  PHOTOGRAPHER
+  OTHER
+}
+
+model ContentPlan {
+  id               String                  @id @default(cuid())
+  title            String
+  description      String?
+  shootDate        DateTime?
+  platform         ContentPlatform
+  editingStatus    ContentEditingStatus    @default(PENDING)
+  approvalStatus   ContentApprovalStatus   @default(PENDING)
+  publishingStatus ContentPublishingStatus @default(DRAFT)
+  projectId        String
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  project          Project                 @relation(fields: [projectId], references: [id], onDelete: Restrict)
+}
+
+enum ContentPlatform {
+  INSTAGRAM
+  FACEBOOK
+  YOUTUBE
+  WEBSITE
+  THREADS
+  LINKEDIN
+}
+
+enum ContentEditingStatus {
+  PENDING
+  EDITING
+  DONE
+}
+
+enum ContentApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ContentPublishingStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+}
+
+model WhatsAppTemplate {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isEnabled Boolean  @default(true)
+  content   String
+  variables String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WhatsAppLog {
+  id             String                 @id @default(cuid())
+  messageId      String?
+  templateName   String?
+  messageType    String?                @default("TEMPLATE")
+  direction      CommunicationDirection @default(OUTBOUND)
+  recipientPhone String
+  status         WhatsAppDeliveryStatus @default(PENDING)
+  retryCount     Int                    @default(0)
+  errorMessage   String?
+  scheduledFor   DateTime?
+  leadId         String?
+  clientId       String?
+  projectId      String?
+  shootId        String?
+  replyToId      String?
+  assignedUserId String?
+  metadata       Json?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+}
+
+enum WhatsAppDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+model IntegrationJobQueue {
+  id          String    @id @default(cuid())
+  provider    String
+  action      String
+  payload     Json
+  status      JobStatus @default(QUEUED)
+  retryCount  Int       @default(0)
+  nextRetryAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum InvoiceType {
+  ADVANCE
+  INTERIM
+  FINAL
+  CREDIT_NOTE
+}
+
+enum PaymentType {
+  ADVANCE
+  PARTIAL
+  FINAL
+}
+
+enum ExpenseApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum FinancialAccountType {
+  CURRENT
+  SAVINGS
+  UPI
+  CASH
+  PETTY_CASH
+  ONLINE_GATEWAY
+  OTHER
+}
+
+enum LedgerActivityType {
+  QUOTATION_ISSUED
+  QUOTATION_APPROVED
+  INVOICE_GENERATED
+  PAYMENT_RECEIVED
+  PAYMENT_ALLOCATED
+  EXPENSE_RECORDED
+  REFUND_PROCESSED
+  CREDIT_NOTE_ISSUED
+  WRITE_OFF
+  ADJUSTMENT
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+model BusinessFinanceSetting {
+  id               String   @id @default("default")
+  businessName     String   @default("Random Frames Studio")
+  businessLogoUrl  String?
+  gstEnabled       Boolean  @default(true)
+  gstNumber        String?  @default("29ABCDE1234F1Z5")
+  hsnSacCode       String?  @default("9983")
+  taxPercentage    Decimal  @default(18.00) @db.Decimal(5, 2)
+  currency         String   @default("INR")
+  financialYear    String   @default("2025-2026")
+  invoicePrefix    String   @default("INV-")
+  quotationPrefix  String   @default("QTN-")
+  receiptPrefix    String   @default("REC-")
+  creditNotePrefix String   @default("CN-")
+  lateFeeRules     Json?
+  defaultTerms     String?  @default("1. Advance payment is non-refundable.\n2. Balance due prior to final delivery.\n3. All deliverables subject to copyright agreements.")
+  defaultNotes     String?
+  bankAccounts     Json?
+  upiIds           Json?
+  paymentGateways  Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model FinancialAccount {
+  id             String               @id @default(cuid())
+  accountName    String
+  accountType    FinancialAccountType @default(CURRENT)
+  accountNumber  String?
+  bankName       String?
+  ifscCode       String?
+  upiId          String?
+  currentBalance Decimal              @default(0.00) @db.Decimal(12, 2)
+  currency       String               @default("INR")
+  isActive       Boolean              @default(true)
+  isDefault      Boolean              @default(false)
+  notes          String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  archivedAt     DateTime?
+  payments       Payment[]
+  expenses       Expense[]
+  ledgerEntries  FinancialLedger[]
+}
+
+model PaymentAllocation {
+  id          String   @id @default(cuid())
+  paymentId   String
+  invoiceId   String
+  amount      Decimal  @db.Decimal(10, 2)
+  notes       String?
+  allocatedAt DateTime @default(now())
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentId, invoiceId])
+}
+
+model FinancialLedger {
+  id                 String             @id @default(cuid())
+  transactionHash    String             @unique
+  activityType       LedgerActivityType
+  description        String
+  debit              Decimal            @default(0.00) @db.Decimal(12, 2)
+  credit             Decimal            @default(0.00) @db.Decimal(12, 2)
+  balanceSnapshot    Decimal?           @db.Decimal(12, 2)
+  currency           String             @default("INR")
+  referenceId        String?
+  quotationId        String?
+  invoiceId          String?
+  paymentId          String?
+  expenseId          String?
+  financialAccountId String?
+  clientId           String?
+  projectId          String?
+  performedById      String?
+  notes              String?
+  metadata           Json?
+  createdAt          DateTime           @default(now())
+  quotation          Quotation?         @relation(fields: [quotationId], references: [id])
+  invoice            Invoice?           @relation(fields: [invoiceId], references: [id])
+  payment            Payment?           @relation(fields: [paymentId], references: [id])
+  expense            Expense?           @relation(fields: [expenseId], references: [id])
+  financialAccount   FinancialAccount?  @relation(fields: [financialAccountId], references: [id])
+}
+
+model Vendor {
+  id            String             @id @default(cuid())
+  name          String
+  vendorType    String             @default("GENERAL")
+  contactPerson String?
+  email         String?
+  phone         String?
+  gstNumber     String?
+  address       String?
+  bankDetails   Json?
+  defaultNotes  String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  archivedAt    DateTime?
+  expenses      Expense[]
+  recurring     RecurringExpense[]
+}
+
+model RecurringExpense {
+  id                 String              @id @default(cuid())
+  title              String
+  amount             Decimal             @db.Decimal(10, 2)
+  categoryId         String
+  frequency          RecurrenceFrequency @default(MONTHLY)
+  nextDueDate        DateTime
+  lastProcessedDate  DateTime?
+  vendorId           String?
+  financialAccountId String?
+  department         String?             @default("Operations")
+  isActive           Boolean             @default(true)
+  notes              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  archivedAt         DateTime?
+  category           ExpenseCategory     @relation(fields: [categoryId], references: [id])
+  vendor             Vendor?             @relation(fields: [vendorId], references: [id])
+  expenses           Expense[]
+}
+
+model CustomFieldDefinition {
+  id         String   @id @default(cuid())
+  entityType String // "LEAD", "CLIENT", "PROJECT", "SHOOT"
+  name       String // Internal key, e.g. "referred_by"
+  label      String // UI Label, e.g. "Referred By"
+  fieldType  String // "TEXT", "NUMBER", "DROPDOWN", "DATE", "BOOLEAN"
+  options    Json? // Array of string for DROPDOWN
+  isRequired Boolean  @default(false)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([entityType, name])
+}
+
+model DocumentSequence {
+  id           String   @id @default(cuid())
+  documentType String   @unique // "QUOTATION", "INVOICE", "RECEIPT"
+  nextSequence Int      @default(101)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+}
+
+model Approval {
+  id            String         @id @default(cuid())
+  entityType    String // e.g., "QUOTATION", "DELIVERY"
+  entityId      String // The ID of the Quotation/Delivery
+  status        ApprovalStatus @default(PENDING)
+  requestedById String
+  approvedById  String?
+  comments      String?
+  requestedAt   DateTime       @default(now())
+  resolvedAt    DateTime?
+
+  requestedBy User  @relation("ApprovalRequests", fields: [requestedById], references: [id])
+  approvedBy  User? @relation("ApprovalsGranted", fields: [approvedById], references: [id])
+
+  @@index([entityType, entityId])
 }
 
 enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
-}
-
-enum ApprovalMethod {
-  WHATSAPP
-  CALL
-  EMAIL
-  IN_PERSON
-  OTHER
-}
-
-enum QuotationStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-model User {
-  id                 String        @id @default(uuid())
-  name               String
-  email              String        @unique
-  password           String
-  role               Role          @default(CO_FOUNDER)
-  createdAt          DateTime      @default(now())
-  
-  leads              Lead[]        @relation("UserLeads")
-  projects           Project[]     @relation("UserProjects")
-  tasks              Task[]        @relation("UserTasks")
-  requestedApprovals Approval[]    @relation("RequestedApprovals")
-  approvedApprovals  Approval[]    @relation("ApprovedApprovals")
-  activities         ActivityLog[] @relation("UserActivities")
-}
-
-model Lead {
-  id           String      @id @default(uuid())
-  name         String
-  status       LeadStatus  @default(NEW)
-  assignedToId String?
-  assignedTo   User?       @relation("UserLeads", fields: [assignedToId], references: [id])
-  quotations   Quotation[]
-  createdAt    DateTime    @default(now())
-}
-
-model Client {
-  id             String          @id @default(uuid())
-  name           String
-  email          String
-  quotedAmount   Float?
-  approved       Boolean         @default(false)
-  approvalMethod ApprovalMethod?
-  approvedAt     DateTime?
-  projects       Project[]
-  quotations     Quotation[]
-  createdAt      DateTime        @default(now())
-}
-
-model Quotation {
-  id        String          @id @default(uuid())
-  status    QuotationStatus @default(PENDING)
-  total     Float
-  clientId  String?
-  client    Client?         @relation(fields: [clientId], references: [id])
-  leadId    String?
-  lead      Lead?           @relation(fields: [leadId], references: [id])
-  projects  Project[]       @relation("OriginQuotation")
-  createdAt DateTime        @default(now())
-}
-
-model Project {
-  id          String        @id @default(uuid())
-  title       String
-  status      ProjectStatus @default(PLANNED)
-  clientId    String
-  client      Client        @relation(fields: [clientId], references: [id])
-  quotationId String
-  originQuotation Quotation @relation("OriginQuotation", fields: [quotationId], references: [id])
-  tasks       Task[]
-  invoices    Invoice[]
-  users       User[]        @relation("UserProjects")
-  createdAt   DateTime      @default(now())
-}
-
-model Task {
-  id           String     @id @default(uuid())
-  title        String
-  status       TaskStatus @default(TODO)
-  projectId    String
-  project      Project    @relation(fields: [projectId], references: [id])
-  assignedToId String?
-  assignedTo   User?      @relation("UserTasks", fields: [assignedToId], references: [id])
-  createdAt    DateTime   @default(now())
-}
-
-model Invoice {
-  id        String        @id @default(uuid())
-  amount    Float
-  status    InvoiceStatus @default(PENDING)
-  projectId String
-  project   Project       @relation(fields: [projectId], references: [id])
-  payments  Payment[]
-  createdAt DateTime      @default(now())
-}
-
-model Payment {
-  id        String   @id @default(uuid())
-  amount    Float
-  invoiceId String
-  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
-  createdAt DateTime @default(now())
-}
-
-model Approval {
-  id            String         @id @default(uuid())
-  type          ApprovalType
-  referenceId   String
-  requestedById String
-  requestedBy   User           @relation("RequestedApprovals", fields: [requestedById], references: [id])
-  approvedById  String?
-  approvedBy    User?          @relation("ApprovedApprovals", fields: [approvedById], references: [id])
-  status        ApprovalStatus @default(PENDING)
-  comment       String?
-  createdAt     DateTime       @default(now())
-}
-
-model ActivityLog {
-  id        String   @id @default(uuid())
-  action    String
-  entity    String
-  userId    String
-  user      User     @relation("UserActivities", fields: [userId], references: [id])
-  createdAt DateTime @default(now())
 }

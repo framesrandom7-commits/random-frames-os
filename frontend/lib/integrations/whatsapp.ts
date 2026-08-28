@@ -42,8 +42,8 @@ export const whatsappLinks = {
   /**
    * Send Payment Receipt
    */
-  sendReceipt: (phone: string, businessName: string, amount: number) => {
-    const text = `Hi ${businessName},\n\nWe have successfully received your payment of ${amount}. Thank you!\n\nBest,\nRandom Frames Team`;
+  sendReceipt: (phone: string, businessName: string, amount: number, link: string) => {
+    const text = `Hi ${businessName},\n\nWe have successfully received your payment of ${amount}. Thank you!\n\nYou can view and download your payment receipt here: ${link}\n\nBest,\nRandom Frames Team`;
     return `https://wa.me/${formatPhone(phone)}?text=${encodeURIComponent(text)}`;
   },
 

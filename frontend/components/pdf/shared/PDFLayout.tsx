@@ -1,5 +1,5 @@
 import React from "react";
-import { Page, View, Text, StyleSheet, Font, Svg, Polygon } from "@react-pdf/renderer";
+import { Page, View, Text, StyleSheet, Font, Svg, Polygon, Image } from "@react-pdf/renderer";
 import { PDFIcons } from "./PDFIcons";
 
 import path from "path";
@@ -188,9 +188,10 @@ interface PDFLayoutProps {
     address: string;
     website: string;
   };
+  invoiceLogo?: string;
 }
 
-export const PDFLayout = ({ documentTitle, metaInfo, companyInfo, children }: PDFLayoutProps) => {
+export const PDFLayout = ({ documentTitle, metaInfo, companyInfo, invoiceLogo, children }: PDFLayoutProps) => {
   return (
     <Page size="A4" style={styles.page}>
       {/* Global Watermark - rendered behind everything else on every page */}
@@ -201,15 +202,21 @@ export const PDFLayout = ({ documentTitle, metaInfo, companyInfo, children }: PD
       <View style={styles.headerContainer} fixed>
         {/* Left Branding */}
         <View style={styles.headerLeft}>
-          <PDFIcons.Logo width={50} height={50} />
-          <View style={styles.headerTextContainer}>
-            <View style={styles.brandNameRow}>
-              <Text style={styles.brandNameWhite}>RANDOM</Text>
-              <Text style={styles.brandNameRed}>FRAMES</Text>
-            </View>
-            <Text style={styles.brandSubtitle}>COMMERCIAL PHOTOGRAPHY & VIDEOGRAPHY</Text>
-            <View style={styles.subtitleUnderline} />
-          </View>
+          {invoiceLogo ? (
+            <Image src={invoiceLogo} style={{ width: 120, height: 40, objectFit: "contain" }} />
+          ) : (
+            <>
+              <PDFIcons.Logo width={50} height={50} />
+              <View style={styles.headerTextContainer}>
+                <View style={styles.brandNameRow}>
+                  <Text style={styles.brandNameWhite}>RANDOM</Text>
+                  <Text style={styles.brandNameRed}>FRAMES</Text>
+                </View>
+                <Text style={styles.brandSubtitle}>COMMERCIAL PHOTOGRAPHY & VIDEOGRAPHY</Text>
+                <View style={styles.subtitleUnderline} />
+              </View>
+            </>
+          )}
         </View>
 
         {/* Right Info */}

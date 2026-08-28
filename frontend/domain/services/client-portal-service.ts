@@ -131,7 +131,7 @@ export class ClientPortalService {
         { id: "act_3", title: "Creative producer booked Pre-Production Google Meet consultation", date: new Date(Date.now() - 3600 * 1000 * 24 * 3), type: "MEETING" }
       ],
       recentPayments: [
-        { id: "pay_2026_089", amount: 150000, date: new Date(Date.now() - 3600 * 1000 * 24 * 7), receiptUrl: "/api/pdf/receipt/pay_2026_089" }
+        { id: "pay_2026_089", amount: 150000, date: new Date(Date.now() - 3600 * 1000 * 24 * 7), receiptUrl: "/api/documents/receipt/pay_2026_089/pdf" }
       ],
       recentDeliveries: [
         { 
@@ -241,7 +241,7 @@ export class ClientPortalService {
       upiId,
       qrCodeDataUrl,
       paymentHistory: [
-        { id: "pay_2026_089", invoiceNumber: "INV-2026-101", amount: 150000, type: "50% Advance Confirmation", date: new Date(Date.now() - 3600 * 1000 * 24 * 7), status: "COMPLETED", receiptUrl: "/api/pdf/receipt/pay_2026_089" }
+        { id: "pay_2026_089", invoiceNumber: "INV-2026-101", amount: 150000, type: "50% Advance Confirmation", date: new Date(Date.now() - 3600 * 1000 * 24 * 7), status: "COMPLETED", receiptUrl: "/api/documents/receipt/pay_2026_089/pdf" }
       ],
       paymentTimeline: [
         { milestone: "1. Advance Project Booking (50%)", amount: 150000, dueDate: new Date(Date.now() - 3600 * 1000 * 24 * 7), status: "PAID" },

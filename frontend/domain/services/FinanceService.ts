@@ -15,39 +15,108 @@ export class FinanceService {
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
     const [
-      invoicesThisMonth,
       totalPayments,
       totalExpenses,
-      overdueInvoices
+      monthlyPayments,
+      monthlyExpenses,
+      pendingInvoices,
+      overdueInvoices,
+      recentInvoicesRaw,
+      recentQuotationsRaw,
+      recentExpensesRaw
     ] = await Promise.all([
-      FinanceRepository.aggregateInvoices({
-        where: { issueDate: { gte: startOfMonth, lte: endOfMonth }, status: { not: "CANCELLED" } },
-        _sum: { total: true }
+      prisma.payment.aggregate({ _sum: { amount: true } }),
+      prisma.expense.aggregate({ _sum: { amount: true } }),
+      prisma.payment.aggregate({ 
+        where: { paymentDate: { gte: startOfMonth, lte: endOfMonth } }, 
+        _sum: { amount: true } 
       }),
-      FinanceRepository.aggregatePayments({
-        where: { paymentDate: { gte: startOfMonth, lte: endOfMonth } },
-        _sum: { amount: true }
+      prisma.expense.aggregate({ 
+        where: { date: { gte: startOfMonth, lte: endOfMonth } }, 
+        _sum: { amount: true } 
       }),
-      FinanceRepository.aggregateExpenses({
-        where: { date: { gte: startOfMonth, lte: endOfMonth } },
-        _sum: { amount: true }
+      prisma.invoice.aggregate({ 
+        where: { status: { in: ['SENT', 'PARTIAL'] } }, 
+        _sum: { total: true },
+        _count: { id: true }
       }),
-      FinanceRepository.aggregateInvoices({
-        where: { status: "OVERDUE" },
-        _sum: { total: true }
+      prisma.invoice.aggregate({ 
+        where: { status: 'OVERDUE' }, 
+        _sum: { total: true },
+        _count: { id: true }
+      }),
+      prisma.invoice.findMany({ 
+        take: 5, 
+        orderBy: { issueDate: 'desc' },
+        include: { client: { select: { businessName: true } } }
+      }),
+      prisma.quotation.findMany({ 
+        take: 5, 
+        orderBy: { issueDate: 'desc' },
+        include: { client: { select: { businessName: true } } }
+      }),
+      prisma.expense.findMany({ 
+        take: 5, 
+        orderBy: { date: 'desc' },
+        include: { category: { select: { name: true } } }
       })
     ]);
 
-    const revenue = Number(totalPayments._sum?.amount || 0);
-    const expenses = Number(totalExpenses._sum?.amount || 0);
-    const profit = revenue - expenses;
+    const chartData = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const start = new Date(d.getFullYear(), d.getMonth(), 1);
+      const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+      
+      const [rev, exp] = await Promise.all([
+        prisma.payment.aggregate({ where: { paymentDate: { gte: start, lte: end } }, _sum: { amount: true } }),
+        prisma.expense.aggregate({ where: { date: { gte: start, lte: end } }, _sum: { amount: true } })
+      ]);
+      
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const revenue = Number(rev._sum?.amount?.toString() || 0);
+      const expenses = Number(exp._sum?.amount?.toString() || 0);
+      chartData.push({
+        name: `${monthNames[start.getMonth()]} ${start.getFullYear()}`,
+        revenue,
+        expenses,
+        netProfit: revenue - expenses,
+      });
+    }
+
+    const serializeDecimal = (obj: any, fields: string[]) => {
+      const result = { ...obj };
+      for (const field of fields) {
+        if (result[field] !== undefined && result[field] !== null) {
+          result[field] = Number(result[field].toString());
+        }
+      }
+      return result;
+    };
+
+    const recentInvoices = recentInvoicesRaw.map(inv => serializeDecimal(inv, ['subtotal', 'discount', 'tax', 'total']));
+    const recentQuotations = recentQuotationsRaw.map(quo => serializeDecimal(quo, ['subtotal', 'discount', 'tax', 'total']));
+    const recentExpenses = recentExpensesRaw.map(exp => serializeDecimal(exp, ['amount']));
+
+    const totalRev = Number(totalPayments._sum?.amount?.toString() || 0);
+    const totalExp = Number(totalExpenses._sum?.amount?.toString() || 0);
+    const monthRev = Number(monthlyPayments._sum?.amount?.toString() || 0);
+    const monthExp = Number(monthlyExpenses._sum?.amount?.toString() || 0);
 
     return {
-      monthlyRevenue: revenue,
-      monthlyExpenses: expenses,
-      monthlyProfit: profit,
-      invoicedThisMonth: Number(invoicesThisMonth._sum?.total || 0),
-      overdueAmount: Number(overdueInvoices._sum?.total || 0)
+      totalRevenue: totalRev,
+      totalExpenses: totalExp,
+      netProfit: totalRev - totalExp,
+      monthlyRevenue: monthRev,
+      monthlyExpenses: monthExp,
+      monthlyNetProfit: monthRev - monthExp,
+      totalPendingAmount: Number(pendingInvoices._sum?.total?.toString() || 0) + Number(overdueInvoices._sum?.total?.toString() || 0),
+      pendingInvoicesCount: (pendingInvoices._count?.id || 0) + (overdueInvoices._count?.id || 0),
+      overdueInvoicesCount: overdueInvoices._count?.id || 0,
+      chartData,
+      recentInvoices,
+      recentQuotations,
+      recentExpenses
     };
   }
 
@@ -218,7 +287,7 @@ export class FinanceService {
       paymentDate: data.paymentDate,
       paymentMethod: data.paymentMethod,
       receiptNumber: receiptNumber,
-      referenceNumber: data.referenceNumber || NumberGenerator.generatePaymentReference(),
+      referenceNumber: data.referenceNumber || NumberGenerator.generatePaymentReference(data.clientId),
       upiTransactionId: data.upiTransactionId,
       bankReference: data.bankReference,
       paymentScreenshotUrl: data.paymentScreenshotUrl,
@@ -462,5 +531,24 @@ export class FinanceService {
 
   static async getQuotation(id: string) {
     return FinanceRepository.findQuotationById(id);
+  }
+
+  static async getPaymentById(id: string) {
+    return await prisma.payment.findUnique({
+      where: { id },
+      include: {
+        client: true,
+        project: true,
+        invoice: true,
+      }
+    });
+  }
+
+  static async updatePayment(id: string, data: any) {
+    const payment = await prisma.payment.update({
+      where: { id },
+      data
+    });
+    return payment;
   }
 }

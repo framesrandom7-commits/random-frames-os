@@ -16,6 +16,9 @@ export default function LoginPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
+    // Clear the welcome screen flag so it shows up after a fresh login
+    sessionStorage.removeItem('hasSeenWelcome');
+    
     const formData = new FormData(e.currentTarget);
     const result = await login(formData);
     

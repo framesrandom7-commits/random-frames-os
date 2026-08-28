@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { ShootType, ShootStatus } from "@prisma/client";
 import { ShootService } from "@/domain/services/ShootService";
 import { GetShootsParams } from "@/domain/repositories/ShootRepository";
+import { checkFounderRbac } from "./rbac";
 
 export type CreateShootData = {
   clientId: string;
@@ -38,6 +39,7 @@ export async function generateShootCode(): Promise<string> {
 
 export async function createShoot(data: CreateShootData) {
   try {
+    await checkFounderRbac();
     const shoot = await ShootService.create(data);
     revalidatePath("/shoots");
     revalidatePath(`/projects/${data.projectId}`);
@@ -52,6 +54,7 @@ export async function createShoot(data: CreateShootData) {
 
 export async function updateShoot(id: string, data: Partial<CreateShootData>) {
   try {
+    await checkFounderRbac();
     const shoot = await ShootService.update(id, data);
     revalidatePath("/shoots");
     revalidatePath(`/shoots/${id}`);

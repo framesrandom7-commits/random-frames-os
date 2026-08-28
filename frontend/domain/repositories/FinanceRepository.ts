@@ -108,6 +108,7 @@ export class FinanceRepository {
       include: {
         client: true,
         project: true,
+        shoot: true,
         category: true,
       }
     });

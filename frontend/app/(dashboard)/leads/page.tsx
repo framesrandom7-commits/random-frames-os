@@ -11,7 +11,7 @@ import {
   ModuleSummaryCard
 } from "@/components/ui/module";
 import { Button } from "@/components/ui/button";
-import { Users, FileText, CheckCircle, Clock } from "lucide-react";
+import { Users, FileText, CheckCircle, Clock, Plus } from "lucide-react";
 import { LeadViewManager } from "@/components/leads/lead-view-manager";
 import { getLeadFilters } from "@/components/leads/lead-config";
 import LeadKanban from "@/components/leads/lead-kanban";
@@ -59,41 +59,49 @@ export default async function LeadsPage(props: {
       <ModuleHeader 
         title="Leads" primaryAction={
           <Link href="?new=lead">
-            <Button className="bg-[#C1121F] text-white hover:bg-[#a00f1a]">Add Lead</Button>
+            <Button className="bg-[#C1121F] text-white hover:bg-[#a00f1a]">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Lead
+            </Button>
           </Link>
         }
         secondaryActions={<LeadImportExport leads={leads} />}
       />
-      <ModuleSummary>
+      <ModuleSummary className="lg:grid-cols-5">
         <ModuleSummaryCard 
           title="Total Leads" 
+          value={stats?.totalAllTime || 0} 
+          icon={<Users />} 
+          trend={`${stats?.totalAllTimeTrend && stats.totalAllTimeTrend > 0 ? '+' : ''}${stats?.totalAllTimeTrend || 0}%`} 
+          trendDirection={stats?.totalAllTimeTrend && stats.totalAllTimeTrend >= 0 ? "up" : "down"} 
+        />
+        <ModuleSummaryCard 
+          title="Active Leads" 
           value={stats?.totalActive || 0} 
           icon={<Users />} 
-          trend="+12%" 
-          trendDirection="up" 
+          trend={`${stats?.totalActiveTrend && stats.totalActiveTrend > 0 ? '+' : ''}${stats?.totalActiveTrend || 0}%`} 
+          trendDirection={stats?.totalActiveTrend && stats.totalActiveTrend >= 0 ? "up" : "down"} 
         />
         <ModuleSummaryCard 
           title="New This Month" 
-          value={stats?.totalActive || 0} 
+          value={stats?.newThisMonth || 0} 
           icon={<FileText />} 
-          trend="+5%" 
-          trendDirection="up" 
+          trend={`${stats?.newThisMonthTrend && stats.newThisMonthTrend > 0 ? '+' : ''}${stats?.newThisMonthTrend || 0}%`} 
+          trendDirection={stats?.newThisMonthTrend && stats.newThisMonthTrend >= 0 ? "up" : "down"} 
         />
         <ModuleSummaryCard 
           title="Converted" 
           value={stats?.wonThisMonth || 0} 
           icon={<CheckCircle />} 
-          trend="8%" 
+          trend={`${stats?.conversionRate || 0}%`} 
           trendDirection="neutral" 
-          comparison="conversion rate"
         />
         <ModuleSummaryCard 
-          title="Avg. Response" 
-          value="2.4h" 
+          title="Follow-ups Today" 
+          value={stats?.followUpsToday || 0} 
           icon={<Clock />} 
-          trend="-15m" 
-          trendDirection="down" 
-          comparison="vs last month"
+          trend="" 
+          trendDirection="neutral" 
         />
       </ModuleSummary>
 

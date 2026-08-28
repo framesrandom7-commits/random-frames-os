@@ -24,7 +24,7 @@ export function IntegrationsNav() {
     <div className="flex flex-col gap-4 w-full mb-6">
       <div className="flex flex-col gap-2">
         {isRootIntegrationsPage ? (
-          <Link href="/settings?tab=integrations" className="text-sm text-zinc-400 hover:text-white transition-colors w-fit">
+          <Link href="/settings" className="text-sm text-zinc-400 hover:text-white transition-colors w-fit">
             ← Back to Settings
           </Link>
         ) : (

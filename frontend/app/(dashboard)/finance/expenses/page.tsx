@@ -20,16 +20,24 @@ export default async function ExpensesPage({
   const month = resolvedParams.month ? parseInt(resolvedParams.month) : undefined;
   const year = resolvedParams.year ? parseInt(resolvedParams.year) : undefined;
   
-  const [expensesResponse, categories] = await Promise.all([
-    getExpenses({
-      categoryId: resolvedParams.categoryId,
-      month,
-      year,
-      page,
-      limit: 50
-    }),
-    prisma.expenseCategory.findMany({ orderBy: { name: 'asc' } })
-  ]);
+  const expensesResponse = await getExpenses({
+    categoryId: resolvedParams.categoryId,
+    month,
+    year,
+    page,
+    limit: 50
+  });
+  const categories = await prisma.expenseCategory.findMany({ orderBy: { name: 'asc' } });
+
+  if ('error' in expensesResponse) {
+    return (
+      <div className="h-full flex flex-col p-8 items-center justify-center text-red-500">
+        <h2 className="text-xl font-bold mb-2">Error Loading Expenses</h2>
+        <p>{expensesResponse.message || "An unknown error occurred."}</p>
+        <p className="text-sm mt-4 text-zinc-400">If you recently updated the database schema, please restart your Next.js development server.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col overflow-hidden">

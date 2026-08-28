@@ -29,9 +29,18 @@ export class NumberGenerator {
   }
 
   /**
-   * Generates payment reference if none provided.
+   * Generates payment reference if none provided, optionally embedding a client ID suffix.
    */
-  static generatePaymentReference(): string {
-    return `PAY-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+  static generatePaymentReference(clientId?: string): string {
+    const timeHash = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000);
+    
+    if (clientId) {
+      // Use the last 6 characters of the Client CUID/UUID to keep the ID concise
+      const shortClient = clientId.slice(-6).toUpperCase();
+      return `PAY-${shortClient}-${timeHash}-${random}`;
+    }
+    
+    return `PAY-${timeHash}-${random}`;
   }
 }

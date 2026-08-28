@@ -42,6 +42,19 @@ export default async function ShootsPage(props: {
     prisma.project.findMany({ select: { id: true, title: true, clientId: true }, orderBy: { title: 'asc' }, where: { archivedAt: null } })
   ]);
 
+  const serializedShoots = shootData.shoots.map(shoot => {
+    const s = { ...shoot } as any;
+    if (s.project) {
+      s.project = { ...s.project };
+      ['quotationAmount', 'additionalServicesAmount', 'additionalChargesAmount', 'discountAmount', 'taxAmount', 'advanceAmount', 'totalAmount', 'balanceAmount', 'profitAmount'].forEach(field => {
+        if (s.project[field] !== null && s.project[field] !== undefined) {
+          s.project[field] = Number(s.project[field]);
+        }
+      });
+    }
+    return s;
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader 
@@ -49,62 +62,62 @@ export default async function ShootsPage(props: {
       
       {/* Dashboard Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="border-white/10 bg-white/5 backdrop-blur-md h-full flex flex-col">
+            <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 gap-2">
               <CardTitle className="text-xs font-medium text-zinc-400">Today's Shoots</CardTitle>
               <Camera className="h-4 w-4 text-[#C1121F]" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="mt-auto">
               <div className="text-2xl font-bold text-white">{stats.todaysShoots}</div>
             </CardContent>
           </Card>
           
-          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="border-white/10 bg-white/5 backdrop-blur-md h-full flex flex-col">
+            <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 gap-2">
               <CardTitle className="text-xs font-medium text-zinc-400">Upcoming (Scheduled)</CardTitle>
               <Calendar className="h-4 w-4 text-blue-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="mt-auto">
               <div className="text-2xl font-bold text-blue-500">{stats.upcomingShoots}</div>
             </CardContent>
           </Card>
           
-          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="border-white/10 bg-white/5 backdrop-blur-md h-full flex flex-col">
+            <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 gap-2">
               <CardTitle className="text-xs font-medium text-zinc-400">This Week</CardTitle>
               <Clock className="h-4 w-4 text-amber-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="mt-auto">
               <div className="text-2xl font-bold text-amber-500">{stats.thisWeekShoots}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="border-white/10 bg-white/5 backdrop-blur-md h-full flex flex-col">
+            <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 gap-2">
               <CardTitle className="text-xs font-medium text-zinc-400">Completed (Month)</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="mt-auto">
               <div className="text-2xl font-bold text-emerald-500">{stats.completedThisMonth}</div>
             </CardContent>
           </Card>
           
-          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="border-white/10 bg-white/5 backdrop-blur-md h-full flex flex-col">
+            <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 gap-2">
               <CardTitle className="text-xs font-medium text-zinc-400">Cancelled</CardTitle>
               <AlertCircle className="h-4 w-4 text-red-500" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="mt-auto">
               <div className="text-2xl font-bold text-red-500">{stats.cancelledShoots}</div>
             </CardContent>
           </Card>
 
-          <Card className="border-white/10 bg-white/5 backdrop-blur-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="border-white/10 bg-white/5 backdrop-blur-md h-full flex flex-col">
+            <CardHeader className="flex flex-row items-start justify-between pb-2 space-y-0 gap-2">
               <CardTitle className="text-xs font-medium text-zinc-400">Pending Deliveries</CardTitle>
               <Package className="h-4 w-4 text-purple-400" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="mt-auto">
               <div className="text-2xl font-bold text-purple-400">{stats.pendingDeliveries}</div>
             </CardContent>
           </Card>
@@ -133,7 +146,7 @@ export default async function ShootsPage(props: {
         <Suspense fallback={<div className="h-96 flex items-center justify-center text-zinc-500">Loading shoots...</div>}>
           {view === "list" ? (
             <ShootTable 
-              shoots={shootData.shoots as any} 
+              shoots={serializedShoots as any} 
               clients={allClients}
               projects={allProjects}
               page={(shootData as any).page || (shootData as any).currentPage} 
@@ -142,7 +155,7 @@ export default async function ShootsPage(props: {
             />
           ) : (
             <ShootCalendarView 
-              shoots={shootData.shoots as any} 
+              shoots={serializedShoots as any} 
               clients={allClients}
               projects={allProjects}
             />

@@ -17,6 +17,8 @@ export interface ProjectsModuleClientProps {
   currentView: ViewType;
 }
 
+import { useRouter } from "next/navigation";
+
 export function ProjectsModuleClient({
   data,
   total,
@@ -25,6 +27,8 @@ export function ProjectsModuleClient({
   allClients,
   currentView,
 }: ProjectsModuleClientProps) {
+  const router = useRouter();
+
   // Inject dynamic filters (Assigned User) and stats into a cloned config
   const pageConfig = {
     ...projectConfig,
@@ -58,7 +62,6 @@ export function ProjectsModuleClient({
   return (
     <ModulePage
       title="Projects"
-      subtitle="Manage ongoing productions and assignments"
       primaryAction={primaryAction}
       config={pageConfig as any}
       stats={stats}
@@ -75,6 +78,7 @@ export function ProjectsModuleClient({
           defaultPageSize: 50
         }}
         bulkActions={pageConfig.bulkActions}
+        onRowClick={(row) => router.push(pageConfig.metadata.routes.detail(row.id))}
       />
     </ModulePage>
   );

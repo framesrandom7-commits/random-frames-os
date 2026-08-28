@@ -44,6 +44,42 @@ export default function ExpensesTable({ data, categories }: ExpensesTableProps) 
     notes: ""
   });
 
+  const monthlyProductionCosts: Record<string, { total: number, date: Date, id: string }> = {};
+  const standardExpenses: Prisma.ExpenseGetPayload<{ include: { category: true, client: true } }>[] = [];
+
+  (data?.expenses || []).forEach(expense => {
+    if ((expense as any).shootId) {
+      const date = new Date(expense.date);
+      const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+      if (!monthlyProductionCosts[monthKey]) {
+        monthlyProductionCosts[monthKey] = {
+          total: 0,
+          date: new Date(date.getFullYear(), date.getMonth(), 1),
+          id: `production-cost-${monthKey}`
+        };
+      }
+      monthlyProductionCosts[monthKey].total += Number(expense.amount);
+    } else {
+      standardExpenses.push(expense);
+    }
+  });
+
+  const displayRows = [
+    ...Object.values(monthlyProductionCosts).map(cost => ({
+      id: cost.id,
+      date: cost.date,
+      title: `Production Costs - ${cost.date.toLocaleString('default', { month: 'long', year: 'numeric' })}`,
+      isGroup: true,
+      amount: cost.total,
+      month: cost.date.getMonth() + 1,
+      year: cost.date.getFullYear()
+    })),
+    ...standardExpenses.map(expense => ({
+      ...expense,
+      isGroup: false,
+    }))
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
   };
@@ -192,59 +228,70 @@ export default function ExpensesTable({ data, categories }: ExpensesTableProps) 
           <Table>
             <TableHeader className="bg-black/40 sticky top-0 z-10 backdrop-blur-md">
               <TableRow className="border-white/10 hover:bg-transparent">
-                <TableHead className="text-zinc-400 font-medium">Date</TableHead>
-                <TableHead className="text-zinc-400 font-medium">Title</TableHead>
-                <TableHead className="text-zinc-400 font-medium">Client</TableHead>
-                <TableHead className="text-zinc-400 font-medium">Category</TableHead>
-                <TableHead className="text-zinc-400 font-medium">Payment Method</TableHead>
-                <TableHead className="text-zinc-400 font-medium text-right">Amount</TableHead>
-                <TableHead className="text-zinc-400 font-medium w-[50px]"></TableHead>
+                <TableHead className="text-zinc-200 font-medium text-[15px]">Date</TableHead>
+                <TableHead className="text-zinc-200 font-medium text-[15px]">Title</TableHead>
+                <TableHead className="text-zinc-200 font-medium text-right text-[15px]">Amount</TableHead>
+                <TableHead className="text-zinc-200 font-medium w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.expenses.length === 0 ? (
+              {displayRows.length === 0 ? (
                 <TableRow className="border-white/10 hover:bg-transparent">
                   <TableCell colSpan={7} className="h-32 text-center text-zinc-500">
                     No expenses found in this category.
                   </TableCell>
                 </TableRow>
               ) : (
-                data.expenses.map((expense) => (
-                  <TableRow key={expense.id} className="border-white/10 hover:bg-white/5 transition-colors">
-                    <TableCell className="text-zinc-400 text-sm">
-                      {new Date(expense.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium text-white">{expense.title}</div>
-                      {expense.vendor && <div className="text-xs text-zinc-500">{expense.vendor}</div>}
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm font-medium text-white truncate">{(expense as any).client?.businessName || "No Client"}</p>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-zinc-800 text-zinc-300 border-zinc-700">
-                        {expense.category?.name || "Unknown"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-zinc-400 text-sm">
-                      {expense.paymentMethod.replace("_", " ")}
-                    </TableCell>
-                    <TableCell className="text-right font-medium text-red-400">
-                      -{formatCurrency(Number(expense.amount))}
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleDelete(expense.id)}
-                        disabled={isDeleting === expense.id}
-                        className="h-8 w-8 text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+                displayRows.map((row: any) => {
+                  if (row.isGroup) {
+                    return (
+                      <TableRow 
+                        key={row.id} 
+                        className="group border-white/10 hover:bg-white/10 transition-colors cursor-pointer bg-white/5"
+                        onClick={() => router.push(`/finance/expenses/monthly/${row.year}/${row.month}`)}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                        <TableCell className="text-zinc-300 text-[15px]">
+                          {new Date(row.date).toLocaleString('default', { month: 'short', year: 'numeric' })}
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium text-white group-hover:text-[#C1121F] transition-colors text-[15px]">
+                            {row.title}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-red-400 text-[15px]">
+                          {formatCurrency(Number(row.amount))}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    );
+                  }
+
+                  return (
+                    <TableRow key={row.id} className="border-white/10 hover:bg-white/5 transition-colors">
+                      <TableCell className="text-zinc-300 text-[15px]">
+                        {new Date(row.date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium text-white text-[15px]">{row.title}</div>
+                        {row.vendor && <div className="text-sm text-zinc-500">{row.vendor}</div>}
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-red-400 text-[15px]">
+                        {formatCurrency(Number(row.amount))}
+                      </TableCell>
+                      <TableCell>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleDelete(row.id)}
+                          disabled={isDeleting === row.id}
+                          className="h-8 w-8 text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>

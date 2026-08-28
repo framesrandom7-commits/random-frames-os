@@ -45,7 +45,7 @@ export function DashboardHeader({
           </div>
         )}
         <div className="flex items-center gap-3">
-          <PageTitle className="truncate">{title}</PageTitle>
+          <PageTitle className="pb-2">{title}</PageTitle>
           {subtitle && (
             <Typography variant="body" color="muted" className="truncate mt-1">
               {subtitle}

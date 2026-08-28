@@ -24,9 +24,10 @@ interface ShootTableProps {
   page?: number;
   totalPages?: number;
   total?: number;
+  variant?: "table" | "list";
 }
 
-export default function ShootTable({ shoots, clients, projects, page = 1, totalPages = 1, total = 0 }: ShootTableProps) {
+export default function ShootTable({ shoots, clients, projects, page = 1, totalPages = 1, total = 0, variant = "table" }: ShootTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -126,7 +127,103 @@ export default function ShootTable({ shoots, clients, projects, page = 1, totalP
   };
 
 
+  if (variant === "list") {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 overflow-y-auto pr-2 custom-scrollbar min-h-0" style={{ maxHeight: '370px' }}>
+          {shoots.map(shoot => {
+            const meta = getShootStatusMetadata(shoot.status as any);
+          return (
+            <div 
+              key={shoot.id}
+              onClick={() => handleRowClick(shoot.id)}
+              className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group relative overflow-hidden shrink-0"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 flex-1 min-w-0">
+                {/* Date Block */}
+                <div className="flex flex-col items-start sm:w-24 shrink-0">
+                  <span className="font-medium text-white text-sm">
+                    {shoot.date ? new Date(shoot.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : "TBD"}
+                  </span>
+                  {shoot.startTime && (
+                    <span className="text-xs text-zinc-500">
+                      {shoot.startTime} {shoot.endTime ? `- ${shoot.endTime}` : ''}
+                    </span>
+                  )}
+                </div>
 
+                {/* Main Info */}
+                <div className="flex flex-col flex-1 min-w-0">
+                  <div className="font-medium text-white text-base line-clamp-1">{shoot.title}</div>
+                  <div className="flex items-center flex-wrap gap-2 mt-1.5">
+                    <span className="font-mono text-[10px] text-zinc-400 bg-black/40 px-1.5 py-0.5 rounded border border-white/10">{shoot.shootCode}</span>
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{shoot.shootType.replace(/_/g, " ")}</span>
+                    {shoot.location && (
+                       <span className="flex items-center gap-1 text-[10px] text-zinc-400 max-w-[120px] sm:max-w-[180px] truncate" title={shoot.location}>
+                         <MapPin className="w-3 h-3" />
+                         <span className="truncate">{shoot.location}</span>
+                       </span>
+                    )}
+                    {shoot.photographer && (
+                       <span className="flex items-center gap-1 text-[10px] text-zinc-400 max-w-[120px] sm:max-w-[180px] truncate" title={shoot.photographer}>
+                         <Camera className="w-3 h-3" />
+                         <span className="truncate">{shoot.photographer}</span>
+                       </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status and Actions */}
+              <div className="flex items-center gap-4 shrink-0">
+                <Badge variant={meta?.variant || "outline"} className={`border-0 ${meta?.color} hidden sm:flex`}>
+                  {meta?.label || shoot.status.replace(/_/g, " ")}
+                </Badge>
+                
+                <div className="flex justify-end gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleRowClick(shoot.id); }} className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10" title="View Details">
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                  {!isArchived && (
+                    <>
+                      <Button variant="ghost" size="icon" onClick={(e) => handleDuplicate(e, shoot.id)} className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10" title="Duplicate">
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={(e) => handleEdit(e, shoot)} className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10" title="Edit">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={(e) => handleDelete(e, shoot.id)} className="h-8 w-8 text-zinc-400 hover:text-red-500 hover:bg-red-500/10" title="Archive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        </div>
+        
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between text-sm text-zinc-400 pt-2 px-1">
+            <div>
+              <span className="text-white font-medium">{total}</span> total shoots
+            </div>
+            <div className="flex items-center gap-2">
+               <Button variant="outline" size="sm" onClick={() => handlePageChange(page - 1)} disabled={page <= 1 || isPending} className="h-7 px-2 border-white/10 bg-white/5 hover:bg-white/10 hover:text-white text-zinc-400">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs px-2 text-white">{page} / {totalPages}</span>
+              <Button variant="outline" size="sm" onClick={() => handlePageChange(page + 1)} disabled={page >= totalPages || isPending} className="h-7 px-2 border-white/10 bg-white/5 hover:bg-white/10 hover:text-white text-zinc-400">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+        <ShootForm open={open} onOpenChange={setOpen} shoot={editingShoot} clients={clients} projects={projects} />
+      </div>
+    );
+  }
   return (
     <>
       <Card className="border-white/10 bg-white/5 backdrop-blur-md shadow-lg overflow-hidden relative">
@@ -144,7 +241,7 @@ export default function ShootTable({ shoots, clients, projects, page = 1, totalP
                   Project
                 </TableHead>
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap">
-                  Logistics
+                  Location
                 </TableHead>
                 <TableHead className="text-zinc-400 font-medium whitespace-nowrap cursor-pointer hover:text-white transition-colors" onClick={() => handleSort("status")}>
                   Status {renderSortIcon("status")}

@@ -8,7 +8,65 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { updateSetting } from "@/app/actions/settings";
 import { Switch } from "@/components/ui/switch";
-import { Upload } from "lucide-react";
+import { Upload, UploadCloud } from "lucide-react";
+
+function ImageUploadField({ 
+  label, 
+  hint, 
+  value, 
+  onChange 
+}: { 
+  label: string, 
+  hint: string, 
+  value: string, 
+  onChange: (base64: string) => void 
+}) {
+  const [drag, setDrag] = useState(false);
+
+  const handleFile = (file: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => onChange(e.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="space-y-4">
+      <Label className="text-white">{label}</Label>
+      <div 
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => { 
+          e.preventDefault(); 
+          setDrag(false); 
+          if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFile(e.dataTransfer.files[0]); 
+          }
+        }}
+        className={`relative border-2 border-dashed ${drag ? 'border-white bg-white/10' : 'border-white/10'} rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white/5 transition-colors h-32 overflow-hidden group`}
+      >
+        <input 
+          type="file" 
+          accept="image/*" 
+          className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full" 
+          onChange={(e) => { 
+            if(e.target.files && e.target.files.length > 0) {
+              handleFile(e.target.files[0]);
+            }
+          }} 
+        />
+        {value ? (
+          <img src={value} alt={label} className="h-full w-full object-contain pointer-events-none" />
+        ) : (
+          <>
+            <UploadCloud className="w-8 h-8 text-zinc-500 mb-2 group-hover:text-zinc-300 transition-colors pointer-events-none" />
+            <span className="text-xs text-zinc-400 pointer-events-none">{hint}</span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function PaymentTab({ settings }: { settings: Record<string, any> }) {
   const [isSaving, setIsSaving] = useState(false);
@@ -74,13 +132,12 @@ export default function PaymentTab({ settings }: { settings: Record<string, any>
                 <Input name="PAYMENT_UPI_ID" value={formData.PAYMENT_UPI_ID} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" placeholder="merchant@upi" />
               </div>
               <div className="col-span-2 md:col-span-1">
-                <Label>QR Code URL</Label>
-                <div className="flex mt-2 gap-2">
-                  <Input name="PAYMENT_UPI_QR_URL" value={formData.PAYMENT_UPI_QR_URL} onChange={handleChange} className="bg-black/50 border-white/10" placeholder="https://..." />
-                  <Button variant="outline" className="border-white/10 shrink-0">
-                    <Upload size={16} />
-                  </Button>
-                </div>
+                <ImageUploadField 
+                  label="QR Code Image" 
+                  hint="Drag & drop or click to upload QR Code" 
+                  value={formData.PAYMENT_UPI_QR_URL} 
+                  onChange={(val) => setFormData(prev => ({ ...prev, PAYMENT_UPI_QR_URL: val }))} 
+                />
               </div>
               <div className="col-span-2">
                 <Label>Payment Instructions (Optional)</Label>
@@ -103,23 +160,23 @@ export default function PaymentTab({ settings }: { settings: Record<string, any>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/5 mt-2">
               <div>
                 <Label>Account Holder Name</Label>
-                <Input name="PAYMENT_BANK_HOLDER" value={formData.PAYMENT_BANK_HOLDER} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" placeholder="John Doe" />
+                <Input name="PAYMENT_BANK_HOLDER" value={formData.PAYMENT_BANK_HOLDER} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" />
               </div>
               <div>
                 <Label>Bank Name</Label>
-                <Input name="PAYMENT_BANK_NAME" value={formData.PAYMENT_BANK_NAME} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" placeholder="HDFC Bank" />
+                <Input name="PAYMENT_BANK_NAME" value={formData.PAYMENT_BANK_NAME} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" />
               </div>
               <div>
                 <Label>Account Number</Label>
-                <Input name="PAYMENT_BANK_ACCOUNT" value={formData.PAYMENT_BANK_ACCOUNT} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" placeholder="XXXX XXXX XXXX" />
+                <Input name="PAYMENT_BANK_ACCOUNT" value={formData.PAYMENT_BANK_ACCOUNT} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" />
               </div>
               <div>
                 <Label>IFSC Code</Label>
-                <Input name="PAYMENT_BANK_IFSC" value={formData.PAYMENT_BANK_IFSC} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" placeholder="HDFC0001234" />
+                <Input name="PAYMENT_BANK_IFSC" value={formData.PAYMENT_BANK_IFSC} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" />
               </div>
               <div className="col-span-2">
                 <Label>Branch Name</Label>
-                <Input name="PAYMENT_BANK_BRANCH" value={formData.PAYMENT_BANK_BRANCH} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" placeholder="Main Branch, City" />
+                <Input name="PAYMENT_BANK_BRANCH" value={formData.PAYMENT_BANK_BRANCH} onChange={handleChange} className="bg-black/50 border-white/10 mt-2" />
               </div>
             </div>
           )}

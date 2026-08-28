@@ -6,8 +6,8 @@ const typographyVariants = cva("transition-colors duration-200", {
   variants: {
     variant: {
       display: "font-heading font-bold tracking-tight leading-[110%]",
-      pageTitle: "font-heading font-bold tracking-tight leading-[120%]",
-      sectionTitle: "font-heading font-bold tracking-tight leading-[120%]",
+      pageTitle: "font-heading font-bold tracking-tight leading-[130%]",
+      sectionTitle: "font-heading font-bold tracking-tight leading-[130%]",
       widgetTitle: "font-heading font-semibold tracking-tight leading-[120%]",
       cardTitle: "font-heading font-semibold tracking-tight leading-[120%]",
       body: "font-sans leading-[150%]",

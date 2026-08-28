@@ -10,7 +10,8 @@ import Link from "next/link";
 import { Prisma, InvoiceStatus } from "@prisma/client";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { deleteInvoice, generateInvoiceNumber, createInvoice } from "@/app/actions/invoice";
+import { deleteInvoice, generateInvoiceNumber, createInvoice, deleteMultipleInvoices } from "@/app/actions/invoice";
+import { Checkbox } from "@/components/ui/checkbox";
 import { getInvoiceStatusMetadata } from "@/domain/finance/metadata";
 import { whatsappLinks } from "@/lib/integrations/whatsapp";
 
@@ -37,6 +38,32 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+  };
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === data.invoices.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(data.invoices.map(i => i.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (confirm(`Are you sure you want to delete ${selectedIds.length} invoices?`)) {
+      setIsDeletingBulk(true);
+      await deleteMultipleInvoices(selectedIds);
+      setSelectedIds([]);
+      setIsDeletingBulk(false);
+    }
   };
 
 
@@ -143,12 +170,25 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
           ))}
         </div>
         
-        <Button 
-          onClick={handleCreateNew}
-          className="bg-[#C1121F] hover:bg-[#a00f1a] text-white whitespace-nowrap w-full sm:w-auto"
-        >
-          <Plus className="h-4 w-4 mr-2" /> Create Invoice
-        </Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          {selectedIds.length > 0 && (
+            <Button 
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={isDeletingBulk}
+              className="whitespace-nowrap"
+            >
+              <Trash2 className="h-4 w-4 mr-2" /> 
+              {isDeletingBulk ? 'Deleting...' : `Delete (${selectedIds.length})`}
+            </Button>
+          )}
+          <Button 
+            onClick={handleCreateNew}
+            className="bg-[#C1121F] hover:bg-[#a00f1a] text-white whitespace-nowrap w-full sm:w-auto"
+          >
+            <Plus className="h-4 w-4 mr-2" /> Create Invoice
+          </Button>
+        </div>
       </div>
 
       {/* Table Area */}
@@ -157,12 +197,19 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
           <Table>
             <TableHeader className="bg-black/40 sticky top-0 z-10 backdrop-blur-md">
               <TableRow className="border-white/10 hover:bg-transparent">
+                <TableHead className="w-[40px] pl-4">
+                  <Checkbox 
+                    checked={selectedIds.length === data.invoices.length && data.invoices.length > 0}
+                    onChange={toggleSelectAll}
+                    aria-label="Select all"
+                    className="border-white/20 data-[state=checked]:bg-[#C1121F] data-[state=checked]:border-[#C1121F]"
+                  />
+                </TableHead>
                 <TableHead className="text-zinc-400 font-medium">Invoice</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Client / Project</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Issue Date</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Due Date</TableHead>
                 <TableHead className="text-zinc-400 font-medium text-right">Amount</TableHead>
-                <TableHead className="text-zinc-400 font-medium text-center">PDFs</TableHead>
                 <TableHead className="text-zinc-400 font-medium">Status</TableHead>
                 <TableHead className="text-zinc-400 font-medium w-[50px]"></TableHead>
               </TableRow>
@@ -170,15 +217,23 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
             <TableBody>
               {data.invoices.length === 0 ? (
                 <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableCell colSpan={8} className="h-32 text-center text-zinc-500">
+                  <TableCell colSpan={7} className="h-32 text-center text-zinc-500">
                     No invoices found. Create your first invoice!
                   </TableCell>
                 </TableRow>
               ) : (
                 data.invoices.map((invoice) => (
                   <TableRow key={invoice.id} className="border-white/10 hover:bg-white/5 transition-colors group">
+                    <TableCell className="pl-4">
+                      <Checkbox 
+                        checked={selectedIds.includes(invoice.id)}
+                        onChange={() => toggleSelect(invoice.id)}
+                        aria-label={`Select invoice ${invoice.invoiceNumber}`}
+                        className="border-white/20 data-[state=checked]:bg-[#C1121F] data-[state=checked]:border-[#C1121F]"
+                      />
+                    </TableCell>
                     <TableCell>
-                      <Link href={`/finance/invoices/${invoice.id}`} className="font-medium text-white hover:text-[#C1121F] transition-colors flex items-center gap-1.5">
+                      <Link href={`/finance/invoices/${invoice.id}`} className="font-medium text-white group-hover:text-[#C1121F] transition-colors flex items-center gap-1.5">
                         <FileText className="h-4 w-4 text-zinc-500 group-hover:text-[#C1121F] transition-colors" />
                         {invoice.invoiceNumber}
                       </Link>
@@ -199,23 +254,6 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
                     </TableCell>
                     <TableCell className="text-right font-medium text-white">
                       {formatCurrency(Number(invoice.total))}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {(invoice.project as any)?.quotationId ? (
-                          <a href={`/api/pdf/quotation/${(invoice.project as any).quotationId}`} target="_blank" title="View Quotation" className="px-2 py-1 flex items-center justify-center bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-md transition-colors text-xs font-bold w-7 h-7">
-                            Q
-                          </a>
-                        ) : null}
-                        <a href={`/api/pdf/invoice/${invoice.id}`} target="_blank" title="View Invoice" className="px-2 py-1 flex items-center justify-center bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-md transition-colors text-xs font-bold w-7 h-7">
-                          I
-                        </a>
-                        {invoice.payments && invoice.payments.length > 0 ? (
-                          <a href={`/api/pdf/receipt/${invoice.payments[invoice.payments.length - 1].id}`} target="_blank" title="View Receipt" className="px-2 py-1 flex items-center justify-center bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-md transition-colors text-xs font-bold w-7 h-7">
-                            R
-                          </a>
-                        ) : null}
-                      </div>
                     </TableCell>
                     <TableCell>
                       {(() => {
@@ -244,22 +282,41 @@ export default function InvoicesTable({ data, clients, projects }: InvoicesTable
                           
                           {(invoice.project as any)?.quotationId && (
                             <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
-                              <a href={`/api/pdf/quotation/${(invoice.project as any).quotationId}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-blue-400 hover:text-blue-300">
+                              <a href={`/api/documents/quotation/${(invoice.project as any).quotationId}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-blue-400 hover:text-blue-300">
                                 <FileText className="h-4 w-4 mr-2" /> Download Quotation
                               </a>
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
-                            <a href={`/api/pdf/invoice/${invoice.id}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-purple-400 hover:text-purple-300">
+                            <a href={`/api/documents/invoice/${invoice.id}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-purple-400 hover:text-purple-300">
                               <FileText className="h-4 w-4 mr-2" /> Download Invoice
                             </a>
                           </DropdownMenuItem>
                           {invoice.payments && invoice.payments.length > 0 && (
-                            <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
-                              <a href={`/api/pdf/receipt/${invoice.payments[invoice.payments.length - 1].id}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-emerald-400 hover:text-emerald-300">
-                                <FileText className="h-4 w-4 mr-2" /> Download Receipt
-                              </a>
-                            </DropdownMenuItem>
+                            <>
+                              <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                                <a href={`/api/documents/receipt/${invoice.payments[invoice.payments.length - 1].id}`} target="_blank" className="flex items-center w-full px-2 py-1.5 text-emerald-400 hover:text-emerald-300">
+                                  <FileText className="h-4 w-4 mr-2" /> Download Receipt
+                                </a>
+                              </DropdownMenuItem>
+                              {invoice.client?.phone && (
+                                <DropdownMenuItem className="p-0 hover:bg-white/10 hover:text-white cursor-pointer">
+                                  <a 
+                                    href={whatsappLinks.sendReceipt(
+                                      invoice.client.phone, 
+                                      invoice.client.contactPerson || invoice.client.businessName, 
+                                      Number(invoice.payments[invoice.payments.length - 1].amount),
+                                      `https://randomframes.app/api/documents/receipt/${invoice.payments[invoice.payments.length - 1].id}/pdf`
+                                    )} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center w-full px-2 py-1.5 text-emerald-400 hover:text-emerald-300"
+                                  >
+                                    <MessageCircle className="h-4 w-4 mr-2" /> WhatsApp Receipt
+                                  </a>
+                                </DropdownMenuItem>
+                              )}
+                            </>
                           )}
 
                           <div className="h-px bg-white/10 my-1 mx-2" />

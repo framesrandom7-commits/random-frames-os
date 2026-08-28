@@ -135,7 +135,7 @@ interface LeadQuotationPDFProps {
   lead: Lead;
 }
 
-export function LeadQuotationPDF({ lead }: LeadQuotationPDFProps) {
+export function LeadQuotationPDF({ lead , invoiceLogo }: LeadQuotationPDFProps) {
   const formatDate = (dateString: Date) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -170,7 +170,7 @@ export function LeadQuotationPDF({ lead }: LeadQuotationPDFProps) {
 
   return (
     <Document>
-      <PDFLayout documentTitle="QUOTATION" metaInfo={metaInfo}>
+      <PDFLayout documentTitle="QUOTATION" metaInfo={metaInfo} invoiceLogo={invoiceLogo}>
         
         {/* Client & Project Info */}
         <View style={{ flexDirection: "row", gap: 30 }}>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { getPortalDashboard, getPortalShoots, getPortalInvoices, getPortalApprovals, approveClientRequest } from "@/app/actions/portal";
 import { 
   LayoutDashboard, CheckCircle2, Film, CreditCard, Calendar, Video, 
   FolderGit2, MessageSquare, HelpCircle, Bell, User, ExternalLink, 
@@ -20,94 +21,63 @@ export default function ClientPortalDashboard({ initialClientId = "cli_vogue_ind
   const [actionStatus, setActionStatus] = useState<string>(initialOnboarded ? " 🎉 Onboarding invitation activated successfully! Welcome to your secure client portal." : "");
   
   // Dashboard & Branding State
-  const [dashboardData, setDashboardData] = useState<any>({
-    welcomeMessage: "Welcome back, Anjali. Here is your real-time command center for all creative productions and financial records.",
-    clientIdentity: { businessName: "Vogue India & Random Frames Partnership", contactPerson: "Anjali Sharma (Senior Fashion Editor)", email: "anjali.sharma@vogue.in", phone: "+91 98200 12345" },
-    activeProjectsCount: 3,
-    upcomingShootsCount: 2,
-    outstandingBalance: 125000,
-    recentActivities: [
-      { id: "act_1", title: "Hero Campaign Video V1 uploaded for your preview screening", date: "5 hours ago", type: "DELIVERABLE" },
-      { id: "act_2", title: "Quotation #101 issued for Taj Colaba Summer Campaign", date: "2 days ago", type: "FINANCE" },
-      { id: "act_3", title: "Creative producer booked Pre-Production Google Meet consultation", date: "3 days ago", type: "MEETING" }
-    ],
-    branding: { businessName: "Vogue India Production Studio", primaryColor: "#3B82F6", accentColor: "#F59E0B", supportEmail: "support@randomframes.com", supportPhone: "+91 98765 43210" }
-  });
-
-  // Approval Center Items
-  const [approvals, setApprovals] = useState<any[]>([
-    {
-      id: "qtn_2026_101",
-      type: "QUOTATION",
-      title: "Master Quotation: Vogue Summer Fashion Shoot",
-      description: "Comprehensive quotation covering 2-day multi-camera location shoot, editing, coloring, and drone photography.",
-      amount: 250000,
-      status: "PENDING_REVIEW",
-      version: 1
-    },
-    {
-      id: "del_preview_hero_video_v1",
-      type: "DELIVERABLE_PREVIEW",
-      title: "Hero Campaign Video (4K watermarked cut) - V1",
-      description: "Initial color-graded preview render of the 60-second commercial hero film. Please approve for unwatermarked ProRes final release.",
-      status: "PENDING_REVIEW",
-      version: 1,
-      previewUrl: "https://drive.google.com/file/d/preview-vogue-hero-film-v1/view"
-    }
-  ]);
-
-  // Deliverables Gallery
-  const [deliverables, setDeliverables] = useState<any[]>([
-    { id: "del_1", title: "Hero Campaign Commercial Film (60s Cut)", category: "VIDEO_PRO_RES", version: 1, fileSize: "1.42 GB", status: "PREVIEW_READY", signedDownloadUrl: "/api/portal/v1/download?fileId=hero_v1.mov&name=Vogue_Hero_Campaign_V1.mov" },
-    { id: "del_2", title: "Retouched Editorial Magazine Stills (50 Images)", category: "PHOTO_RETOUCHED", version: 2, fileSize: "890 MB", status: "APPROVED_FINAL", signedDownloadUrl: "/api/portal/v1/download?fileId=stills_v2.zip&name=Vogue_Editorial_Stills_V2.zip" },
-    { id: "del_3", title: "Instagram Reels & TikTok Vertical Cuts (15s x 5 variants)", category: "SOCIAL_REEL", version: 1, fileSize: "310 MB", status: "PREVIEW_READY", signedDownloadUrl: "/api/portal/v1/download?fileId=reels_v1.zip&name=Vogue_Social_Reels_Pack.zip" }
-  ]);
-
-  // Payment Center State
-  const [paymentInfo] = useState<any>({
-    totalOutstanding: 125000,
-    advanceReceived: 150000,
-    upiId: "randomframes.hdfc@idfcbank",
-    qrCodeDataUrl: "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=randomframes.hdfc@idfcbank&am=125000&color=ffffff&bgcolor=1e293b",
-    bankAccount: { bankName: "HDFC Bank Private Ltd", accountName: "Random Frames Media Pvt Ltd", accountNumber: "50200012345678", ifscCode: "HDFC0001234" },
-    history: [{ id: "pay_089", invoice: "INV-2026-101", amount: 150000, type: "50% Advance Confirmation", date: "7 days ago", status: "COMPLETED" }]
-  });
-
-  // Brand Asset Library State
-  const [brandAssets, setBrandAssets] = useState<any[]>([
-    { id: "ast_1", name: "Vogue Master Vector Logo (EPS + PNG)", category: "LOGO", size: "4.5 MB", uploadedAt: "5 days ago", googleDriveFolder: "fld_vogue_brand_2026" },
-    { id: "ast_2", name: "2026 Editorial Color & Framing Bible", category: "GUIDELINES", size: "12.4 MB", uploadedAt: "5 days ago", googleDriveFolder: "fld_vogue_brand_2026" }
-  ]);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [approvals, setApprovals] = useState<any[]>([]);
+  const [deliverables, setDeliverables] = useState<any[]>([]);
+  const [paymentInfo, setPaymentInfo] = useState<any>(null);
+  const [brandAssets, setBrandAssets] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [shoots, setShoots] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   // Client Requests Form State
   const [reqType, setReqType] = useState<string>("REVISION_REQUEST");
   const [reqTitle, setReqTitle] = useState<string>("");
   const [reqDetails, setReqDetails] = useState<string>("");
 
-  // Notification Feed State
   const [notifCategory, setNotifCategory] = useState<string>("ALL");
-  const notifications: any[] = [
-    { id: "n1", category: "FINANCE", title: "Quotation #101 Ready for Review", message: "Vogue India Summer Campaign master quotation is ready for your digital signature.", time: "2h ago", read: false },
-    { id: "n2", category: "PROJECT", title: "Hero Campaign Video V1 Preview Ready", message: "Color graded preview cut has been published in your Deliverables Gallery.", time: "6h ago", read: false },
-    { id: "n3", category: "SHOOTS", title: "Upcoming Shoot Reminder: Taj Colaba", message: "Call time confirmed for tomorrow morning at 07:00 AM. Google Calendar invite updated.", time: "14h ago", read: true },
-    { id: "n4", category: "COMMUNICATION", title: "New Meeting Recording Available", message: "Video recording from our Pre-Production Creative Sync is now in your Meeting Center.", time: "1d ago", read: true }
-  ];
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [dash, invs, aprv, sh] = await Promise.all([
+        getPortalDashboard(clientId),
+        getPortalInvoices(clientId),
+        getPortalApprovals(clientId),
+        getPortalShoots(clientId)
+      ]);
+      setDashboardData(dash);
+      setPaymentInfo(dash.paymentInfo);
+      setInvoices(invs.invoices);
+      setPayments(invs.payments);
+      setApprovals(aprv);
+      setShoots(sh);
+    } catch (e: any) {
+      setActionStatus("❌ Failed to load data: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [clientId]);
 
   // Action Handlers
   const handleApprove = async (id: string, type: string) => {
     setLoading(true);
     setActionStatus("");
     try {
-      setApprovals((prev: any[]) => prev.map((a: any) => a.id === id ? { ...a, status: "APPROVED", unlockedUrl: `/api/portal/v1/download?fileId=master_${id}.mov&name=Master_Unwatermarked_${id}.mov` } : a));
-      if (type === "DELIVERABLE_PREVIEW") {
-        setDeliverables((prev: any[]) => prev.map((d: any) => d.id === id ? { ...d, status: "APPROVED_FINAL", title: d.title + " (Master Unwatermarked Unlocked)" } : d));
-      }
-      setActionStatus(`✅ Approved ${type} [${id}] successfully! Workflow events fired and final master releases unlocked.`);
-    } catch {
-      setActionStatus("❌ Approval failed due to connection anomaly.");
+      await approveClientRequest(id, "Approved via Client Portal");
+      setActionStatus(`✅ Approved ${type} [${id}] successfully!`);
+      await loadData();
+    } catch (e: any) {
+      setActionStatus("❌ Approval failed: " + e.message);
     }
     setLoading(false);
   };
+
 
   const handleRequestRevision = async (id: string, type: string) => {
     const feedback = prompt("Enter structured feedback and timestamped modification instructions for our production crew:");
@@ -146,6 +116,25 @@ export default function ClientPortalDashboard({ initialClientId = "cli_vogue_ind
     setBrandAssets((prev: any[]) => [newAsset, ...prev]);
     setActionStatus(`📁 Uploaded brand asset "${name}" directly into Google Drive Workspace storage!`);
   };
+
+  if (loading) {
+    return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 font-sans">
+      <div className="h-12 w-12 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-4 animate-pulse">
+        <span className="h-6 w-6 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+      </div>
+      <p className="text-sm font-semibold text-slate-300">Syncing Secure Client Portal...</p>
+    </div>;
+  }
+
+  if (!dashboardData) {
+    return <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-rose-400 font-sans">
+      <div className="h-12 w-12 rounded-xl bg-rose-500/20 flex items-center justify-center mb-4">
+        <AlertTriangle className="h-6 w-6 text-rose-500" />
+      </div>
+      <p className="text-sm font-semibold text-rose-300">Error Loading Portal Data</p>
+      <p className="text-xs mt-2 text-rose-400/70 max-w-md text-center">{actionStatus}</p>
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row selection:bg-indigo-500 selection:text-white">
@@ -400,12 +389,12 @@ export default function ClientPortalDashboard({ initialClientId = "cli_vogue_ind
                 </p>
               </div>
               <a
-                href="https://drive.google.com/drive/folders/vogue-summer-2026-master-pack"
+                href={dashboardData?.clientIdentity?.driveUrl || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2.5 px-4 rounded-xl flex items-center gap-2 border border-slate-700 transition-all self-start md:self-auto"
               >
-                <FolderGit2 className="h-4 w-4 text-indigo-400" /> Open Google Drive Master Archive
+                <FolderGit2 className="h-4 w-4 text-indigo-400" /> Open Google Drive Workspace
               </a>
             </div>
 
@@ -500,7 +489,7 @@ export default function ClientPortalDashboard({ initialClientId = "cli_vogue_ind
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 mb-4">Master Payment Timeline & Milestones</h3>
               <div className="space-y-4">
                 {[
-                  { title: "50% Advance Project Booking Confirmation", amt: 150000, date: "July 25, 2026", status: "PAID", receipt: "/api/pdf/receipt/pay_089" },
+                  { title: "50% Advance Project Booking Confirmation", amt: 150000, date: "July 25, 2026", status: "PAID", receipt: "/api/documents/receipt/pay_089" },
                   { title: "30% Post-Production Preview Review", amt: 90000, date: "Current Phase (Due Now)", status: "PENDING", receipt: null },
                   { title: "20% Final Master Unwatermarked Release", amt: 35000, date: "Due upon final sign-off", status: "UPCOMING", receipt: null }
                 ].map((item: any, idx: number) => (
@@ -634,12 +623,14 @@ export default function ClientPortalDashboard({ initialClientId = "cli_vogue_ind
                   Upload and manage your logos, brand guidelines, fonts, colors, product shots, and reference photos synchronized directly with Google Drive.
                 </p>
               </div>
-              <button
-                onClick={handleUploadAsset}
-                className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 text-white font-semibold text-xs py-2.5 px-5 rounded-xl shadow-lg shadow-amber-600/30 flex items-center gap-2 transition-all self-start sm:self-auto"
+              <a
+                href={dashboardData?.clientIdentity?.driveUrl || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all w-full sm:w-auto"
               >
-                <Upload className="h-4 w-4" /> + Upload Brand Asset
-              </button>
+                <Upload className="h-4 w-4" /> Access Drive Workspace
+              </a>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

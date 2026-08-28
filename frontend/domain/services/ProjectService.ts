@@ -13,18 +13,9 @@ export class ProjectService {
   }
 
   static async generateCode(): Promise<string> {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    
-    const count = await ProjectRepository.count({
-      createdAt: {
-        gte: new Date(date.getFullYear(), date.getMonth(), 1),
-      }
-    });
-
+    const count = await ProjectRepository.count();
     const sequential = (count + 1).toString().padStart(3, '0');
-    return `PR${year}${month}${sequential}`;
+    return `RF-P${sequential}`;
   }
 
   static async create(data: CreateProjectData) {

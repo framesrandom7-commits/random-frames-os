@@ -12,21 +12,53 @@ interface LeadKanbanProps {
   leads: LeadListWithRelations[];
 }
 
-const STATUS_COLUMNS = Object.values(LeadStatus);
+  const SUPER_STAGES = [
+  {
+    id: "INBOUND",
+    label: "Inbound",
+    statuses: [LeadStatus.NEW, LeadStatus.CONTACTED]
+  },
+  {
+    id: "IN_PROGRESS",
+    label: "In Progress",
+    statuses: [LeadStatus.MEETING_SCHEDULED, LeadStatus.QUOTE_SENT]
+  },
+  {
+    id: "CLOSING",
+    label: "Closing",
+    statuses: [LeadStatus.QUOTE_APPROVED, LeadStatus.ADVANCE_PENDING]
+  },
+  {
+    id: "COMPLETED",
+    label: "Completed",
+    statuses: [LeadStatus.CONVERTED, LeadStatus.LOST, LeadStatus.ON_HOLD]
+  }
+];
 
 export default function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
   const [leads, setLeads] = useState<LeadListWithRelations[]>(initialLeads);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-     
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-     
     setLeads(initialLeads);
   }, [initialLeads]);
+
+  const handleStatusChange = async (leadId: string, newStatus: LeadStatus) => {
+    setLeads((prev) => 
+      prev.map((lead) => 
+        lead.id === leadId ? { ...lead, status: newStatus } : lead
+      )
+    );
+    const success = await updateLeadStatus(leadId, newStatus);
+    if (!success) {
+      toast.error("Failed to update status");
+      setLeads([...initialLeads]);
+    }
+  };
 
   const onDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -34,20 +66,13 @@ export default function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
     if (!destination) return;
     if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
-    const newStatus = destination.droppableId as LeadStatus;
-    
-    // Optimistic UI update
-    setLeads((prev) => 
-      prev.map((lead) => 
-        lead.id === draggableId ? { ...lead, status: newStatus } : lead
-      )
-    );
+    if (destination.droppableId !== source.droppableId) {
+      const targetStage = SUPER_STAGES.find(s => s.id === destination.droppableId);
+      if (!targetStage) return;
 
-    const success = await updateLeadStatus(draggableId, newStatus);
-    if (!success) {
-      toast.error("Failed to update status");
-      // Revert if failed
-      setLeads([...initialLeads]);
+      const newStatus = targetStage.statuses[0];
+      
+      handleStatusChange(draggableId, newStatus);
     }
   };
 
@@ -56,27 +81,27 @@ export default function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
   }
 
   return (
-    <div className="flex h-full w-full overflow-x-auto pb-4 gap-4 px-1">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 h-full w-full gap-4 px-1 pb-4">
       <DragDropContext onDragEnd={onDragEnd}>
-        {STATUS_COLUMNS.map((status) => {
-          const columnLeads = leads.filter((l) => l.status === status);
+        {SUPER_STAGES.map((stage) => {
+          const columnLeads = leads.filter((l) => stage.statuses.includes(l.status));
           
           return (
-            <div key={status} className="flex-shrink-0 w-80 flex flex-col">
-              <div className="flex items-center justify-between mb-3 px-2">
-                <h3 className="font-semibold text-white/90 text-sm">{status.replace("_", " ")}</h3>
-                <span className="bg-white/10 text-xs text-zinc-400 px-2 py-0.5 rounded-full">
+            <div key={stage.id} className="flex flex-col h-full bg-[#12141A] rounded-xl border border-white/5 shadow-lg overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b border-white/5 bg-[#171A21]">
+                <h3 className="font-semibold text-white tracking-wide text-sm">{stage.label}</h3>
+                <span className="bg-white/10 text-xs font-medium text-zinc-300 px-2.5 py-1 rounded-full">
                   {columnLeads.length}
                 </span>
               </div>
               
-              <Droppable droppableId={status}>
+              <Droppable droppableId={stage.id}>
                 {(provided, snapshot) => (
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className={`flex-1 rounded-lg p-2 min-h-[150px] transition-colors ${
-                      snapshot.isDraggingOver ? "bg-white/10" : "bg-black/20"
+                    className={`flex-1 p-3 min-h-[300px] transition-colors overflow-y-auto ${
+                      snapshot.isDraggingOver ? "bg-white/[0.03]" : "bg-transparent"
                     }`}
                   >
                     <div className="flex flex-col gap-3">
@@ -87,12 +112,10 @@ export default function LeadKanban({ leads: initialLeads }: LeadKanbanProps) {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className={`${snapshot.isDragging ? "opacity-90 shadow-xl scale-105 z-50" : ""}`}
+                              className={`${snapshot.isDragging ? "opacity-90 shadow-2xl scale-[1.02] z-50 ring-2 ring-primary/50 rounded-xl" : ""}`}
                               style={{ ...provided.draggableProps.style }}
                             >
-                              <div className="pointer-events-none">
-                                <LeadCard lead={lead} />
-                              </div>
+                              <LeadCard lead={lead} onStatusChange={handleStatusChange} />
                             </div>
                           )}
                         </Draggable>

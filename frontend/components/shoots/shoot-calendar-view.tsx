@@ -135,7 +135,7 @@ export default function ShootCalendarView({ shoots, clients, projects }: ShootCa
     );
   }
 
-  const getStatusStyles = (status: string) => {
+  function getStatusStyles(status: string) {
     switch (status) {
       case 'SCHEDULED': return 'bg-blue-500/10 border-blue-500 text-blue-200';
       case 'CONFIRMED': return 'bg-purple-500/10 border-purple-500 text-purple-200';

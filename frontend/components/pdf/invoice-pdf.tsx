@@ -1,5 +1,5 @@
 import React from "react";
-import { Document, View, Text, StyleSheet } from "@react-pdf/renderer";
+import { Document, View, Text, StyleSheet, Image } from "@react-pdf/renderer";
 import { Prisma } from "@prisma/client";
 import { PDFLayout, theme } from "./shared/PDFLayout";
 import { PDFIcons } from "./shared/PDFIcons";
@@ -138,15 +138,20 @@ interface InvoicePDFProps {
   paymentInfo?: {
     acceptUpi: boolean;
     upiId: string;
+    upiQrUrl?: string;
     acceptBankTransfer: boolean;
     bankName: string;
     accountHolder: string;
     accountNumber: string;
     ifscCode: string;
   };
+  invoiceLogo?: string;
+  currency?: string;
+  taxPercentage?: string;
+  invoiceFooterNotes?: string;
 }
 
-export function InvoicePDF({ invoice, companyInfo, paymentInfo: defaultPaymentInfo }: InvoicePDFProps) {
+export function InvoicePDF({ invoice, companyInfo, paymentInfo: defaultPaymentInfo, invoiceLogo, currency = "INR", taxPercentage = "0", invoiceFooterNotes }: InvoicePDFProps) {
   const { project, items } = invoice;
   const client = project?.client;
   const paymentInfo = invoice.paymentSnapshot || defaultPaymentInfo;
@@ -170,25 +175,27 @@ export function InvoicePDF({ invoice, companyInfo, paymentInfo: defaultPaymentIn
     { icon: <PDFIcons.Tag size={12} />, label: "Status", value: invoice.status || "DRAFT", isStatus: true, statusColor },
   ];
 
+  const currencySymbol = currency === "USD" ? "$" : currency === "EUR" ? "€" : "₹";
+
   const tableItems = items && items.length > 0 ? items.map((item: any) => ({
     service: item.description,
     qty: item.quantity || 1,
     unit: "Unit",
-    rate: Number(item.unitPrice || item.total).toLocaleString('en-IN'),
-    amount: Number(item.total).toLocaleString('en-IN')
+    rate: Number(item.unitPrice || item.total).toLocaleString('en-US'),
+    amount: Number(item.total).toLocaleString('en-US')
   })) : [
     {
       service: project?.title || "Professional Services",
       qty: "1",
       unit: "Service",
-      rate: Number(invoice.subtotal).toLocaleString('en-IN'),
-      amount: Number(invoice.subtotal).toLocaleString('en-IN')
+      rate: Number(invoice.subtotal).toLocaleString('en-US'),
+      amount: Number(invoice.subtotal).toLocaleString('en-US')
     }
   ];
 
   return (
     <Document>
-      <PDFLayout documentTitle="INVOICE" metaInfo={metaInfo} companyInfo={companyInfo}>
+      <PDFLayout documentTitle="INVOICE" metaInfo={metaInfo} companyInfo={companyInfo} invoiceLogo={invoiceLogo}>
         
         {/* Bill To & From Info */}
         <View style={{ flexDirection: "row", gap: 30 }}>
@@ -224,12 +231,21 @@ export function InvoicePDF({ invoice, companyInfo, paymentInfo: defaultPaymentIn
             <PDFSectionTitle icon={<PDFIcons.CheckCircleRed />} title="PAYMENT INFORMATION" />
             <View style={styles.paymentInfoBox}>
               <PDFInfoRow icon={<PDFIcons.DotRed />} label="Payment Method" value={paymentInfo?.acceptBankTransfer ? "Bank Transfer" : "UPI"} />
-              <PDFInfoRow icon={<PDFIcons.DotRed />} label="Bank Name" value={paymentInfo?.bankName || "HDFC Bank"} />
-              <PDFInfoRow icon={<PDFIcons.DotRed />} label="Account Number" value={paymentInfo?.accountNumber || "50100XXXXXXX"} />
-              <PDFInfoRow icon={<PDFIcons.DotRed />} label="IFSC Code" value={paymentInfo?.ifscCode || "HDFC0000XXX"} />
-              <PDFInfoRow icon={<PDFIcons.DotRed />} label="Account Holder" value={paymentInfo?.accountHolder || "Savan Somaiah T P"} />
-              {paymentInfo?.acceptUpi && (
+              {paymentInfo?.acceptBankTransfer && (
+                <>
+                  <PDFInfoRow icon={<PDFIcons.DotRed />} label="Bank Name" value={paymentInfo.bankName || "-"} />
+                  <PDFInfoRow icon={<PDFIcons.DotRed />} label="Account Number" value={paymentInfo.accountNumber || "-"} />
+                  <PDFInfoRow icon={<PDFIcons.DotRed />} label="IFSC Code" value={paymentInfo.ifscCode || "-"} />
+                  <PDFInfoRow icon={<PDFIcons.DotRed />} label="Account Holder" value={paymentInfo.accountHolder || "-"} />
+                </>
+              )}
+              {paymentInfo?.acceptUpi && paymentInfo.upiId && (
                 <PDFInfoRow icon={<PDFIcons.DotRed />} label="UPI ID" value={paymentInfo.upiId} />
+              )}
+              {paymentInfo?.acceptUpi && paymentInfo.upiQrUrl && (
+                <View style={{ marginTop: 10, marginLeft: 20 }}>
+                   <Image src={paymentInfo.upiQrUrl} style={{ width: 80, height: 80, objectFit: "contain" }} />
+                </View>
               )}
             </View>
           </View>
@@ -237,19 +253,19 @@ export function InvoicePDF({ invoice, companyInfo, paymentInfo: defaultPaymentIn
           <View style={styles.summaryCol}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>₹ {Number(invoice.subtotal).toLocaleString('en-IN')}</Text>
+              <Text style={styles.summaryValue}>{currencySymbol} {Number(invoice.subtotal).toLocaleString('en-US')}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Discount</Text>
-              <Text style={[styles.summaryValue, { color: theme.colors.primary }]}>- ₹ {Number(invoice.discountAmount || 0).toLocaleString('en-IN')}</Text>
+              <Text style={[styles.summaryValue, { color: theme.colors.primary }]}>- {currencySymbol} {Number(invoice.discountAmount || 0).toLocaleString('en-US')}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Tax (If Applicable)</Text>
-              <Text style={styles.summaryValue}>₹ {Number(invoice.taxAmount || 0).toLocaleString('en-IN')}</Text>
+              <Text style={styles.summaryLabel}>Tax ({taxPercentage}%)</Text>
+              <Text style={styles.summaryValue}>{currencySymbol} {Number(invoice.taxAmount || 0).toLocaleString('en-US')}</Text>
             </View>
             <View style={styles.grandTotalBox}>
               <Text style={styles.grandTotalLabel}>GRAND TOTAL</Text>
-              <Text style={styles.grandTotalValue}>₹ {Number(invoice.total).toLocaleString('en-IN')}</Text>
+              <Text style={styles.grandTotalValue}>{currencySymbol} {Number(invoice.total).toLocaleString('en-US')}</Text>
             </View>
           </View>
         </View>
@@ -258,7 +274,7 @@ export function InvoicePDF({ invoice, companyInfo, paymentInfo: defaultPaymentIn
         <View style={styles.bottomSection}>
           <View style={styles.bottomCol}>
             <PDFSectionTitle icon={<PDFIcons.DocumentRed />} title="TERMS & CONDITIONS" />
-            {(invoice.termsAndConditions || "50% advance to confirm booking.\nRaw footage will be retained for 7 days from the date of delivery.\nCancellation after confirmation may incur charges.\nInvoice is valid for 7 days from the date of issue.").split('\n').map((term: string, idx: number) => (
+            {(invoice.termsAndConditions || invoiceFooterNotes || "50% advance to confirm booking.\nRaw footage will be retained for 7 days from the date of delivery.\nCancellation after confirmation may incur charges.\nInvoice is valid for 7 days from the date of issue.").split('\n').map((term: string, idx: number) => (
                <View key={idx} style={styles.termsText}>
                  <PDFIcons.DotRed />
                  <Text>{term}</Text>

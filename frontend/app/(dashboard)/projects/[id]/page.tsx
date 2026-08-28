@@ -77,27 +77,23 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
         title={
           <div className="flex items-center gap-3">
             <span className="text-xl font-bold text-white tracking-tight">{project.title}</span>
-            <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-xs">
-              {project.projectCode}
-            </Badge>
-            <Badge variant="outline" className={`border-0 ${getStatusColor(project.status)} text-xs`}>
-              {project.status.replace(/_/g, " ")}
-            </Badge>
           </div>
         }
-        subtitle={
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
-            <Building className="w-4 h-4" />
-            <Link href={`/clients/${project.client.id}`} className="hover:text-white hover:underline transition-colors">
+      />
+
+      <ModuleDetailsBody>
+        <ModuleDetailsContent className="space-y-6">
+          <div className="flex flex-row items-center justify-center gap-6 py-3 px-6 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md overflow-x-auto whitespace-nowrap custom-scrollbar">
+            <Link href={`/clients/${project.client.id}`} className="text-sm text-zinc-300 hover:text-white hover:underline transition-colors flex items-center gap-2 font-medium shrink-0">
+              <Building className="w-4 h-4 text-zinc-500" />
               {project.client.businessName}
             </Link>
-          </div>
-        }
-        action={
-          <div className="flex items-center gap-3">
+
+            <span className="text-zinc-700 shrink-0">•</span>
+
             <WhatsAppButton 
               variant="outline" 
-              className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-8 text-sm px-3"
+              className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-8 text-sm px-3 shrink-0"
               phone={project.client.phone}
               onSavePhone={async (phone) => {
                 "use server";
@@ -110,7 +106,9 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
               WhatsApp Client
             </WhatsAppButton>
 
-            <div className={`px-4 py-1.5 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2 ${getPaymentColor(project.paymentStatus)}`}>
+            <span className="text-zinc-700 shrink-0">•</span>
+
+            <div className={`px-4 py-1.5 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2 ${getPaymentColor(project.paymentStatus)} shrink-0`}>
               <IndianRupee className="w-4 h-4" />
               <span className="font-semibold text-base">{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>
               <Badge variant="outline" className="ml-1 text-[10px] uppercase border-current bg-transparent">
@@ -118,106 +116,90 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
               </Badge>
             </div>
           </div>
-        }
-      />
 
-      <ModuleDetailsBody>
-        <ModuleDetailsContent>
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 p-1 w-fit mb-4">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Overview</TabsTrigger>
-              <TabsTrigger value="storage" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Storage & Files</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="flex flex-col gap-6 m-0">
-              <ModuleDetailsSection>
-                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
-                  <Info className="w-5 h-5 text-zinc-400" />
-                  <span className="text-white text-lg font-medium">Project Details</span>
+          <div className="grid grid-cols-1 gap-6">
+            <ModuleDetailsSection>
+              <div className="flex flex-row items-center justify-between pb-4 border-b border-white/10 mb-4">
+                <div className="text-white text-lg flex items-center gap-2 font-medium">
+                  <Camera className="w-5 h-5 text-zinc-400" />
+                  Shoots ({shootData.total})
                 </div>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-zinc-500 mb-1">Description</h4>
-                    <p className="text-zinc-300 text-sm whitespace-pre-wrap">{project.description || "No description provided."}</p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10">
-                    <div>
-                      <h4 className="text-sm font-medium text-zinc-500 mb-1 flex items-center gap-1"><Calendar className="w-3.5 h-3.5"/> Start Date</h4>
-                      <p className="text-white">{project.startDate ? new Date(project.startDate).toLocaleDateString() : "—"}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-zinc-500 mb-1 flex items-center gap-1"><Calendar className="w-3.5 h-3.5"/> Due Date</h4>
-                      <p className="text-white">{project.endDate ? new Date(project.endDate).toLocaleDateString() : "—"}</p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-zinc-500 mb-1 flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-amber-500"/> Delivery Date</h4>
-                      <p className="text-amber-500 font-medium">{project.deliveryDate ? new Date(project.deliveryDate).toLocaleDateString() : "—"}</p>
-                    </div>
-                  </div>
-                </div>
-              </ModuleDetailsSection>
-
-              <ModuleDetailsSection>
-                <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
-                  <div className="flex items-center gap-2">
-                    <Camera className="w-5 h-5 text-zinc-400" />
-                    <span className="text-white text-lg font-medium">Shoots ({shootData.total})</span>
-                  </div>
-                  <Link href={`/shoots?new=true&projectId=${project.id}`} className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium bg-[#C1121F] hover:bg-[#a00f1a] text-white transition-colors">
-                    <Plus className="w-4 h-4 mr-2" /> Schedule Shoot
-                  </Link>
-                </div>
-                <div className="-mx-4 sm:mx-0">
-                  <ShootTable 
-                    shoots={shootData.shoots as any} 
-                    clients={clients} 
-                    projects={projects}
-                    total={shootData.total}
-                  />
-                </div>
-              </ModuleDetailsSection>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ModuleDetailsSection>
-                  <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
-                    <CheckCircle className="w-5 h-5 text-zinc-400" />
-                    <span className="text-white text-lg font-medium">Deliverables</span>
-                  </div>
-                  <p className="text-zinc-500 text-sm">No deliverables assigned yet. (Managed via Shoots)</p>
-                </ModuleDetailsSection>
-                <ModuleDetailsSection>
-                  <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
-                    <FileText className="w-5 h-5 text-zinc-400" />
-                    <span className="text-white text-lg font-medium">Internal Notes</span>
-                  </div>
-                  <p className="text-zinc-300 text-sm whitespace-pre-wrap">{project.notes || "No internal notes."}</p>
-                </ModuleDetailsSection>
+                <Link href={`/shoots?new=true&projectId=${project.id}`} className="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium bg-[#C1121F] hover:bg-[#a00f1a] text-white transition-colors">
+                  <Plus className="w-4 h-4 mr-2" /> Schedule Shoot
+                </Link>
               </div>
-            </TabsContent>
+              <ShootTable 
+                shoots={shootData.shoots as any} 
+                clients={clients} 
+                projects={projects}
+                total={shootData.total}
+                variant="list"
+              />
+            </ModuleDetailsSection>
 
-            <TabsContent value="storage" className="m-0">
-              <ModuleDetailsSection>
-                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
-                  <Folder className="w-5 h-5 text-zinc-400" />
-                  <span className="text-white text-lg font-medium">Project Storage</span>
-                </div>
-                <ProjectStorageTab 
-                  project={project as any} 
-                />
-              </ModuleDetailsSection>
-            </TabsContent>
-          </Tabs>
+            <ModuleDetailsSection>
+              <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+                <Folder className="w-5 h-5 text-zinc-400" />
+                <span className="text-white text-lg font-medium">Project Storage</span>
+              </div>
+              <ProjectStorageTab project={project as any} />
+            </ModuleDetailsSection>
+
+            <ModuleDetailsSection>
+              <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+                <CheckCircle className="w-5 h-5 text-zinc-400" />
+                <span className="text-white text-lg font-medium">Deliverables</span>
+              </div>
+              <p className="text-zinc-500 text-sm">No deliverables assigned yet. (Managed via Shoots)</p>
+            </ModuleDetailsSection>
+          </div>
+
+          <ModuleDetailsSection className="mt-6">
+            <div className="text-white text-lg font-medium mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-zinc-400" />
+              Activity Timeline
+            </div>
+            <ActivityTimeline activities={project.activities || []} />
+          </ModuleDetailsSection>
         </ModuleDetailsContent>
 
-        <ModuleDetailsSidebar>
+        <ModuleDetailsSidebar className="space-y-6">
           <ModuleDetailsSection>
-            <ProjectWorkspaceWidget
-              projectId={project.id}
-              projectTitle={project.title}
-              driveFolderUrl={project.driveRootFolderUrl}
-              clientEmail={(project.client as any)?.email}
-            />
+            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
+              <Info className="w-5 h-5 text-zinc-400" />
+              <span className="text-white text-lg font-medium">Project Details</span>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                <span className="text-zinc-400 text-sm">Project Code</span>
+                <Badge variant="outline" className="bg-white/5 text-zinc-300 font-mono text-[10px]">
+                  {project.projectCode}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                <span className="text-zinc-400 text-sm">Status</span>
+                <Badge variant="outline" className={`border-0 ${getStatusColor(project.status)} text-[10px]`}>
+                  {project.status.replace(/_/g, " ")}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-zinc-400 flex items-center gap-2 text-sm"><Calendar className="w-4 h-4"/> Start Date</span>
+                <span className="text-white text-sm">{project.startDate ? new Date(project.startDate).toLocaleDateString() : "—"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-400 flex items-center gap-2 text-sm"><Calendar className="w-4 h-4"/> Due Date</span>
+                <span className="text-white text-sm">{project.endDate ? new Date(project.endDate).toLocaleDateString() : "—"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-amber-500/70 flex items-center gap-2 text-sm"><Clock className="w-4 h-4"/> Delivery Date</span>
+                <span className="text-amber-500 text-sm font-medium">{project.deliveryDate ? new Date(project.deliveryDate).toLocaleDateString() : "—"}</span>
+              </div>
+              
+              <div className="pt-4 border-t border-white/10">
+                <h4 className="text-sm font-medium text-zinc-400 mb-1">Description</h4>
+                <p className="text-zinc-300 text-sm whitespace-pre-wrap leading-relaxed">{project.description || "No description provided."}</p>
+              </div>
+            </div>
           </ModuleDetailsSection>
 
           <ModuleDetailsSection>
@@ -245,30 +227,39 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
           </ModuleDetailsSection>
 
           <ModuleDetailsSection>
+            <ProjectWorkspaceWidget
+              projectId={project.id}
+              projectTitle={project.title}
+              driveFolderUrl={project.driveRootFolderUrl}
+              clientEmail={(project.client as any)?.email}
+            />
+          </ModuleDetailsSection>
+
+          <ModuleDetailsSection>
              <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
               <IndianRupee className="w-5 h-5 text-zinc-400" />
               <span className="text-white text-lg font-medium">Financials</span>
              </div>
              <div className="space-y-4">
-               <div className="flex justify-between items-center text-sm">
+               <div className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
                  <span className="text-zinc-500">Quotation</span>
                  <span className="text-white font-medium">₹{Number(project.quotationAmount || 0).toLocaleString('en-IN')}</span>
                </div>
-               <div className="flex justify-between items-center text-sm">
+               <div className="flex justify-between items-center text-sm border-b border-white/5 pb-2 pt-2">
                  <span className="text-zinc-500">Total Billed</span>
                  <span className="text-white font-medium">₹{Number(project.totalAmount || 0).toLocaleString('en-IN')}</span>
                </div>
-               <div className="flex justify-between items-center text-sm">
+               <div className="flex justify-between items-center text-sm border-b border-white/5 pb-2 pt-2">
                  <span className="text-zinc-500">Advance Paid</span>
                  <span className="text-emerald-400 font-medium">₹{Number(project.advanceAmount || 0).toLocaleString('en-IN')}</span>
                </div>
-               <div className="flex justify-between items-center text-sm font-medium pt-2 border-t border-white/10">
+               <div className="flex justify-between items-center text-sm font-medium pt-2">
                  <span className="text-zinc-400">Balance Due</span>
                  <span className="text-red-400">₹{Number(project.balanceAmount || 0).toLocaleString('en-IN')}</span>
                </div>
              </div>
-             <div className="mt-4">
-                <Link href={`/invoices?projectId=${project.id}`} className="w-full inline-flex h-9 items-center justify-center rounded-md border border-white/10 bg-transparent text-sm font-medium hover:bg-white/5 transition-colors">
+             <div className="mt-4 pt-4 border-t border-white/10 text-center">
+                <Link href={`/invoices?projectId=${project.id}`} className="text-sm text-[#C1121F] hover:text-white">
                   View Invoices ({invoicesData.length})
                 </Link>
              </div>
@@ -284,12 +275,10 @@ export default async function ProjectDetailsPage({ params }: { params: Promise<{
           
           <ModuleDetailsSection>
             <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/10">
-              <Clock className="w-5 h-5 text-zinc-400" />
-              <span className="text-white text-lg font-medium">Timeline</span>
+              <FileText className="w-5 h-5 text-zinc-400" />
+              <span className="text-white text-lg font-medium">Internal Notes</span>
             </div>
-            <div className="h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-              <ActivityTimeline activities={project.activities || []} />
-            </div>
+            <p className="text-zinc-300 text-sm whitespace-pre-wrap">{project.notes || "No internal notes."}</p>
           </ModuleDetailsSection>
         </ModuleDetailsSidebar>
       </ModuleDetailsBody>

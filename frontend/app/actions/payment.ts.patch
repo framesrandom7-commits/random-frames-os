@@ -1,0 +1,33 @@
+--- frontend/app/actions/payment.ts
++++ frontend/app/actions/payment.ts
+@@ -62,2 +62,30 @@
+   }
+ }
++
++export async function getPaymentById(id: string) {
++  try {
++    return await FinanceService.getPaymentById(id);
++  } catch (error) {
++    console.error("Error fetching payment:", error);
++    return null;
++  }
++}
++
++export async function updatePayment(id: string, data: UpdatePaymentData) {
++  try {
++    const user = await checkFinanceRbac();
++    const payment = await FinanceService.updatePayment(id, data);
++    
++    revalidatePath("/finance");
++    revalidatePath("/finance/payments");
++    revalidatePath(`/finance/payments/${id}`);
++    if (payment.invoiceId) revalidatePath(`/finance/invoices/${payment.invoiceId}`);
++    revalidatePath(`/clients/${payment.clientId}`);
++    if (payment.projectId) revalidatePath(`/projects/${payment.projectId}`);
++    
++    return { success: true, payment };
++  } catch (error) {
++    console.error("Error updating payment:", error);
++    return { success: false, error: "Failed to update payment" };
++  }
++}

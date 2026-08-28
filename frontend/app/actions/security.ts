@@ -192,26 +192,44 @@ export async function executeDataDeletion(target: string, pin: string) {
         prisma.leadCommunication.deleteMany(),
         prisma.lead.deleteMany(),
       ]);
-    } else if (target === "FINANCIALS") {
+    } else if (target === "CLIENTS") {
       await prisma.$transaction([
-        prisma.financialLedger.deleteMany(),
-        prisma.paymentAllocation.deleteMany(),
-        prisma.payment.deleteMany(),
-        prisma.invoiceItem.deleteMany(),
-        prisma.invoice.deleteMany(),
-        prisma.expense.deleteMany(),
+        prisma.client.deleteMany(),
+      ]);
+    } else if (target === "QUOTATIONS") {
+      await prisma.$transaction([
         prisma.quotationItem.deleteMany(),
         prisma.quotation.deleteMany(),
       ]);
-    } else if (target === "PROJECTS_SHOOTS") {
+    } else if (target === "INVOICES") {
+      await prisma.$transaction([
+        prisma.invoiceItem.deleteMany(),
+        prisma.invoice.deleteMany(),
+      ]);
+    } else if (target === "PAYMENTS") {
+      await prisma.$transaction([
+        prisma.paymentAllocation.deleteMany(),
+        prisma.payment.deleteMany(),
+      ]);
+    } else if (target === "EXPENSES") {
+      await prisma.$transaction([
+        prisma.expense.deleteMany(),
+      ]);
+    } else if (target === "PROJECTS") {
+      await prisma.$transaction([
+        prisma.project.deleteMany(),
+      ]);
+    } else if (target === "SHOOTS") {
+      await prisma.$transaction([
+        prisma.shootEquipment.deleteMany(),
+        prisma.shootShot.deleteMany(),
+        prisma.shoot.deleteMany(),
+      ]);
+    } else if (target === "DELIVERABLES") {
       await prisma.$transaction([
         prisma.deliverableFile.deleteMany(),
         prisma.deliverableVersion.deleteMany(),
         prisma.deliverable.deleteMany(),
-        prisma.shootEquipment.deleteMany(),
-        prisma.shootShot.deleteMany(),
-        prisma.shoot.deleteMany(),
-        prisma.project.deleteMany(),
       ]);
     } else {
       return { success: false, error: "Invalid target selection" };

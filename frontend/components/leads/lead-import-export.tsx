@@ -18,38 +18,44 @@ export default function LeadImportExport({ leads }: LeadImportExportProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExport = () => {
-    if (leads.length === 0) {
-      toast.info("No leads to export.");
-      return;
+    try {
+      if (leads.length === 0) {
+        toast.info("No leads to export.");
+        return;
+      }
+
+      const csvData = leads.map(lead => ({
+        BusinessName: lead.businessName || "",
+        ContactPerson: lead.contactPerson || "",
+        Phone: lead.phone || "",
+        Email: lead.email || "",
+        Status: lead.status || "",
+        Priority: lead.priority || "",
+        Source: lead.leadSource || "",
+        Budget: lead.budget ? String(lead.budget) : "",
+        Address: lead.address || "",
+        City: lead.city || "",
+        State: lead.state || "",
+        Country: lead.country || "",
+        PostalCode: lead.postalCode || "",
+        CreatedAt: lead.createdAt ? new Date(lead.createdAt).toISOString() : "",
+      }));
+
+      const csv = Papa.unparse(csvData);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `leads_export_${new Date().toISOString().split("T")[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export leads.");
     }
-
-    const csvData = leads.map(lead => ({
-      BusinessName: lead.businessName,
-      ContactPerson: lead.contactPerson || "",
-      Phone: lead.phone || "",
-      Email: lead.email || "",
-      "Status": lead.status,
-      Priority: lead.priority,
-      Source: lead.leadSource,
-      Budget: lead.budget ? lead.budget.toString() : "",
-      Address: lead.address || "",
-      City: lead.city || "",
-      State: lead.state || "",
-      Country: lead.country || "",
-      PostalCode: lead.postalCode || "",
-      CreatedAt: lead.createdAt.toISOString(),
-    }));
-
-    const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `leads_export_${new Date().toISOString().split("T")[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,7 +125,7 @@ export default function LeadImportExport({ leads }: LeadImportExportProps) {
         disabled={isImporting}
         className="bg-zinc-900 border-white/10 text-white hover:bg-white/10"
       >
-        {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+        {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
         Import CSV
       </Button>
       <input 
@@ -136,7 +142,7 @@ export default function LeadImportExport({ leads }: LeadImportExportProps) {
         onClick={handleExport}
         className="bg-zinc-900 border-white/10 text-white hover:bg-white/10"
       >
-        <Download className="h-4 w-4 mr-2" />
+        <Upload className="h-4 w-4 mr-2" />
         Export CSV
       </Button>
     </div>

@@ -32,7 +32,7 @@ export default function QuotationActions({ lead }: QuotationActionsProps) {
 
   const getWhatsAppMessage = (phone: string) => {
     // Generate the URL to the Lead PDF endpoint
-    const pdfUrl = `${window.location.origin}/api/pdf/lead-quotation/${lead.id}`;
+    const pdfUrl = `${window.location.origin}/api/documents/lead-quotation/${lead.id}`;
     return whatsappLinks.sendQuotation(
       phone,
       lead.contactPerson || lead.businessName,
@@ -41,7 +41,7 @@ export default function QuotationActions({ lead }: QuotationActionsProps) {
     );
   };
 
-  const pdfUrl = `/api/pdf/lead-quotation/${lead.id}`;
+  const pdfUrl = `/api/documents/lead-quotation/${lead.id}`;
   const filename = `Quotation-${(lead.businessName || lead.contactPerson || "Lead").replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
 
   return (

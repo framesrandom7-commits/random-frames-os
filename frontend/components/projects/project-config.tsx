@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ProjectBulkActions } from "./project-bulk-actions";
 import { getProjectStatusMetadata } from "@/domain/project/metadata";
+import { format } from "date-fns";
 
 type ProjectWithRelations = Project & {
   client: Client;
@@ -37,7 +38,9 @@ export const projectConfig: EntityConfig<ProjectWithRelations> = {
     {
       header: "Project Code",
       accessorKey: "projectCode",
-      className: "font-mono text-zinc-400 text-sm",
+      cell: (project) => (
+        <div className="font-mono text-zinc-400 text-sm">{project.projectCode}</div>
+      ),
     },
     {
       header: "Project Name",
@@ -99,7 +102,7 @@ export const projectConfig: EntityConfig<ProjectWithRelations> = {
       accessorKey: "deliveryDate",
       cell: (project) => (
         <div className="text-sm text-zinc-400">
-          {project.deliveryDate ? new Date(project.deliveryDate).toLocaleDateString() : "-"}
+          {project.deliveryDate ? format(new Date(project.deliveryDate), "dd/MM/yyyy") : "-"}
         </div>
       ),
     }
@@ -129,7 +132,7 @@ export const projectConfig: EntityConfig<ProjectWithRelations> = {
       
       <div className="flex flex-wrap gap-2 items-center text-xs text-zinc-400 justify-between">
         <span className="font-mono">{project.projectCode}</span>
-        {project.deliveryDate && <span>Due: {new Date(project.deliveryDate).toLocaleDateString()}</span>}
+        {project.deliveryDate && <span>Due: {format(new Date(project.deliveryDate), "dd/MM/yyyy")}</span>}
       </div>
 
       {project.assignedUsers && project.assignedUsers.length > 0 && (

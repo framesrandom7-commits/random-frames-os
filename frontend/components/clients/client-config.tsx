@@ -93,10 +93,11 @@ export const clientConfig: EntityConfig<Client> = {
       label: "Business Type",
       type: "select",
       options: [
-        { label: "B2B", value: "B2B" },
-        { label: "B2C", value: "B2C" },
-        { label: "D2C", value: "D2C" },
-        { label: "OTHER", value: "OTHER" },
+        { label: "Corporate", value: "CORPORATE" },
+        { label: "Wedding", value: "WEDDING" },
+        { label: "Fashion", value: "FASHION" },
+        { label: "Real Estate", value: "REAL_ESTATE" },
+        { label: "Events", value: "EVENTS" },
       ]
     },
     {

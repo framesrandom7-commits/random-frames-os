@@ -4,6 +4,7 @@ import { CalendarEventType, CalendarEventStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { CalendarService } from "@/domain/services/CalendarService";
 import { GlobalErrorService } from "@/lib/core/errors/global-error.service";
+import { prisma } from "@/lib/prisma";
 
 export async function getCalendarEvents(params?: {
   dateStart?: string;
@@ -39,7 +40,8 @@ export async function createCalendarEvent(data: {
   try {
     const event = await CalendarService.createEvent(data);
     revalidatePath("/calendar");
-    return event;
+    if (data.clientId) revalidatePath(`/clients/${data.clientId}/workspace`);
+    return { success: true, event };
   } catch (error) {
     console.error("Error in createCalendarEvent:", error);
     return GlobalErrorService.handleError(error, "Action:createCalendarEvent");
@@ -48,26 +50,13 @@ export async function createCalendarEvent(data: {
 
 export async function updateCalendarEvent(
   id: string,
-  data: Partial<{
-    title: string;
-    date: Date;
-    startTime: string | null;
-    endTime: string | null;
-    isAllDay: boolean;
-    eventType: CalendarEventType;
-    status: CalendarEventStatus;
-    color: string | null;
-    clientId: string | null;
-    projectId: string | null;
-    shootId: string | null;
-    leadId: string | null;
-    notes: string | null;
-  }>
+  data: any
 ) {
   try {
     const event = await CalendarService.updateEvent(id, data);
     revalidatePath("/calendar");
-    return event;
+    if (event.clientId) revalidatePath(`/clients/${event.clientId}/workspace`);
+    return { success: true, event };
   } catch (error) {
     console.error("Error in updateCalendarEvent:", error);
     return GlobalErrorService.handleError(error, "Action:updateCalendarEvent");
@@ -76,8 +65,11 @@ export async function updateCalendarEvent(
 
 export async function deleteCalendarEvent(id: string) {
   try {
+    const event = await prisma.calendarEvent.findUnique({ where: { id }});
     await CalendarService.deleteEvent(id);
     revalidatePath("/calendar");
+    if (event?.clientId) revalidatePath(`/clients/${event.clientId}/workspace`);
+    return { success: true };
   } catch (error) {
     console.error("Error in deleteCalendarEvent:", error);
     return GlobalErrorService.handleError(error, "Action:deleteCalendarEvent");

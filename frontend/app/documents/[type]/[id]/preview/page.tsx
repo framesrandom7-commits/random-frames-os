@@ -31,13 +31,22 @@ export default async function DocumentPreviewPage(props: {
   }
 
   return (
-    <div className="bg-[#E6E6E6] min-h-screen py-8 print:py-0 print:bg-white flex items-center justify-center">
-      <DocumentEngine 
-        type={docType}
-        data={documentData.data}
-        companyInfo={documentData.companyInfo}
-        paymentInfo={documentData.paymentInfo}
-      />
+    <div className="bg-transparent m-0 p-0 overflow-hidden w-screen h-screen flex justify-center">
+      <div 
+        className="origin-top-left sm:origin-top transition-transform"
+        style={{
+          width: '210mm',
+          height: '297mm',
+          transform: 'scale(calc(100vw / 793.7))',
+        }}
+      >
+        <DocumentEngine 
+          type={docType}
+          data={documentData.data}
+          companyInfo={documentData.companyInfo}
+          paymentInfo={documentData.paymentInfo}
+        />
+      </div>
     </div>
   );
 }

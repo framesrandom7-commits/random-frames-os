@@ -1,6 +1,7 @@
 import { ClientRepository, GetClientsParams } from "../repositories/ClientRepository";
 import { CreateClientData, OnboardClientData } from "@/app/actions/client";
 import { prisma } from "@/lib/prisma";
+import { ProjectService } from "./ProjectService";
 
 export class ClientService {
   static async getDashboardRecentClients(limit: number = 5) {
@@ -10,7 +11,7 @@ export class ClientService {
   static async generateCode(): Promise<string> {
     const count = await prisma.client.count();
     const sequential = (count + 1).toString().padStart(3, '0');
-    return `RF-${sequential}`;
+    return `RF-C${sequential}`;
   }
 
   static async create(data: CreateClientData & { commercialAgreement?: any }) {
@@ -120,7 +121,7 @@ export class ClientService {
     if (lead.convertedToClientId) throw new Error("Lead already converted");
 
     const clientCode = await ClientService.generateCode();
-    const projectCode = `PRJ${new Date().getTime().toString().slice(-6)}`;
+    const projectCode = await ProjectService.generateCode();
 
     const result = await prisma.$transaction(async (tx: any) => {
       let combinedNotes = data.clientNotes || "";

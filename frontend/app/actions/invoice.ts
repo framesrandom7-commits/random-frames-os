@@ -214,3 +214,20 @@ export async function convertQuotationToInvoice(quotationId: string) {
 }
 
 export type InvoiceWithRelations = NonNullable<Awaited<ReturnType<typeof getInvoice>>>;
+
+export async function deleteMultipleInvoices(ids: string[]) {
+  try {
+    await checkFinanceRbac();
+    
+    await prisma.invoice.deleteMany({
+      where: { id: { in: ids } },
+    });
+    
+    revalidatePath("/finance/invoices");
+    revalidatePath("/finance");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting multiple invoices:", error);
+    return { success: false, error: "Failed to delete invoices" };
+  }
+}

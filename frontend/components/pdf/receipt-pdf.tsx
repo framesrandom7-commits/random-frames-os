@@ -185,9 +185,22 @@ interface ReceiptPDFProps {
     website: string;
     gstin?: string;
   };
+  invoiceLogo?: string;
+  paymentInfo?: {
+    acceptUpi: boolean;
+    upiId: string;
+    upiQrUrl?: string;
+    acceptBankTransfer: boolean;
+    bankName: string;
+    accountHolder: string;
+    accountNumber: string;
+    ifscCode: string;
+  };
+  currency?: string;
+  invoiceFooterNotes?: string;
 }
 
-export function ReceiptPDF({ payment, companyInfo }: ReceiptPDFProps) {
+export function ReceiptPDF({ payment, companyInfo, paymentInfo, invoiceLogo, currency = "INR", invoiceFooterNotes }: ReceiptPDFProps) {
   const { invoice, client } = payment;
 
   const formatDate = (dateString: string | Date) => {
@@ -212,7 +225,7 @@ export function ReceiptPDF({ payment, companyInfo }: ReceiptPDFProps) {
 
   return (
     <Document>
-      <PDFLayout documentTitle="PAYMENT RECEIPT" metaInfo={metaInfo} companyInfo={companyInfo}>
+      <PDFLayout documentTitle="PAYMENT RECEIPT" metaInfo={metaInfo} companyInfo={companyInfo} invoiceLogo={invoiceLogo}>
         
         {/* Received From & Received By */}
         <View style={{ flexDirection: "row", gap: 30 }}>
@@ -242,8 +255,8 @@ export function ReceiptPDF({ payment, companyInfo }: ReceiptPDFProps) {
             <View style={styles.detailsBox}>
               <View style={styles.detailsRow}><Text style={styles.detailsLabel}>Invoice Number</Text><Text style={styles.detailsValue}>:</Text><Text style={[styles.detailsValue, {flex: 1, textAlign: "right"}]}>{invoice?.invoiceNumber || "-"}</Text></View>
               <View style={styles.detailsRow}><Text style={styles.detailsLabel}>Invoice Date</Text><Text style={styles.detailsValue}>:</Text><Text style={[styles.detailsValue, {flex: 1, textAlign: "right"}]}>{formatDate(invoice?.issueDate)}</Text></View>
-              <View style={styles.detailsRow}><Text style={styles.detailsLabel}>Total Amount (₹)</Text><Text style={styles.detailsValue}>:</Text><Text style={[styles.detailsValue, {flex: 1, textAlign: "right"}]}>{totalAmount.toLocaleString('en-IN')}</Text></View>
-              <View style={styles.detailsRow}><Text style={styles.detailsLabel}>Amount Received (₹)</Text><Text style={styles.detailsValue}>:</Text><Text style={[styles.detailsValue, {flex: 1, textAlign: "right"}]}>{amountReceived.toLocaleString('en-IN')}</Text></View>
+              <View style={styles.detailsRow}><Text style={styles.detailsLabel}>Total Amount ({currencySymbol})</Text><Text style={styles.detailsValue}>:</Text><Text style={[styles.detailsValue, {flex: 1, textAlign: "right"}]}>{totalAmount.toLocaleString('en-US')}</Text></View>
+              <View style={styles.detailsRow}><Text style={styles.detailsLabel}>Amount Received ({currencySymbol})</Text><Text style={styles.detailsValue}>:</Text><Text style={[styles.detailsValue, {flex: 1, textAlign: "right"}]}>{amountReceived.toLocaleString('en-US')}</Text></View>
               <View style={styles.detailsRow}><Text style={styles.detailsLabel}>Amount in Words</Text><Text style={styles.detailsValue}>:</Text><Text style={[styles.detailsValue, {flex: 1, textAlign: "right"}]}>Rupees {CurrencyService.numberToWords(amountReceived)} Only</Text></View>
               <View style={styles.detailsRow}><Text style={styles.detailsLabel}>Payment Mode</Text><Text style={styles.detailsValue}>:</Text><Text style={[styles.detailsValue, {flex: 1, textAlign: "right"}]}>{payment.paymentMethod || "Bank Transfer"}</Text></View>
               <View style={styles.detailsRow}><Text style={styles.detailsLabel}>Reference / Transaction ID</Text><Text style={styles.detailsValue}>:</Text><Text style={[styles.detailsValue, {flex: 1, textAlign: "right"}]}>{payment.referenceNumber || "-"}</Text></View>
@@ -256,19 +269,19 @@ export function ReceiptPDF({ payment, companyInfo }: ReceiptPDFProps) {
             <View style={styles.summaryBox}>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Subtotal</Text>
-                <Text style={styles.summaryValue}>₹ {totalAmount.toLocaleString('en-IN')}</Text>
+                <Text style={styles.summaryValue}>{currencySymbol} {totalAmount.toLocaleString('en-US')}</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Discount</Text>
-                <Text style={[styles.summaryValue, { color: theme.colors.primary }]}>- ₹ 0</Text>
+                <Text style={[styles.summaryValue, { color: theme.colors.primary }]}>- {currencySymbol} 0</Text>
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Tax (If Applicable)</Text>
-                <Text style={styles.summaryValue}>₹ 0</Text>
+                <Text style={styles.summaryValue}>{currencySymbol} 0</Text>
               </View>
               <View style={styles.grandTotalBox}>
                 <Text style={styles.grandTotalLabel}>GRAND TOTAL</Text>
-                <Text style={styles.grandTotalValue}>₹ {amountReceived.toLocaleString('en-IN')}</Text>
+                <Text style={styles.grandTotalValue}>{currencySymbol} {amountReceived.toLocaleString('en-US')}</Text>
               </View>
             </View>
           </View>
@@ -280,8 +293,8 @@ export function ReceiptPDF({ payment, companyInfo }: ReceiptPDFProps) {
             <PDFIcons.BigGreenCheck />
             <View style={styles.confirmTextCol}>
               <Text style={styles.confirmTextSmall}>We hereby confirm that we have received the amount of</Text>
-              <Text style={styles.confirmAmount}>₹ {amountReceived.toLocaleString('en-IN')}</Text>
-              <Text style={styles.confirmTextSmall}>(Rupees {amountReceived} Only) from the above client.</Text>
+              <Text style={styles.confirmAmount}>{currencySymbol} {amountReceived.toLocaleString('en-US')}</Text>
+              <Text style={styles.confirmTextSmall}>(Amount: {amountReceived} Only) from the above client.</Text>
             </View>
           </View>
 
@@ -298,10 +311,14 @@ export function ReceiptPDF({ payment, companyInfo }: ReceiptPDFProps) {
             <Text style={{ fontSize: 10, fontWeight: 700, color: theme.colors.textDark, marginBottom: 15 }}>PAYMENT INFORMATION</Text>
             <View style={styles.paymentInfoBox}>
               <PDFInfoRow icon={null} label="Payment Method" value={payment.paymentMethod || "Bank Transfer"} />
-              <PDFInfoRow icon={null} label="Bank Name" value="HDFC Bank" />
-              <PDFInfoRow icon={null} label="Account Number" value="50100XXXXXXX" />
-              <PDFInfoRow icon={null} label="IFSC Code" value="HDFC0000XXX" />
-              <PDFInfoRow icon={null} label="Account Holder" value="Savan Somaiah T P" />
+              {paymentInfo?.acceptBankTransfer && (
+                <>
+                  <PDFInfoRow icon={null} label="Bank Name" value={paymentInfo.bankName || "-"} />
+                  <PDFInfoRow icon={null} label="Account Number" value={paymentInfo.accountNumber || "-"} />
+                  <PDFInfoRow icon={null} label="IFSC Code" value={paymentInfo.ifscCode || "-"} />
+                  <PDFInfoRow icon={null} label="Account Holder" value={paymentInfo.accountHolder || "-"} />
+                </>
+              )}
             </View>
           </View>
 

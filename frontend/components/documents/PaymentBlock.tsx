@@ -6,42 +6,45 @@ export const PaymentBlock: React.FC<{
   paymentInfo: PaymentSettings;
 }> = ({ paymentInfo }) => {
   return (
-    <div className="border border-[#E6E6E6] rounded-xl p-5 h-full">
-      <div className="flex items-center gap-2 text-[#C1121F] font-bold mb-4 uppercase">
-        <CheckCircle2 size={18} /> PAYMENT INFORMATION
+    <div>
+      <div className="flex items-center gap-3 text-[#C1121F] font-bold mb-4">
+        <div className="border border-[#C1121F] rounded-full p-1.5 flex items-center justify-center">
+          <CheckCircle2 size={16} strokeWidth={2} /> 
+        </div>
+        <span className="uppercase text-black tracking-wide">PAYMENT INFORMATION</span>
       </div>
       
-      <div className="grid grid-cols-[130px_1fr] gap-y-3 text-sm">
+      <div className="grid grid-cols-[130px_1fr] gap-y-3 text-[11px]">
         {paymentInfo.acceptBankTransfer && (
           <>
-            <div className="text-zinc-500">Payment Method</div>
-            <div className="font-medium">: Bank Transfer</div>
+            <div className="text-[#111111]">Payment Method</div>
+            <div className="text-black font-medium">: &nbsp;&nbsp;&nbsp;Bank Transfer</div>
             
             {paymentInfo.bankName && (
               <>
-                <div className="text-zinc-500">Bank Name</div>
-                <div className="font-medium">: {paymentInfo.bankName}</div>
-              </>
-            )}
-            
-            {paymentInfo.accountNumber && (
-              <>
-                <div className="text-zinc-500">Account Number</div>
-                <div className="font-medium">: {paymentInfo.accountNumber}</div>
-              </>
-            )}
-            
-            {paymentInfo.ifscCode && (
-              <>
-                <div className="text-zinc-500">IFSC / SWIFT</div>
-                <div className="font-medium">: {paymentInfo.ifscCode}</div>
+                <div className="text-[#111111]">Bank Name</div>
+                <div className="text-black font-medium">: &nbsp;&nbsp;&nbsp;{paymentInfo.bankName}</div>
               </>
             )}
             
             {paymentInfo.accountHolder && (
               <>
-                <div className="text-zinc-500">Account Holder</div>
-                <div className="font-medium">: {paymentInfo.accountHolder}</div>
+                <div className="text-[#111111]">Account Holder</div>
+                <div className="text-black font-medium">: &nbsp;&nbsp;&nbsp;{paymentInfo.accountHolder}</div>
+              </>
+            )}
+            
+            {paymentInfo.accountNumber && (
+              <>
+                <div className="text-[#111111]">Account Number</div>
+                <div className="text-black font-medium">: &nbsp;&nbsp;&nbsp;{paymentInfo.accountNumber}</div>
+              </>
+            )}
+            
+            {paymentInfo.ifscCode && (
+              <>
+                <div className="text-[#111111]">IFSC</div>
+                <div className="text-black font-medium">: &nbsp;&nbsp;&nbsp;{paymentInfo.ifscCode}</div>
               </>
             )}
           </>
@@ -49,15 +52,15 @@ export const PaymentBlock: React.FC<{
         
         {(!paymentInfo.acceptBankTransfer && paymentInfo.acceptUpi) && (
           <>
-            <div className="text-zinc-500">Payment Method</div>
-            <div className="font-medium">: UPI</div>
+            <div className="text-[#111111]">Payment Method</div>
+            <div className="text-black font-medium">: &nbsp;&nbsp;&nbsp;UPI</div>
           </>
         )}
         
         {paymentInfo.acceptUpi && paymentInfo.upiId && (
           <>
-            <div className="text-zinc-500">UPI ID</div>
-            <div className="font-medium">: {paymentInfo.upiId}</div>
+            <div className="text-[#111111]">UPI ID</div>
+            <div className="text-black font-medium">: &nbsp;&nbsp;&nbsp;{paymentInfo.upiId}</div>
           </>
         )}
       </div>

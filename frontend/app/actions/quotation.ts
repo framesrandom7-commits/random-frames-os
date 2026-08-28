@@ -6,6 +6,8 @@ import { NumberGenerator } from "@/lib/finance/number-generator.service";
 import { FinanceService } from "@/domain/services/FinanceService";
 import { checkFinanceRbac, checkFounderRbac } from "./rbac";
 import { FinanceRbacEngine } from "@/domain/finance/finance-rbac";
+import { prisma } from "@/lib/prisma";
+
 
 export type QuotationItemData = {
   description: string;
@@ -203,5 +205,39 @@ export async function createQuickApprovedQuotation(data: { clientId: string, dis
   } catch (error: any) {
     console.error("Error creating quick quotation:", error);
     return { success: false, error: "Failed to create quick quotation" };
+  }
+}
+
+export async function deleteQuotation(id: string) {
+  try {
+    await checkFinanceRbac();
+    
+    await prisma.quotation.delete({
+      where: { id },
+    });
+    
+    revalidatePath("/finance/quotations");
+    revalidatePath("/finance");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting quotation:", error);
+    return { success: false, error: "Failed to delete quotation" };
+  }
+}
+
+export async function deleteMultipleQuotations(ids: string[]) {
+  try {
+    await checkFinanceRbac();
+    
+    await prisma.quotation.deleteMany({
+      where: { id: { in: ids } },
+    });
+    
+    revalidatePath("/finance/quotations");
+    revalidatePath("/finance");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting multiple quotations:", error);
+    return { success: false, error: "Failed to delete quotations" };
   }
 }

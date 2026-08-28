@@ -44,8 +44,21 @@ export function ClientWorkspaceWidget({ clientId, email, phone, businessName, dr
     toast.info("Displaying scheduled shoots and meetings on Google Calendar.");
   };
 
+  const handleOpenPortal = () => {
+    // Navigating internally using Next.js router would be better, but window.open in same tab works, or we can use next/navigation
+    window.location.href = `/clients/${clientId}/workspace`;
+    toast.info("Launching Client Workspace.");
+  };
+
   return (
     <div className="space-y-3">
+      <Button
+        onClick={handleOpenPortal}
+        className="w-full flex items-center justify-center gap-2 h-14 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/20 transition-all"
+      >
+        <ExternalLink className="w-5 h-5" />
+        Open Client Workspace
+      </Button>
       <div className="grid grid-cols-2 gap-3">
         <Button
           onClick={handleEmailClient}

@@ -143,9 +143,13 @@ interface QuotationPDFProps {
     website: string;
     gstin?: string;
   };
+  invoiceLogo?: string;
+  currency?: string;
+  taxPercentage?: string;
+  invoiceFooterNotes?: string;
 }
 
-export function QuotationPDF({ quotation, companyInfo }: QuotationPDFProps) {
+export function QuotationPDF({ quotation, companyInfo, invoiceLogo, currency = "INR", taxPercentage = "0", invoiceFooterNotes }: QuotationPDFProps) {
   const { client, project, items } = quotation;
 
   const formatDate = (dateString: Date) => {
@@ -163,19 +167,21 @@ export function QuotationPDF({ quotation, companyInfo }: QuotationPDFProps) {
     { icon: <PDFIcons.Tag size={12} />, label: "Status", value: quotation.status, isStatus: true, statusColor: quotation.status === 'ACCEPTED' ? '#10B981' : theme.colors.primary },
   ];
 
-  const tableItems = items.length > 0 ? items.map(item => ({
+  const currencySymbol = currency === "USD" ? "$" : currency === "EUR" ? "€" : "₹";
+
+  const tableItems = items && items.length > 0 ? items.map(item => ({
     service: item.description,
-    qty: item.quantity,
+    qty: item.quantity || 1,
     unit: "Unit",
-    rate: Number(item.unitPrice).toLocaleString('en-IN'),
-    amount: Number(item.total).toLocaleString('en-IN')
+    rate: Number(item.unitPrice || item.total).toLocaleString('en-US'),
+    amount: Number(item.total).toLocaleString('en-US')
   })) : [
     {
-      service: "Professional Services",
+      service: project?.title || "Professional Services",
       qty: "1",
       unit: "Service",
-      rate: Number(quotation.subtotal).toLocaleString('en-IN'),
-      amount: Number(quotation.subtotal).toLocaleString('en-IN')
+      rate: Number(quotation.subtotal).toLocaleString('en-US'),
+      amount: Number(quotation.subtotal).toLocaleString('en-US')
     }
   ];
 
@@ -186,7 +192,7 @@ export function QuotationPDF({ quotation, companyInfo }: QuotationPDFProps) {
 
   return (
     <Document>
-      <PDFLayout documentTitle="QUOTATION" metaInfo={metaInfo} companyInfo={companyInfo}>
+      <PDFLayout documentTitle="QUOTATION" metaInfo={metaInfo} companyInfo={companyInfo} invoiceLogo={invoiceLogo}>
         
         {/* Client & Project Info */}
         <View style={{ flexDirection: "row", gap: 30 }}>
@@ -232,19 +238,19 @@ export function QuotationPDF({ quotation, companyInfo }: QuotationPDFProps) {
           <View style={styles.summaryCol}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>₹ {Number(quotation.subtotal).toLocaleString('en-IN')}</Text>
+              <Text style={styles.summaryValue}>{currencySymbol} {Number(quotation.subtotal).toLocaleString('en-US')}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Discount</Text>
-              <Text style={[styles.summaryValue, { color: theme.colors.primary }]}>- ₹ {Number(quotation.discount || 0).toLocaleString('en-IN')}</Text>
+              <Text style={[styles.summaryValue, { color: theme.colors.primary }]}>- {currencySymbol} {Number(quotation.discount || 0).toLocaleString('en-US')}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Tax (If Applicable)</Text>
-              <Text style={styles.summaryValue}>₹ {Number(quotation.tax || 0).toLocaleString('en-IN')}</Text>
+              <Text style={styles.summaryLabel}>Tax ({taxPercentage}%)</Text>
+              <Text style={styles.summaryValue}>{currencySymbol} {Number(quotation.tax || 0).toLocaleString('en-US')}</Text>
             </View>
             <View style={styles.grandTotalBox}>
               <Text style={styles.grandTotalLabel}>GRAND TOTAL</Text>
-              <Text style={styles.grandTotalValue}>₹ {Number(quotation.total).toLocaleString('en-IN')}</Text>
+              <Text style={styles.grandTotalValue}>{currencySymbol} {Number(quotation.total).toLocaleString('en-US')}</Text>
             </View>
           </View>
         </View>
@@ -253,7 +259,7 @@ export function QuotationPDF({ quotation, companyInfo }: QuotationPDFProps) {
         <View style={styles.bottomSection}>
           <View style={styles.bottomCol}>
             <PDFSectionTitle icon={<PDFIcons.DocumentRed />} title="TERMS & CONDITIONS" />
-            {(quotation.termsAndConditions || "50% advance to confirm booking.\nCancellation after confirmation may incur charges.\nQuotation is valid for 7 days from the date of issue.").split('\n').map((term, idx) => (
+            {(quotation.termsAndConditions || invoiceFooterNotes || "50% advance to confirm booking.\nCancellation after confirmation may incur charges.\nQuotation is valid for 7 days from the date of issue.").split('\n').map((term, idx) => (
                <View key={idx} style={styles.termsText}>
                  <PDFIcons.DotRed />
                  <Text>{term}</Text>

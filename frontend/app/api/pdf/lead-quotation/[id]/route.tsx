@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { renderToStream } from "@react-pdf/renderer";
 import { LeadQuotationPDF } from "@/components/pdf/lead-quotation-pdf";
-
+import { getSettings } from "@/app/actions/settings";
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -18,7 +18,9 @@ export async function GET(
       return new NextResponse("Lead not found", { status: 404 });
     }
 
-    const stream = await renderToStream(<LeadQuotationPDF lead={lead} />);
+    const { invoiceLogo } = await getSettings();
+
+    const stream = await renderToStream(<LeadQuotationPDF lead={lead} invoiceLogo={invoiceLogo as string} />);
     
     // Convert NodeJS ReadableStream to Web ReadableStream
     const readableStream = new ReadableStream({

@@ -77,6 +77,7 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
         subtitle={client.contactPerson && <span className="text-sm text-zinc-400">{client.contactPerson}</span>}
         action={
           <div className="flex items-center gap-3">
+
             <WhatsAppButton 
               variant="outline" 
               className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 h-8 text-sm px-3"
@@ -197,6 +198,7 @@ export default async function ClientDetailsPage({ params }: { params: Promise<{ 
                     clients={clients} 
                     projects={projects}
                     total={shootData.total}
+                    variant="list"
                   />
               </ModuleDetailsSection>
 

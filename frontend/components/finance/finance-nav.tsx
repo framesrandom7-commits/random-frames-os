@@ -3,17 +3,17 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, Receipt, PieChart } from "lucide-react";
+import { LayoutDashboard, FileText, FileSignature, Banknote, CreditCard } from "lucide-react";
 
 export default function FinanceNav() {
   const pathname = usePathname();
 
   const navItems = [
     { name: "Overview", href: "/finance", icon: LayoutDashboard },
-    { name: "Quotations", href: "/finance/quotations", icon: FileText },
+    { name: "Quotations", href: "/finance/quotations", icon: FileSignature },
     { name: "Invoices", href: "/finance/invoices", icon: FileText },
-    { name: "Payments", href: "/finance/payments", icon: Receipt },
-    { name: "Expenses", href: "/finance/expenses", icon: Receipt },
+    { name: "Payments", href: "/finance/payments", icon: Banknote },
+    { name: "Expenses", href: "/finance/expenses", icon: CreditCard },
   ];
 
   return (
